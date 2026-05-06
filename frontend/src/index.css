@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+:root {
+  --text: #fff;
+  --text-h: #08060d;
+  --bg: #0A0A0A;
+  --h3: #ADAAAA;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: linear-gradient(to right, #B8FFE9, #02FFD4);
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --inter: 'Inter', sans-serif;
+  --heading: var(--inter);
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--inter);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #1e1f27;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 72px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+
+h3 {
+  color: var(--h3);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 16px;
+  /* 133.333% */
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+.inter {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+button {
+  /* Propriedades do seu design: */
+  padding-top: 16.5px;
+  padding-bottom: 17.5px;
+  width: 375px;
+  /* Substituímos o padding lateral gigante por uma largura fixa */
+  max-width: 100%;
+  /* Garante que não vaze em celulares muito fininhos */
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+  outline: 1px solid rgba(255, 255, 255, 0.10);
+  outline-offset: -1px;
+  justify-content: center;
+  align-items: center;
+  display: inline-flex;
+
+  /* Textos: */
+  color: white;
+  font-size: 18px;
+  font-family: var(--inter);
+  font-weight: 700;
+  line-height: 28px;
+  word-wrap: break-word;
+
+  /* Padrões base para botões da web: */
+  border: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+input {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 400;
+  display: flex;
+  padding: 18px 48px 18px 48px;
+  border-radius: 16px;
+  background-color: #000000;
+  outline: 1px solid rgba(255, 255, 255, 0.10);
+  border: none;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.input-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-align: left;
+}
+
+.input-box {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+.input-box svg {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ADAAAA;
+  font-size: 24px;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* O contêiner de opções (fundo glassmórfico dos botões) */
+.options {
+  background: rgba(14, 14, 14, 0.60);
+  /* Fundo semitransparente que estava no seu código original */
+  backdrop-filter: blur(20px);
+  /* Efeito de desfoque estilo vidro */
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+  /* Sombra */
+  border-radius: 48px;
+  /* Bordas super arredondadas */
+  outline: 1px solid rgba(255, 255, 255, 0.10);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  /* Espaço entre os botões */
+  width: 100%;
+  max-width: 400px;
+  margin-top: 32px;
+}
+
+/* Modificador para herdar layout de options mas remover o visual de vidro */
+.options.transparent {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  outline: none;
+  padding: 0;
+}
