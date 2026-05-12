@@ -22,7 +22,7 @@ public interface MusicMapper {
     @Mapping(target = "album", source = "album")
     MusicDetailsResponseDTO toDetailsDTO(Music music);
 
-    @Mapping(target = "bio", source = "biografia")
+    @Mapping(target = "bio", source = "bio")
     ArtistaResponseDTO toArtistaDTO(Artist artist);
 
     @Mapping(target = "capaUrl", source = "capaUrl")

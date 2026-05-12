@@ -1,0 +1,25 @@
+package br.com.deefy.mapper;
+
+import br.com.deefy.dto.response.PlaylistResponseDTO;
+import br.com.deefy.dto.response.MusicDetailsResponseDTO;
+import br.com.deefy.model.Playlist;
+import br.com.deefy.model.Music;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import java.util.List;
+
+@Mapper(componentModel = "spring")
+public interface PlaylistMapper {
+
+    // O MapStruct mapeia 'id', 'name' e 'publica' automaticamente.
+    // Ele também buscará um metodo para converter a lista de Music para MusicDetailsResponseDTO.
+    PlaylistResponseDTO toResponseDTO(Playlist playlist);
+
+    // Mapeamento específico para a música, ajustando os nomes dos campos
+    // Exemplo: se na sua Entity Music o campo for 'title', mas no DTO for 'titulo'
+    @Mapping(source = "title", target = "titulo") // Ajuste conforme os campos da sua classe Music
+    MusicDetailsResponseDTO toMusicDTO(Music music);
+
+    List<MusicDetailsResponseDTO> toMusicDTOList(List<Music> tracks);
+}
