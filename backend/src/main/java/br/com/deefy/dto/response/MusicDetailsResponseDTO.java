@@ -1,6 +1,6 @@
 package br.com.deefy.dto.response;
 
-public record DetalhesMusicaResponseDTO (
+public record MusicDetailsResponseDTO(
         Long id,
         String titulo,
         String genero,

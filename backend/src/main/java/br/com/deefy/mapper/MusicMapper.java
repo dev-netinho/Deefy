@@ -3,7 +3,7 @@ package br.com.deefy.mapper;
 
 import br.com.deefy.dto.response.AlbumResponseDTO;
 import br.com.deefy.dto.response.ArtistaResponseDTO;
-import br.com.deefy.dto.response.DetalhesMusicaResponseDTO;
+import br.com.deefy.dto.response.MusicDetailsResponseDTO;
 import br.com.deefy.model.Album;
 import br.com.deefy.model.Artist;
 import br.com.deefy.model.Music;
@@ -12,7 +12,7 @@ import org.mapstruct.Mapping;
 
 
 @Mapper(componentModel = "spring")
-public interface MusicaMapper {
+public interface MusicMapper {
 
     @Mapping(target = "titulo", source = "title")
     @Mapping(target = "genero", source = "genre")
@@ -20,9 +20,9 @@ public interface MusicaMapper {
     @Mapping(target = "capaUrl", source = "coverUrl")
     @Mapping(target = "artista", source = "album.artist")
     @Mapping(target = "album", source = "album")
-    DetalhesMusicaResponseDTO detalhesDTO (Music music);
+    MusicDetailsResponseDTO toDetailsDTO(Music music);
 
-    @Mapping(target = "bio", source = "bio")
+    @Mapping(target = "bio", source = "biografia")
     ArtistaResponseDTO toArtistaDTO(Artist artist);
 
     @Mapping(target = "capaUrl", source = "capaUrl")

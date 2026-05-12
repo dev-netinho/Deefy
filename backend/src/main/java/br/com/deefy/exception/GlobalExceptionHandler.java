@@ -10,8 +10,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(MusicaNaoEncontradaException.class)
-    public ResponseEntity<Map<String, Object>> handleMusicaNaoEncontradaException(MusicaNaoEncontradaException ex) {
+    @ExceptionHandler(MusicNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleMusicaNaoEncontradaException(MusicNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                 "status", 404,
                 "erro", "Música não encontrada",
