@@ -1,7 +1,8 @@
 import {
   MdOutlineRemoveRedEye,
   MdOutlineEmail,
-  MdOutlineLock
+  MdOutlineLock,
+  MdOutlineVisibilityOff
 } from "react-icons/md";
 import { FaChevronRight, FaGoogle } from "react-icons/fa";
 import logo from "../assets/logo.svg";
@@ -11,18 +12,19 @@ import api from "../services/api";
 import { setToken } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { showMusicError, showMusicSuccess } from "../utils/musicToast";
 
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
+    if (!email.trim()) return "O palco precisa do seu e-mail!";
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return "Insira um e-mail válido.";
-    if (!password) return "A senha é obrigatória.";
+    if (!emailRegex.test(email)) return "E-mail desafinado! Verifique o endereco.";
+    if (!password) return "Entrada sem ingresso VIP! A senha e obrigatoria.";
     return null;
   };
 
@@ -30,11 +32,9 @@ function Login() {
     const validationError = validate();
 
     if (validationError) {
-      setError(validationError);
+      showMusicError(validationError);
       return;
     }
-
-    setError("");
 
     try {
       const response = await api.post("/api/v1/auth/login", {
@@ -45,13 +45,13 @@ function Login() {
 
       if (token) {
         setToken(token);
-        alert("Login efetuado com sucesso!");
+        showMusicSuccess("Acesso liberado aos bastidores!");
         navigate("/home");
       } else {
-        setError("O servidor não retornou um token de acesso.");
+        showMusicError("Musica pausada: o servidor nao retornou um token de acesso.");
       }
     } catch (err) {
-      setError(err.message || "Erro ao tentar fazer login.");
+      showMusicError(err.message || "Erro de conexao ao palco. Tente novamente.");
     }
   };
 
@@ -73,8 +73,9 @@ function Login() {
             <div className="login-input-box">
               <MdOutlineEmail className="login-input-icon" />
               <input
-                type="text"
+                type="email"
                 placeholder="seu@email.com"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -88,13 +89,21 @@ function Login() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <MdOutlineRemoveRedEye
-                className="login-input-eye"
-                onClick={() => setShowPassword(!showPassword)}
-              />
+              {showPassword ? (
+                <MdOutlineRemoveRedEye
+                  className="login-input-eye"
+                  onClick={() => setShowPassword(false)}
+                />
+              ) : (
+                <MdOutlineVisibilityOff
+                  className="login-input-eye"
+                  onClick={() => setShowPassword(true)}
+                />
+              )}
             </div>
 
             <p
@@ -104,8 +113,6 @@ function Login() {
               Esqueci minha senha
             </p>
           </div>
-
-          {error && <p className="login-error">{error}</p>}
 
           <button className="login-button-primary" onClick={handleSubmit}>
             Entrar <FaChevronRight />

@@ -1,9 +1,10 @@
 import {
   MdOutlineRemoveRedEye,
   MdOutlineEmail,
-  MdOutlineLock
+  MdOutlineLock,
+  MdOutlineVisibilityOff
 } from "react-icons/md";
-import { FaChevronRight, FaGoogle } from "react-icons/fa";
+import { FaChevronRight, FaGoogle, FaUser } from "react-icons/fa";
 import logo from "../assets/logo.svg";
 import background from "../assets/background.jpg";
 import { useState } from "react";
@@ -11,37 +12,72 @@ import "./Registration.css";
 import api from "../services/api";
 import { setToken } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
+import { showMusicError, showMusicSuccess } from "../utils/musicToast";
 
 function Registration() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const calculatePasswordStrength = (pass) => {
+    let score = 0;
+    if (pass.length >= 8) score++;
+    if (/[a-z]/.test(pass)) score++;
+    if (/[A-Z]/.test(pass)) score++;
+    if (/\d/.test(pass)) score++;
+    if (/[^A-Za-z0-9]/.test(pass)) score++;
+
+    if (score < 3) return { width: "33%", color: "#ff5d5d" };
+    if (score < 5) return { width: "66%", color: "#ffd700" };
+    return { width: "100%", color: "#39f0d0" };
+  };
 
   const validate = () => {
+    const allowedSymbols = /[^A-Za-z0-9]/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    if (!fullName.trim()) return "O nome completo é obrigatório.";
-    if (!emailRegex.test(email)) return "Insira um e-mail válido.";
-    if (!passwordRegex.test(password)) {
-      return "Senha fraca! Use pelo menos 8 caracteres, com letras maiúsculas, minúsculas, números e símbolos.";
-    }
+    if (!fullName.trim()) return "O nome completo e obrigatorio na lista VIP.";
+    if (fullName.trim().length < 3) return "Seu nome precisa ter pelo menos 3 caracteres.";
+    if (!email.trim()) return "O palco precisa do seu e-mail!";
+    if (!emailRegex.test(email)) return "E-mail desafinado! Verifique o formato.";
+    if (!password) return "A senha e a chave do estudio. Nao pode ficar vazia!";
+    if (password.length < 8) return "Senha curta! Use pelo menos 8 caracteres.";
+    if (!/[A-Z]/.test(password)) return "Adicione uma letra maiuscula para fortalecer a senha.";
+    if (!/[a-z]/.test(password)) return "Adicione uma letra minuscula para fortalecer a senha.";
+    if (!/\d/.test(password)) return "Coloque um numero para marcar o ritmo da senha.";
+    if (!allowedSymbols.test(password)) return "Falta um simbolo especial para finalizar a senha.";
+    if (password !== confirmPassword) return "As senhas estao fora de sincronia. Tente novamente.";
     return null;
+  };
+
+  const verifyMXRecord = async (emailAddress) => {
+    try {
+      const domain = emailAddress.split("@")[1];
+      const response = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
+      const data = await response.json();
+      return Boolean(data.Answer && data.Answer.length > 0);
+    } catch {
+      return true;
+    }
   };
 
   const handleSubmit = async () => {
     const validationError = validate();
 
     if (validationError) {
-      setError(validationError);
+      showMusicError(validationError);
       return;
     }
 
-    setError("");
+    const hasMX = await verifyMXRecord(email);
+    if (!hasMX) {
+      showMusicError("Este dominio de e-mail nao parece receber mensagens. Tente outro.");
+      return;
+    }
 
     try {
       const response = await api.post("/api/v1/auth/register", {
@@ -54,16 +90,18 @@ function Registration() {
 
       if (token) {
         setToken(token);
-        alert("Cadastro realizado! Login feito com sucesso.");
+        showMusicSuccess("Cadastro VIP realizado com sucesso!");
         navigate("/home");
       } else {
-        alert("Cadastro realizado com sucesso! Faça login para continuar.");
+        showMusicSuccess("Cadastro realizado! Faca login para continuar.");
         navigate("/login");
       }
     } catch (err) {
-      setError(err.message || "Erro ao tentar criar conta.");
+      showMusicError(err.message || "Erro nos bastidores ao tentar criar conta.");
     }
   };
+
+  const strength = calculatePasswordStrength(password);
 
   return (
     <div
@@ -81,6 +119,7 @@ function Registration() {
           <div className="registration-input-group">
             <h3>NOME COMPLETO</h3>
             <div className="registration-input-box registration-input-box-name">
+              <FaUser className="registration-input-icon" />
               <input
                 type="text"
                 placeholder="Insira seu nome"
@@ -95,8 +134,9 @@ function Registration() {
             <div className="registration-input-box">
               <MdOutlineEmail className="registration-input-icon" />
               <input
-                type="text"
+                type="email"
                 placeholder="seu@email.com"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -110,17 +150,56 @@ function Registration() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <MdOutlineRemoveRedEye
-                className="registration-input-eye"
-                onClick={() => setShowPassword(!showPassword)}
-              />
+              {showPassword ? (
+                <MdOutlineRemoveRedEye
+                  className="registration-input-eye"
+                  onClick={() => setShowPassword(false)}
+                />
+              ) : (
+                <MdOutlineVisibilityOff
+                  className="registration-input-eye"
+                  onClick={() => setShowPassword(true)}
+                />
+              )}
             </div>
+            {password && (
+              <div className="password-strength-container">
+                <div
+                  className="password-strength-bar"
+                  style={{ width: strength.width, backgroundColor: strength.color }}
+                ></div>
+              </div>
+            )}
           </div>
 
-          {error && <p className="registration-error">{error}</p>}
+          <div className="registration-input-group">
+            <h3>CONFIRMAR SENHA</h3>
+            <div className="registration-input-box">
+              <MdOutlineLock className="registration-input-icon" />
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              {showConfirmPassword ? (
+                <MdOutlineRemoveRedEye
+                  className="registration-input-eye"
+                  onClick={() => setShowConfirmPassword(false)}
+                />
+              ) : (
+                <MdOutlineVisibilityOff
+                  className="registration-input-eye"
+                  onClick={() => setShowConfirmPassword(true)}
+                />
+              )}
+            </div>
+          </div>
 
           <button className="registration-button-primary" onClick={handleSubmit}>
             Criar conta <FaChevronRight />
