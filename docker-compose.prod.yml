@@ -1,0 +1,74 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: deefy-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-deefy}
+      POSTGRES_USER: ${POSTGRES_USER:-deefy}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - deefy_postgres_data:/var/lib/postgresql/data
+      - ./database/scripts/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/scripts/insert.sql:/docker-entrypoint-initdb.d/02-insert.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - deefy-internal
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: deefy-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-deefy}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-deefy}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      SERVER_PORT: 8080
+    networks:
+      - deefy-internal
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.deefy-api.rule=Host(`${APP_HOST}`) && PathPrefix(`/api`)
+      - traefik.http.routers.deefy-api.entrypoints=websecure
+      - traefik.http.routers.deefy-api.tls=true
+      - traefik.http.routers.deefy-api.tls.certresolver=let-enc
+      - traefik.http.services.deefy-api.loadbalancer.server.port=8080
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: deefy-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.deefy-frontend.rule=Host(`${APP_HOST}`)
+      - traefik.http.routers.deefy-frontend.entrypoints=websecure
+      - traefik.http.routers.deefy-frontend.tls=true
+      - traefik.http.routers.deefy-frontend.tls.certresolver=let-enc
+      - traefik.http.services.deefy-frontend.loadbalancer.server.port=80
+
+volumes:
+  deefy_postgres_data:
+
+networks:
+  deefy-internal:
+    driver: bridge
+  traefik-public:
+    external: true
