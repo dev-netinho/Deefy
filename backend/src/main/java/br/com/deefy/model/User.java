@@ -27,11 +27,10 @@ public class User {
     @Column(nullable = false, length = 100)
     private String senha;
 
-    @Enumerated
-    @Column(name = "tipo_usuario")
+    @Transient
     private Tipo tipoUsuario;
 
-    @Column(name = "created_at")
+    @Transient
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.EAGER)
