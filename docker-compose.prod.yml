@@ -40,6 +40,7 @@ services:
       - traefik-public
     labels:
       - traefik.enable=true
+      - traefik.docker.network=traefik-public
       - traefik.http.routers.deefy-api.rule=Host(`${APP_HOST}`) && PathPrefix(`/api`)
       - traefik.http.routers.deefy-api.entrypoints=websecure
       - traefik.http.routers.deefy-api.tls=true
@@ -58,6 +59,7 @@ services:
       - traefik-public
     labels:
       - traefik.enable=true
+      - traefik.docker.network=traefik-public
       - traefik.http.routers.deefy-frontend.rule=Host(`${APP_HOST}`)
       - traefik.http.routers.deefy-frontend.entrypoints=websecure
       - traefik.http.routers.deefy-frontend.tls=true
