@@ -5,7 +5,7 @@ public record MusicDetailsResponseDTO(
         String titulo,
         String genero,
         int duracaoSegundos,
-        String previewURL,
+        String previewUrl,
         String capaUrl,
         ArtistaResponseDTO artista,
         AlbumResponseDTO album

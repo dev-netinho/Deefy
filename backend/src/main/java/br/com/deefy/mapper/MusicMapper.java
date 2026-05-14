@@ -18,14 +18,19 @@ public interface MusicMapper {
     @Mapping(target = "genero", source = "genre")
     @Mapping(target = "duracaoSegundos", source = "durationSeconds")
     @Mapping(target = "capaUrl", source = "coverUrl")
+    @Mapping(target = "previewUrl", source = "previewUrl")
     @Mapping(target = "artista", source = "album.artist")
     @Mapping(target = "album", source = "album")
     MusicDetailsResponseDTO toDetailsDTO(Music music);
 
-    @Mapping(target = "bio", source = "biografia")
+    @Mapping(target = "nome", source = "nome")
+    @Mapping(target = "bio", source = "bio")
+    @Mapping(target = "fotoUrl", source = "fotoUrl")
     ArtistaResponseDTO toArtistaDTO(Artist artist);
 
+    @Mapping(target = "titulo", source = "titulo")
     @Mapping(target = "capaUrl", source = "capaUrl")
+    @Mapping(target = "dataLancamento", source = "dataLancamento")
     AlbumResponseDTO toAlbumDTO(Album album);
-
 }
+
