@@ -51,7 +51,6 @@ public class MusicServiceTest {
 
     @Test
     void shouldThrowExceptionWhenMusicNotFound() {
-
         when(musicRepository.findByIdWithAlbumAndArtist(99L)).thenReturn(Optional.empty());
 
         MusicNotFoundException ex = assertThrows(
