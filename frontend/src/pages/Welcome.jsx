@@ -34,7 +34,7 @@ function Welcome() {
             className="button button-primary"
             onClick={() => navigate('/registration')}
           >
-            Começar Agora <span>→</span>
+            Começar Agora
           </button>
 
           <button

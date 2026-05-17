@@ -20,15 +20,18 @@ function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const validate = () => {
     if (!email.trim()) return "O palco precisa do seu e-mail!";
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return "E-mail desafinado! Verifique o endereco.";
-    if (!password) return "Entrada sem ingresso VIP! A senha e obrigatoria.";
+    if (!emailRegex.test(email)) return "E-mail desafinado! Verifique o endereço.";
+    if (!password) return "Entrada sem ingresso VIP! A senha é obrigatória.";
     return null;
   };
 
   const handleSubmit = async () => {
+    if (isLoading) return;
     const validationError = validate();
 
     if (validationError) {
@@ -36,11 +39,9 @@ function Login() {
       return;
     }
 
+    setIsLoading(true);
     try {
-      const response = await api.post("/api/v1/auth/login", {
-        email,
-        senha: password
-      });
+      const response = await api.post("/api/v1/auth/login", { email, senha: password });
       const token = response.data.token || response.data?.data?.token;
 
       if (token) {
@@ -48,10 +49,13 @@ function Login() {
         showMusicSuccess("Acesso liberado aos bastidores!");
         navigate("/home");
       } else {
-        showMusicError("Musica pausada: o servidor nao retornou um token de acesso.");
+        showMusicError("Música pausada: O servidor não retornou um token de acesso.");
       }
     } catch (err) {
-      showMusicError(err.message || "Erro de conexao ao palco. Tente novamente.");
+      const errorMessage = err.data?.message || err.data?.error || err.message || "Erro de conexão ao palco. Tente novamente.";
+      showMusicError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -78,6 +82,7 @@ function Login() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -92,6 +97,7 @@ function Login() {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
               {showPassword ? (
                 <MdOutlineRemoveRedEye
@@ -106,20 +112,25 @@ function Login() {
               )}
             </div>
 
-            <p
+            {/*<p
               className="login-forgot-password"
               onClick={() => navigate("/forgot-password")}
             >
               Esqueci minha senha
-            </p>
+            </p>*/}
           </div>
 
-          <button className="login-button-primary" onClick={handleSubmit}>
-            Entrar <FaChevronRight />
+          <button
+            className="login-button-primary"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
+          >
+            {isLoading ? "Afinando os instrumentos..." : <>Entrar <FaChevronRight /></>}
           </button>
         </div>
 
-        <div className="login-divider">
+        {/*<div className="login-divider">
           <div></div>
           <span>OU CONTINUE COM</span>
           <div></div>
@@ -127,7 +138,7 @@ function Login() {
 
         <button className="login-google-button">
           <FaGoogle />
-        </button>
+        </button>*/}
 
         <p className="login-register-text">
           Não possui uma conta?{" "}

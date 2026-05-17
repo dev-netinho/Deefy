@@ -1,0 +1,77 @@
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 54px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.search-bar--active,
+.search-bar:focus-within {
+  border-color: rgba(57, 240, 208, 0.4);
+  box-shadow: 0 0 0 4px rgba(57, 240, 208, 0.07);
+}
+
+.search-bar-icon {
+  position: absolute;
+  left: 16px;
+  font-size: 1.4rem;
+  color: #6a6a6a;
+  pointer-events: none;
+  transition: color 0.25s ease;
+  flex-shrink: 0;
+}
+
+.search-bar:focus-within .search-bar-icon {
+  color: #39f0d0;
+}
+
+.search-bar-input {
+  /* reset index.css globals */
+  all: unset;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0 48px 0 50px;
+  box-sizing: border-box;
+  font-size: 0.97rem;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  background: transparent;
+}
+
+.search-bar-input::placeholder {
+  color: #5a5a5a;
+}
+
+/* Hide native "clear" button from type=search in WebKit */
+.search-bar-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-bar-clear {
+  all: unset;
+  cursor: pointer;
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  color: #a0a0a0;
+  font-size: 1.1rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.search-bar-clear:hover {
+  background: rgba(255, 93, 93, 0.15);
+  color: #ff5d5d;
+}

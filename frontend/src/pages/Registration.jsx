@@ -22,6 +22,7 @@ function Registration() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const calculatePasswordStrength = (pass) => {
     let score = 0;
@@ -31,26 +32,28 @@ function Registration() {
     if (/\d/.test(pass)) score++;
     if (/[^A-Za-z0-9]/.test(pass)) score++;
 
-    if (score < 3) return { width: "33%", color: "#ff5d5d" };
-    if (score < 5) return { width: "66%", color: "#ffd700" };
-    return { width: "100%", color: "#39f0d0" };
+    if (score < 3) return { width: "33%", color: "#ff5d5d" }; // Weak (Red)
+    if (score < 5) return { width: "66%", color: "#ffd700" }; // Medium (Yellow)
+    return { width: "100%", color: "#39f0d0" }; // Strong (Green)
   };
 
   const validate = () => {
-    const allowedSymbols = /[^A-Za-z0-9]/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!fullName.trim()) return "O nome completo é obrigatório na lista VIP.";
+    if (fullName.trim().length < 3) return "Seu nome artístico precisa de pelo menos 3 caracteres.";
 
-    if (!fullName.trim()) return "O nome completo e obrigatorio na lista VIP.";
-    if (fullName.trim().length < 3) return "Seu nome precisa ter pelo menos 3 caracteres.";
     if (!email.trim()) return "O palco precisa do seu e-mail!";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) return "E-mail desafinado! Verifique o formato.";
-    if (!password) return "A senha e a chave do estudio. Nao pode ficar vazia!";
-    if (password.length < 8) return "Senha curta! Use pelo menos 8 caracteres.";
-    if (!/[A-Z]/.test(password)) return "Adicione uma letra maiuscula para fortalecer a senha.";
-    if (!/[a-z]/.test(password)) return "Adicione uma letra minuscula para fortalecer a senha.";
-    if (!/\d/.test(password)) return "Coloque um numero para marcar o ritmo da senha.";
-    if (!allowedSymbols.test(password)) return "Falta um simbolo especial para finalizar a senha.";
-    if (password !== confirmPassword) return "As senhas estao fora de sincronia. Tente novamente.";
+
+    if (!password) return "A senha é a chave do estúdio. Não pode ficar vazia!";
+    if (password.length < 8) return "Senha curta! O solo precisa de pelo menos 8 notas (caracteres).";
+    if (!/[A-Z]/.test(password)) return "Adicione uma letra maiúscula para dar mais volume à senha.";
+    if (!/[a-z]/.test(password)) return "Uma letra minúscula é essencial para a harmonia da senha.";
+    if (!/\d/.test(password)) return "Coloque um número para marcar o ritmo da senha.";
+    if (!/[^A-Za-z0-9]/.test(password)) return "Falta um símbolo especial para o toque final na senha!";
+
+    if (password !== confirmPassword) return "As senhas estão fora de sincronia! Tente novamente.";
+
     return null;
   };
 
@@ -59,13 +62,14 @@ function Registration() {
       const domain = emailAddress.split("@")[1];
       const response = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
       const data = await response.json();
-      return Boolean(data.Answer && data.Answer.length > 0);
+      return data.Answer && data.Answer.length > 0;
     } catch {
-      return true;
+      return false; // Fallback in case of network issues
     }
   };
 
   const handleSubmit = async () => {
+    if (isLoading) return;
     const validationError = validate();
 
     if (validationError) {
@@ -73,9 +77,12 @@ function Registration() {
       return;
     }
 
+    setIsLoading(true);
+
     const hasMX = await verifyMXRecord(email);
     if (!hasMX) {
-      showMusicError("Este dominio de e-mail nao parece receber mensagens. Tente outro.");
+      showMusicError("Este domínio de e-mail não parece receber mensagens. Tente outro.");
+      setIsLoading(false);
       return;
     }
 
@@ -93,11 +100,14 @@ function Registration() {
         showMusicSuccess("Cadastro VIP realizado com sucesso!");
         navigate("/home");
       } else {
-        showMusicSuccess("Cadastro realizado! Faca login para continuar.");
+        showMusicSuccess("Cadastro realizado! Faça login para continuar.");
         navigate("/login");
       }
     } catch (err) {
-      showMusicError(err.message || "Erro nos bastidores ao tentar criar conta.");
+      const errorMessage = err.data?.message || err.data?.error || err.message || "Erro nos bastidores ao tentar criar conta.";
+      showMusicError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,12 +129,14 @@ function Registration() {
           <div className="registration-input-group">
             <h3>NOME COMPLETO</h3>
             <div className="registration-input-box registration-input-box-name">
-              <FaUser className="registration-input-icon" />
+              <FaUser className="registration-input-icon" style={{ left: '16px', position: 'absolute' }} />
               <input
                 type="text"
                 placeholder="Insira seu nome"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                style={{ paddingLeft: '50px' }}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -139,6 +151,7 @@ function Registration() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -153,6 +166,7 @@ function Registration() {
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
               {showPassword ? (
                 <MdOutlineRemoveRedEye
@@ -186,6 +200,7 @@ function Registration() {
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading}
               />
               {showConfirmPassword ? (
                 <MdOutlineRemoveRedEye
@@ -201,12 +216,17 @@ function Registration() {
             </div>
           </div>
 
-          <button className="registration-button-primary" onClick={handleSubmit}>
-            Criar conta <FaChevronRight />
+          <button
+            className="registration-button-primary"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
+          >
+            {isLoading ? "Processando VIP..." : <>Criar conta <FaChevronRight /></>}
           </button>
         </div>
 
-        <div className="registration-divider">
+        {/*<div className="registration-divider">
           <div></div>
           <span>OU CONTINUE COM</span>
           <div></div>
@@ -214,7 +234,7 @@ function Registration() {
 
         <button className="registration-google-button">
           <FaGoogle />
-        </button>
+        </button>*/}
 
         <p className="registration-login-text">
           Já possui uma conta existente?{" "}

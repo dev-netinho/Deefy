@@ -1,0 +1,142 @@
+.featured {
+  animation: contentFadeUp 0.55s ease;
+}
+
+.featured-title {
+  margin: 0 0 16px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #e0e0e0;
+  letter-spacing: -0.2px;
+}
+
+/* Horizontal scroll row */
+.featured-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.featured-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual card */
+.featured-card {
+  flex-shrink: 0;
+  width: 180px;
+  cursor: pointer;
+  transition: transform 0.24s ease;
+}
+
+.featured-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Cover image wrapper */
+.featured-card-cover {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #1a1a1e; /* placeholder bg */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.featured-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease, filter 0.3s ease;
+}
+
+.featured-card:hover .featured-card-cover img {
+  transform: scale(1.06);
+  filter: brightness(0.65);
+}
+
+/* Hover overlay */
+.featured-card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.featured-card:hover .featured-card-overlay {
+  opacity: 1;
+}
+
+.featured-play-btn {
+  all: unset;
+  cursor: pointer;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(57, 240, 208, 0.9);
+  color: #0a0a0c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 24px rgba(57, 240, 208, 0.5);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.featured-play-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 36px rgba(57, 240, 208, 0.7);
+}
+
+/* Card text */
+.featured-card-info {
+  padding: 10px 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.featured-card-name {
+  margin: 0;
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: #e8e8e8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.featured-card-count {
+  font-size: 0.78rem;
+  color: #6a6a6a;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .featured-card {
+    width: 150px;
+  }
+
+  .featured-card-cover {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+@keyframes contentFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
