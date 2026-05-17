@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deefy API - Documentacao Publica</title>
+    <style>
+      :root {
+        --bg: #07100f;
+        --panel: #101a19;
+        --panel-soft: #162321;
+        --line: #29413d;
+        --text: #f4fbf8;
+        --muted: #9fb7b1;
+        --accent: #25f0c7;
+        --accent-soft: #103e37;
+        --warn: #ffd166;
+        --danger: #ff7b7b;
+        --code: #061615;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(37, 240, 199, 0.14), transparent 32rem),
+          linear-gradient(135deg, #050908 0%, var(--bg) 54%, #0c1715 100%);
+        color: var(--text);
+        font-family:
+          "Aptos",
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.6;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 48px 0 72px;
+      }
+
+      header {
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 40px;
+        background: rgba(16, 26, 25, 0.78);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.1;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(2.6rem, 6vw, 5.8rem);
+        letter-spacing: -0.07em;
+      }
+
+      h2 {
+        margin-top: 48px;
+        font-size: clamp(1.8rem, 3vw, 3rem);
+        letter-spacing: -0.04em;
+      }
+
+      h3 {
+        margin-top: 28px;
+        font-size: 1.2rem;
+      }
+
+      p {
+        color: var(--muted);
+        margin: 12px 0 0;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      code,
+      pre {
+        font-family:
+          "JetBrains Mono",
+          "Fira Code",
+          Consolas,
+          monospace;
+      }
+
+      pre {
+        overflow-x: auto;
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: var(--code);
+        color: #d9fff6;
+      }
+
+      code {
+        border-radius: 8px;
+        background: rgba(37, 240, 199, 0.1);
+        color: #b8fff0;
+        padding: 2px 6px;
+      }
+
+      .eyebrow {
+        color: var(--accent);
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 24px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 22px;
+        background: rgba(16, 26, 25, 0.82);
+      }
+
+      .endpoint {
+        margin-top: 18px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: rgba(16, 26, 25, 0.7);
+        overflow: hidden;
+      }
+
+      .endpoint-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        padding: 18px;
+        background: var(--panel-soft);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .method {
+        border-radius: 999px;
+        padding: 6px 10px;
+        color: #03201b;
+        background: var(--accent);
+        font-weight: 900;
+        font-size: 0.82rem;
+      }
+
+      .method.delete {
+        background: var(--danger);
+      }
+
+      .method.put {
+        background: var(--warn);
+      }
+
+      .endpoint-body {
+        padding: 18px;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: var(--accent-soft);
+        color: #c7fff4;
+        font-size: 0.92rem;
+      }
+
+      ul {
+        color: var(--muted);
+        padding-left: 22px;
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      @media (max-width: 760px) {
+        header {
+          padding: 28px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="eyebrow">Deefy API publica</div>
+        <h1>Contrato oficial da staging</h1>
+        <p>
+          Esta documentacao descreve somente a API oficial disponivel em producao/staging para o time de frontend testar localmente.
+          Endpoints experimentais da sandbox nao fazem parte deste contrato.
+        </p>
+        <div class="pill-row">
+          <span class="pill">Base URL: https://deefy.olua.me/api/v1</span>
+          <span class="pill">Auth: JWT Bearer</span>
+          <span class="pill">Frontend local: liberado via CORS</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>Como testar no frontend local</h2>
+        <p>Crie/ajuste o arquivo <code>frontend/.env</code> apontando para a API publica:</p>
+        <pre><code>VITE_API_URL=https://deefy.olua.me
+VITE_STORAGE_TOKEN_KEY=@deefy-token</code></pre>
+        <p>Depois rode o projeto normalmente:</p>
+        <pre><code>cd frontend
+npm install
+npm run dev</code></pre>
+        <p>Origens liberadas para navegador: <code>http://localhost:5173</code>, <code>http://localhost:5174</code>, <code>http://127.0.0.1:5173</code> e <code>https://deefy.olua.me</code>.</p>
+      </section>
+
+      <section>
+        <h2>Fluxo de autenticacao</h2>
+        <div class="endpoint">
+          <div class="endpoint-head">
+            <span class="method">POST</span>
+            <strong>/auth/register</strong>
+          </div>
+          <div class="endpoint-body">
+            <p>Cria uma nova conta.</p>
+            <pre><code>{
+  "nome": "Maria Silva",
+  "email": "maria@example.com",
+  "senha": "Senha@123"
+}</code></pre>
+            <p>Resposta esperada: <code>201 Created</code></p>
+            <pre><code>{
+  "id": 6,
+  "nome": "Maria Silva",
+  "email": "maria@example.com",
+  "createdAt": "2026-05-17T01:35:28.593343498"
+}</code></pre>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-head">
+            <span class="method">POST</span>
+            <strong>/auth/login</strong>
+          </div>
+          <div class="endpoint-body">
+            <p>Autentica com email e senha e devolve um JWT.</p>
+            <pre><code>{
+  "email": "maria@example.com",
+  "senha": "Senha@123"
+}</code></pre>
+            <p>Resposta esperada: <code>200 OK</code></p>
+            <pre><code>{
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Como enviar o token</h2>
+        <p>Todos os endpoints fora de <code>/auth/**</code> exigem header de autorizacao:</p>
+        <pre><code>Authorization: Bearer &lt;token&gt;</code></pre>
+        <p>Exemplo com Axios:</p>
+        <pre><code>import axios from "axios";
+
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
+api.interceptors.request.use((config) =&gt; {
+  const token = localStorage.getItem("@deefy-token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});</code></pre>
+      </section>
+
+      <section>
+        <h2>Usuarios</h2>
+        <div class="endpoint">
+          <div class="endpoint-head">
+            <span class="method">GET</span>
+            <strong>/users?page=0&amp;size=5&amp;sort=id,asc</strong>
+          </div>
+          <div class="endpoint-body">
+            <p>Lista usuarios de forma paginada. Requer token.</p>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-head">
+            <span class="method">GET</span>
+            <strong>/users/{id}</strong>
+          </div>
+          <div class="endpoint-body">
+            <p>Busca um usuario por id. Requer token.</p>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-head">
+            <span class="method put">PUT</span>
+            <strong>/users/{id}</strong>
+          </div>
+          <div class="endpoint-body">
+            <p>Atualiza nome e/ou senha. Requer token.</p>
+            <pre><code>{
+  "nome": "Novo Nome",
+  "password": "NovaSenha@123"
+}</code></pre>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-head">
+            <span class="method delete">DELETE</span>
+            <strong>/users/{id}</strong>
+          </div>
+          <div class="endpoint-body">
+            <p>Remove um usuario. Requer token. Resposta esperada: <code>204 No Content</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Exemplos com cURL</h2>
+        <pre><code>curl -X POST https://deefy.olua.me/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Maria Silva","email":"maria@example.com","senha":"Senha@123"}'</code></pre>
+
+        <pre><code>curl -X POST https://deefy.olua.me/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"maria@example.com","senha":"Senha@123"}'</code></pre>
+
+        <pre><code>curl https://deefy.olua.me/api/v1/users \
+  -H "Authorization: Bearer &lt;token&gt;"</code></pre>
+      </section>
+
+      <section>
+        <h2>O que ainda nao e API oficial</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Catalogo musical</h3>
+            <p><code>/artists</code>, <code>/albums</code>, <code>/musics</code> e upload MinIO ainda nao estao expostos na API oficial da <code>staging</code>.</p>
+          </div>
+          <div class="card">
+            <h3>Playlists e historico</h3>
+            <p>Existem classes internas parciais, mas ainda nao existe controller oficial publicado para frontend consumir.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Status HTTP comuns</h2>
+        <ul>
+          <li><strong>200</strong>: requisicao concluida com sucesso.</li>
+          <li><strong>201</strong>: recurso criado com sucesso.</li>
+          <li><strong>204</strong>: recurso removido sem corpo de resposta.</li>
+          <li><strong>400/422</strong>: payload invalido ou regra de validacao falhou.</li>
+          <li><strong>403</strong>: token ausente, invalido ou endpoint nao liberado para uso.</li>
+          <li><strong>500</strong>: erro inesperado no backend.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
