@@ -1,6 +1,5 @@
 package br.com.deefy.mapper;
 
-import br.com.deefy.dto.UpdateUserRequestDTO;
 import br.com.deefy.dto.request.UserRequestDTO;
 import br.com.deefy.dto.response.UserResponseDTO;
 import br.com.deefy.model.User;
@@ -17,6 +16,6 @@ public interface UserMapper {
 
     List<UserResponseDTO> toDTOList(List<User> users);
 
-    User updateToEntity(UpdateUserRequestDTO updateUserRequestDTO);
+    // User updateToEntity(UpdateUserRequestDTO updateUserRequestDTO);
 }
 

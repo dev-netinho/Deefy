@@ -51,4 +51,34 @@ public class JwtUtil {
     private SecretKey getSignKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
+
+    @Value("${jwt.password.reset.expiration}")
+    private long resetExpiration;
+
+    // Gera um token focado estritamente em reset de senha
+    public String generatePasswordResetToken(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .claim("purpose", "password_reset")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + resetExpiration))
+                .signWith(getSignKey())
+                .compact();
+    }
+
+    // Valida se o token é de redefinição e se está íntegro
+    public boolean isPasswordResetTokenValid(String token) {
+        try {
+            var claims = Jwts.parser()
+                    .verifyWith(getSignKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            // Verifica se a claim de controle existe e está correta
+            return "password_reset".equals(claims.get("purpose", String.class));
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
