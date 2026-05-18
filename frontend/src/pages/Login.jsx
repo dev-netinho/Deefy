@@ -1,7 +1,8 @@
 import {
   MdOutlineRemoveRedEye,
   MdOutlineEmail,
-  MdOutlineLock
+  MdOutlineLock,
+  MdOutlineVisibilityOff
 } from "react-icons/md";
 import { FaChevronRight, FaGoogle } from "react-icons/fa";
 import logo from "../assets/logo.svg";
@@ -11,47 +12,50 @@ import api from "../services/api";
 import { setToken } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { showMusicError, showMusicSuccess } from "../utils/musicToast";
 
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const validate = () => {
+    if (!email.trim()) return "O palco precisa do seu e-mail!";
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return "Insira um e-mail válido.";
-    if (!password) return "A senha é obrigatória.";
+    if (!emailRegex.test(email)) return "E-mail desafinado! Verifique o endereço.";
+    if (!password) return "Entrada sem ingresso VIP! A senha é obrigatória.";
     return null;
   };
 
   const handleSubmit = async () => {
+    if (isLoading) return;
     const validationError = validate();
 
     if (validationError) {
-      setError(validationError);
+      showMusicError(validationError);
       return;
     }
 
-    setError("");
-
+    setIsLoading(true);
     try {
-      const response = await api.post("/api/v1/auth/login", {
-        email,
-        senha: password
-      });
+      const response = await api.post("/api/v1/auth/login", { email, senha: password });
       const token = response.data.token || response.data?.data?.token;
 
       if (token) {
         setToken(token);
-        alert("Login efetuado com sucesso!");
+        showMusicSuccess("Acesso liberado aos bastidores!");
         navigate("/home");
       } else {
-        setError("O servidor não retornou um token de acesso.");
+        showMusicError("Música pausada: O servidor não retornou um token de acesso.");
       }
     } catch (err) {
-      setError(err.message || "Erro ao tentar fazer login.");
+      const errorMessage = err.data?.message || err.data?.error || err.message || "Erro de conexão ao palco. Tente novamente.";
+      showMusicError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -73,10 +77,12 @@ function Login() {
             <div className="login-input-box">
               <MdOutlineEmail className="login-input-icon" />
               <input
-                type="text"
+                type="email"
                 placeholder="seu@email.com"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -88,31 +94,43 @@ function Login() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
-              <MdOutlineRemoveRedEye
-                className="login-input-eye"
-                onClick={() => setShowPassword(!showPassword)}
-              />
+              {showPassword ? (
+                <MdOutlineRemoveRedEye
+                  className="login-input-eye"
+                  onClick={() => setShowPassword(false)}
+                />
+              ) : (
+                <MdOutlineVisibilityOff
+                  className="login-input-eye"
+                  onClick={() => setShowPassword(true)}
+                />
+              )}
             </div>
 
-            <p
+            {/*<p
               className="login-forgot-password"
               onClick={() => navigate("/forgot-password")}
             >
               Esqueci minha senha
-            </p>
+            </p>*/}
           </div>
 
-          {error && <p className="login-error">{error}</p>}
-
-          <button className="login-button-primary" onClick={handleSubmit}>
-            Entrar <FaChevronRight />
+          <button
+            className="login-button-primary"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
+          >
+            {isLoading ? "Afinando os instrumentos..." : <>Entrar <FaChevronRight /></>}
           </button>
         </div>
 
-        <div className="login-divider">
+        {/*<div className="login-divider">
           <div></div>
           <span>OU CONTINUE COM</span>
           <div></div>
@@ -120,7 +138,7 @@ function Login() {
 
         <button className="login-google-button">
           <FaGoogle />
-        </button>
+        </button>*/}
 
         <p className="login-register-text">
           Não possui uma conta?{" "}

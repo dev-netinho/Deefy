@@ -1,25 +1,65 @@
-h1 {
-  color: white;
-}
+/* ═══════════════════════════════════════════════════════════
+   HOME PAGE LAYOUT
+   Two-column grid: 240 px sidebar | 1fr main
+   On mobile (≤768px): sidebar hidden, bottom nav shown instead
+   ═══════════════════════════════════════════════════════════ */
 
-.sidebar {
-  background-color: black;
-}
-
-.sidebar-logo {
-  padding: 59px;
+.home-layout {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  min-height: 100vh;
+  background: #0A0A0A;
+  /* Override the global text-align: center from index.css */
+  text-align: left;
 }
 
-.sidebar-logo img {
-  width: 100px;
-  max-width: 60%;
-  height: auto;
+/* ── Right-side scrollable area ── */
+.home-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* prevent flex overflow */
+  background:
+    radial-gradient(ellipse at 70% 0%, rgba(57, 240, 208, 0.04) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 80%, rgba(57, 240, 208, 0.03) 0%, transparent 45%),
+    #0A0A0A;
 }
 
-.contents {
-  color: rgb(255, 255, 255) !important;
-  text-align: left !important;
+/* ── Scrollable content area ── */
+.home-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+/* Search bar row */
+.home-search-wrapper {
+  width: 100%;
+  max-width: 680px;
+}
+
+/* ── Tablet (≤ 1024 px) ── */
+@media (max-width: 1024px) {
+  .home-content {
+    padding: 24px 24px 40px;
+  }
+}
+
+/* ── Mobile (≤ 768 px) ── */
+@media (max-width: 768px) {
+  .home-layout {
+    /* Stack vertically; sidebar replaced by bottom nav */
+    flex-direction: column;
+  }
+
+  .home-content {
+    padding: 16px 16px calc(80px + 16px); /* leave room for bottom nav */
+    gap: 28px;
+  }
+
+  .home-search-wrapper {
+    max-width: 100%;
+  }
 }

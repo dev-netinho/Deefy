@@ -21,7 +21,6 @@ public class ListeningHistory {
     @JoinColumn(name = "musica_id", nullable = false)
     private Music music;
 
-
     @Column(name = "datahoraexecucao", nullable = false)
     private LocalDateTime dataHoraExecucao;
 
