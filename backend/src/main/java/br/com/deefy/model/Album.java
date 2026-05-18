@@ -57,4 +57,12 @@ public class Album {
     public Artist getArtist() {
         return artist;
     }
+
+    public void setCapaUrl(String capaUrl) {
+        this.capaUrl = capaUrl;
+    }
+
+    public void setDataLancamento(LocalDate dataLancamento) {
+        this.dataLancamento = dataLancamento;
+    }
 }
