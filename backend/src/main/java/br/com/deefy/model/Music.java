@@ -89,4 +89,20 @@ public class Music {
     public Album getAlbum() {
         return album;
     }
+
+    public void setAlbum(Album album) {
+        this.album = album;
+    }
+
+    public void setPreviewUrl(String previewUrl) {
+        this.previewUrl = previewUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
+    }
+
+    public void setExternalId(String deezerId) {
+        this.deezerId = deezerId;
+    }
 }

@@ -1,35 +1,41 @@
--- Dados e consultas de teste para historico de execucao.
--- Rode depois de `schema.sql`, `insert.sql` e, se quiser mais dados, `seed.sql`.
+-- INSERÇÃO DE DADOS NO HISTÓRICO
 
-INSERT INTO historico_execucao
-(usuario_id, musica_id, datahoraexecucao, tempoouvido)
-SELECT u.id, m.id, v.datahoraexecucao, v.tempoouvido
-FROM (
-    VALUES
-        ('vitoria@uepa.br', 'Blinding Lights', NOW(), 120),
-        ('vitoria@uepa.br', 'One More Time', NOW() - INTERVAL '10 minutes', 200),
-        ('joao@email.com', 'Blinding Lights', NOW() - INTERVAL '30 minutes', 90),
-        ('joao@email.com', 'Musica A', NOW() - INTERVAL '1 hour', 300),
-        ('bruno@email.com', 'One More Time', NOW() - INTERVAL '2 hours', 150),
-        ('bruno@email.com', 'Musica A', NOW() - INTERVAL '1 day', 180)
-) AS v(email, titulo, datahoraexecucao, tempoouvido)
-JOIN usuario u ON u.email = v.email
-JOIN musica m ON m.titulo = v.titulo;
+INSERT INTO HISTORICO_EXECUCAO 
+(usuario_id, musica_id, dataHoraExecucao, tempoOuvido)
+VALUES 
 
-SELECT *
-FROM historico_execucao
-ORDER BY datahoraexecucao DESC;
+-- Usuário 1
+(1, 1, NOW(), 120),
+(1, 2, NOW() - INTERVAL '10 minutes', 200),
 
-SELECT *
-FROM historico_execucao
-WHERE usuario_id = (SELECT id FROM usuario WHERE email = 'vitoria@uepa.br');
+-- Usuário 2
+(2, 1, NOW() - INTERVAL '30 minutes', 90),
+(2, 3, NOW() - INTERVAL '1 hour', 300),
 
-SELECT *
-FROM historico_execucao
-ORDER BY datahoraexecucao DESC
+-- Usuário 3
+(3, 2, NOW() - INTERVAL '2 hours', 150),
+(3, 3, NOW() - INTERVAL '1 day', 180);
+
+-- CONSULTAS DE TESTE
+
+-- Ordenação
+SELECT * 
+FROM HISTORICO_EXECUCAO
+ORDER BY dataHoraExecucao DESC;
+
+-- Filtrar por usuário
+SELECT * 
+FROM HISTORICO_EXECUCAO
+WHERE usuario_id = 1;
+
+-- Paginação - Página 1
+SELECT * 
+FROM HISTORICO_EXECUCAO
+ORDER BY dataHoraExecucao DESC
 LIMIT 3 OFFSET 0;
 
-SELECT *
-FROM historico_execucao
-ORDER BY datahoraexecucao DESC
+-- Paginação - Página 2
+SELECT * 
+FROM HISTORICO_EXECUCAO
+ORDER BY dataHoraExecucao DESC
 LIMIT 3 OFFSET 3;

@@ -67,7 +67,7 @@ function Preferences() {
         <div className="preferences-selection-container">
           <div className="preferences-selection">
             {statusSelecao}
-            <button className="button button-primary" onClick={() => navigate('/home')}>
+            <button className="button button-primary" onClick={() => navigate('/welcome')}>
               Continue
               <span>→</span>
             </button>

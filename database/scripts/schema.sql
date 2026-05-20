@@ -1,111 +1,101 @@
-CREATE TABLE perfil
+CREATE TABLE USUARIO
 (
-    id BIGSERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL UNIQUE
+ id SERIAL PRIMARY KEY,
+ nome VARCHAR(100) NOT NULL,
+ email VARCHAR(100) NOT NULL,
+ senha VARCHAR(100) NOT NULL,
+ perfil_id INT,
+ UNIQUE (email)
 );
 
-CREATE TABLE usuario
+CREATE TABLE ARTISTA
 (
-    id BIGSERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    senha VARCHAR(100) NOT NULL,
-    tipo_usuario SMALLINT NOT NULL DEFAULT 0 CHECK (tipo_usuario BETWEEN 0 AND 1),
-    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    perfil_id BIGINT,
-    CONSTRAINT fk_usuario_perfil FOREIGN KEY (perfil_id) REFERENCES perfil (id)
+ id SERIAL PRIMARY KEY,
+ nome VARCHAR(100) NOT NULL,
+ bio TEXT,
+ fotoUrl VARCHAR(100)
 );
 
-CREATE TABLE artista
+CREATE TABLE ALBUM
 (
-    id BIGSERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    bio TEXT,
-    fotourl VARCHAR(100)
+ id SERIAL PRIMARY KEY,
+ titulo VARCHAR(100) NOT NULL,
+ capaUrl VARCHAR(100),
+ dataLancamento DATE,
+ artista_id INT NOT NULL
 );
 
-CREATE TABLE album
+CREATE TABLE MUSICA
 (
-    id BIGSERIAL PRIMARY KEY,
-    titulo VARCHAR(100) NOT NULL,
-    capaurl VARCHAR(100),
-    datalancamento DATE,
-    artista_id BIGINT NOT NULL,
-    CONSTRAINT fk_album_artista FOREIGN KEY (artista_id) REFERENCES artista (id)
+ id SERIAL PRIMARY KEY,
+ deezerId VARCHAR(100),
+ titulo VARCHAR(100) NOT NULL,
+ duracao INT NOT NULL,
+ previewUrl VARCHAR(100),
+ capaUrl VARCHAR(100),
+ genero VARCHAR(100) NOT NULL,
+ album_id INT,
+ UNIQUE (deezerId)
 );
 
-CREATE TABLE musica
+CREATE TABLE PLAYLIST
 (
-    id BIGSERIAL PRIMARY KEY,
-    deezerid VARCHAR(100) UNIQUE,
-    titulo VARCHAR(100) NOT NULL,
-    duracao INTEGER NOT NULL,
-    previewurl VARCHAR(100),
-    capaurl VARCHAR(100),
-    genero VARCHAR(100) NOT NULL,
-    album_id BIGINT,
-    CONSTRAINT fk_musica_album FOREIGN KEY (album_id) REFERENCES album (id)
+ id SERIAL PRIMARY KEY,
+ nome VARCHAR(100) NOT NULL,
+ publica BOOLEAN NOT NULL,
+ dataCriacao TIMESTAMP NOT NULL,
+ usuario_id INT
 );
 
-CREATE TABLE playlist
+CREATE TABLE PLAYLIST_MUSICA
 (
-    id BIGSERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    publica BOOLEAN NOT NULL,
-    datacriacao TIMESTAMP(6) NOT NULL,
-    usuario_id BIGINT NOT NULL,
-    CONSTRAINT fk_playlist_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id)
+ playlist_id INT,
+ musica_id INT,
+ ordem INT,
+ PRIMARY KEY (playlist_id, musica_id)
 );
 
-CREATE TABLE playlist_musica
+CREATE TABLE FAVORITO
 (
-    playlist_id BIGINT NOT NULL,
-    musica_id BIGINT NOT NULL,
-    ordem INTEGER NOT NULL,
-    PRIMARY KEY (playlist_id, ordem),
-    CONSTRAINT fk_playlist_musica_playlist FOREIGN KEY (playlist_id) REFERENCES playlist (id),
-    CONSTRAINT fk_playlist_musica_musica FOREIGN KEY (musica_id) REFERENCES musica (id)
+ id SERIAL PRIMARY KEY,
+ usuario_id INT NOT NULL,
+ musica_id INT,
+ dataFavoritado TIMESTAMP NOT NULL
 );
 
-CREATE TABLE avaliacao
+CREATE TABLE HISTORICO_EXECUCAO
 (
-    id BIGSERIAL PRIMARY KEY,
-    usuario_id BIGINT NOT NULL,
-    musica_id BIGINT NOT NULL,
-    nota INTEGER NOT NULL,
-    avaliado_em TIMESTAMP(6) NOT NULL,
-    CONSTRAINT uk_avaliacao_usuario_musica UNIQUE (usuario_id, musica_id),
-    CONSTRAINT fk_avaliacao_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id),
-    CONSTRAINT fk_avaliacao_musica FOREIGN KEY (musica_id) REFERENCES musica (id)
+ id SERIAL PRIMARY KEY,
+ usuario_id INT NOT NULL,
+ musica_id INT NOT NULL,
+ dataHoraExecucao TIMESTAMP NOT NULL,
+ tempoOuvido INT
 );
 
-CREATE TABLE favorito
+CREATE TABLE LOG_AUDITORIA
 (
-    id BIGSERIAL PRIMARY KEY,
-    usuario_id BIGINT NOT NULL,
-    musica_id BIGINT,
-    datafavoritado TIMESTAMP(6) NOT NULL,
-    CONSTRAINT fk_favorito_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id),
-    CONSTRAINT fk_favorito_musica FOREIGN KEY (musica_id) REFERENCES musica (id)
+ id SERIAL PRIMARY KEY,
+ usuario_id INT,
+ acao VARCHAR(100) NOT NULL,
+ descricao VARCHAR(100),
+ dataHora TIMESTAMP NOT NULL
 );
 
-CREATE TABLE historico_execucao
+CREATE TABLE PERFIL
 (
-    id BIGSERIAL PRIMARY KEY,
-    usuario_id BIGINT NOT NULL,
-    musica_id BIGINT NOT NULL,
-    datahoraexecucao TIMESTAMP(6) NOT NULL,
-    tempoouvido INTEGER,
-    CONSTRAINT fk_historico_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id),
-    CONSTRAINT fk_historico_musica FOREIGN KEY (musica_id) REFERENCES musica (id)
+ id SERIAL PRIMARY KEY,
+ nome VARCHAR(100) NOT NULL,
+ UNIQUE (nome)
 );
 
-CREATE TABLE log_auditoria
-(
-    id BIGSERIAL PRIMARY KEY,
-    usuario_id BIGINT,
-    acao VARCHAR(100) NOT NULL,
-    descricao VARCHAR(100),
-    datahora TIMESTAMP(6) NOT NULL,
-    CONSTRAINT fk_log_auditoria_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id)
-);
+ALTER TABLE USUARIO ADD FOREIGN KEY(perfil_id) REFERENCES PERFIL (id);
+ALTER TABLE ALBUM ADD FOREIGN KEY(artista_id) REFERENCES ARTISTA (id);
+ALTER TABLE MUSICA ADD FOREIGN KEY(album_id) REFERENCES ALBUM (id);
+ALTER TABLE PLAYLIST ADD FOREIGN KEY(usuario_id) REFERENCES USUARIO (id);
+ALTER TABLE PLAYLIST_MUSICA ADD FOREIGN KEY(playlist_id) REFERENCES PLAYLIST (id);
+ALTER TABLE PLAYLIST_MUSICA ADD FOREIGN KEY(musica_id) REFERENCES MUSICA (id);
+ALTER TABLE FAVORITO ADD FOREIGN KEY(usuario_id) REFERENCES USUARIO (id);
+ALTER TABLE FAVORITO ADD FOREIGN KEY(musica_id) REFERENCES MUSICA (id);
+ALTER TABLE HISTORICO_EXECUCAO ADD FOREIGN KEY(usuario_id) REFERENCES USUARIO (id);
+ALTER TABLE HISTORICO_EXECUCAO ADD FOREIGN KEY(musica_id) REFERENCES MUSICA (id);
+ALTER TABLE LOG_AUDITORIA ADD FOREIGN KEY(usuario_id) REFERENCES USUARIO (id);

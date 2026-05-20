@@ -1,6 +1,6 @@
 package br.com.deefy.controller;
 
-import br.com.deefy.dto.UpdateUserRequestDTO;
+import br.com.deefy.dto.request.UpdateNameRequestDTO;
 import br.com.deefy.dto.response.UserResponseDTO;
 import br.com.deefy.service.UserService;
 import jakarta.validation.Valid;
@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.security.Principal;
 
 @RestController
 @RequestMapping(value = "/api/v1/users")
@@ -37,6 +38,7 @@ public class UserController {
         return ResponseEntity.ok().body(listAllUsers);
     }
 
+    /*
     @PutMapping(value = "/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable Long id,
@@ -53,5 +55,25 @@ public class UserController {
     ){
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+    */
+
+
+    @GetMapping(value = "/me")
+    public ResponseEntity<UserResponseDTO> getMyProfile(Principal principal) {
+        // principal.getName() retorna o "username" do JWT, que no nosso caso é o e-mail.
+        String email = principal.getName();
+        UserResponseDTO profile = userService.findProfileByEmail(email);
+        return ResponseEntity.ok(profile);
+    }
+
+    @PatchMapping(value = "/me/name")
+    public ResponseEntity<UserResponseDTO> updateMyName(
+            Principal principal,
+            @Valid @RequestBody UpdateNameRequestDTO request) {
+
+        String email = principal.getName();
+        UserResponseDTO updatedProfile = userService.updateMyName(email, request);
+        return ResponseEntity.ok(updatedProfile);
     }
 }

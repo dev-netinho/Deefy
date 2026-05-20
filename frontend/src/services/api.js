@@ -3,7 +3,7 @@ import { getToken } from '../utils/auth';
 
 // Criação da instância do Axios com configurações padrão e de segurança
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
+  baseURL: import.meta.env.VITE_API_URL || '',
   timeout: 10000, // Timeout de 10 segundos para não travar a aplicação indefinidamente
   headers: {
     'Content-Type': 'application/json',

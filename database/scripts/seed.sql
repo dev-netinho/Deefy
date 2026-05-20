@@ -1,15 +1,16 @@
--- Dados extras opcionais para desenvolvimento.
--- Todos os usuarios abaixo usam a senha: 123456
+-- DADOS INICIAIS
 
-INSERT INTO usuario (nome, email, senha, tipo_usuario, created_at)
-VALUES
-('Bruno', 'bruno@email.com', '$2a$10$nRxrBmsqHiN.K9/MVPv7x.91GQ1eS7Mua69KO1Lt40TJRG1tSdQ2G', 0, CURRENT_TIMESTAMP),
-('Carlos', 'carlos@email.com', '$2a$10$nRxrBmsqHiN.K9/MVPv7x.91GQ1eS7Mua69KO1Lt40TJRG1tSdQ2G', 0, CURRENT_TIMESTAMP),
-('Mariana', 'mariana@email.com', '$2a$10$nRxrBmsqHiN.K9/MVPv7x.91GQ1eS7Mua69KO1Lt40TJRG1tSdQ2G', 0, CURRENT_TIMESTAMP),
-('Lucas', 'lucas@email.com', '$2a$10$nRxrBmsqHiN.K9/MVPv7x.91GQ1eS7Mua69KO1Lt40TJRG1tSdQ2G', 0, CURRENT_TIMESTAMP);
+-- Usuários
+INSERT INTO USUARIO (nome, email, senha)
+VALUES 
+('Bruno', 'bruno@email.com', '123'),
+('Carlos', 'carlos@email.com', '123'),
+('Mariana', 'mariana@email.com', '123'),
+('Lucas', 'lucas@email.com', '123');
 
-INSERT INTO musica (titulo, duracao, genero)
-VALUES
-('Musica A', 200, 'Pop'),
-('Musica B', 180, 'Rock'),
-('Musica C', 220, 'Jazz');
+-- Músicas
+INSERT INTO MUSICA (titulo, duracao, genero)
+VALUES 
+('Música A', 200, 'Pop'),
+('Música B', 180, 'Rock'),
+('Música C', 220, 'Jazz');
