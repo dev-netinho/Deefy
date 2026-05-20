@@ -1,6 +1,5 @@
 package br.com.deefy.mapper;
 
-import br.com.deefy.dto.UpdateUserRequestDTO;
 import br.com.deefy.dto.request.UserRequestDTO;
 import br.com.deefy.dto.response.UserResponseDTO;
 import br.com.deefy.model.User;
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-12T18:50:02-0300",
+    date = "2026-05-20T18:06:21-0300",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.11 (Microsoft)"
 )
 @Component
@@ -66,18 +65,5 @@ public class UserMapperImpl implements UserMapper {
         }
 
         return list;
-    }
-
-    @Override
-    public User updateToEntity(UpdateUserRequestDTO updateUserRequestDTO) {
-        if ( updateUserRequestDTO == null ) {
-            return null;
-        }
-
-        User user = new User();
-
-        user.setNome( updateUserRequestDTO.nome() );
-
-        return user;
     }
 }

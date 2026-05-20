@@ -1,14 +1,14 @@
 package br.com.deefy.exception.handler;
 
-import br.com.deefy.exception.EmailJaCadastradoException;
-import br.com.deefy.exception.TokenInvalidoException;
-import br.com.deefy.exception.UsuarioNaoEncontradoException;
+import br.com.deefy.dto.ErrorDetails;
+import br.com.deefy.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -52,4 +52,26 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleTokenInvalido(TokenInvalidoException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
+
+    @ExceptionHandler(MusicNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleMusicaNaoEncontradaException(MusicNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                "status", 404,
+                "erro", "Música não encontrada",
+                "mensagem", ex.getMessage(),
+                "timestamp", LocalDateTime.now().toString()
+        ));
+    }
+
+    @ExceptionHandler(PlaylistException.class)
+    public ResponseEntity<ErrorDetails> handlePlaylistException(PlaylistException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails(
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
 }
