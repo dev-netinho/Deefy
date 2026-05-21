@@ -18,11 +18,13 @@ export const getToken = () => {
 };
 
 /**
- * Remove o token (Logout)
+ * Remove o token e dados de sessão (Logout)
  */
 export const removeToken = () => {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem("@deefy-user");
 };
+
 
 /**
  * Verifica se o usuário está autenticado (existe um token)

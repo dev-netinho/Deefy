@@ -13,6 +13,7 @@ import api from "../services/api";
 import { setToken } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import { showMusicError, showMusicSuccess } from "../utils/musicToast";
+import ButtonSpinner from "../components/ButtonSpinner";
 
 function Registration() {
   const navigate = useNavigate();
@@ -40,20 +41,20 @@ function Registration() {
   const validate = () => {
     if (!fullName.trim()) return "O nome completo é obrigatório na lista VIP.";
     if (fullName.trim().length < 3) return "Seu nome artístico precisa de pelo menos 3 caracteres.";
-
+    
     if (!email.trim()) return "O palco precisa do seu e-mail!";
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) return "E-mail desafinado! Verifique o formato.";
-
+    
     if (!password) return "A senha é a chave do estúdio. Não pode ficar vazia!";
     if (password.length < 8) return "Senha curta! O solo precisa de pelo menos 8 notas (caracteres).";
     if (!/[A-Z]/.test(password)) return "Adicione uma letra maiúscula para dar mais volume à senha.";
     if (!/[a-z]/.test(password)) return "Uma letra minúscula é essencial para a harmonia da senha.";
     if (!/\d/.test(password)) return "Coloque um número para marcar o ritmo da senha.";
     if (!/[^A-Za-z0-9]/.test(password)) return "Falta um símbolo especial para o toque final na senha!";
-
+    
     if (password !== confirmPassword) return "As senhas estão fora de sincronia! Tente novamente.";
-
+    
     return null;
   };
 
@@ -63,7 +64,7 @@ function Registration() {
       const response = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
       const data = await response.json();
       return data.Answer && data.Answer.length > 0;
-    } catch {
+    } catch (e) {
       return false; // Fallback in case of network issues
     }
   };
@@ -78,7 +79,7 @@ function Registration() {
     }
 
     setIsLoading(true);
-
+    
     const hasMX = await verifyMXRecord(email);
     if (!hasMX) {
       showMusicError("Este domínio de e-mail não parece receber mensagens. Tente outro.");
@@ -87,7 +88,7 @@ function Registration() {
     }
 
     try {
-      const response = await api.post("/api/v1/auth/register", {
+      const response = await api.post("/auth/register", {
         nome: fullName,
         email,
         senha: password
@@ -98,17 +99,32 @@ function Registration() {
       if (token) {
         setToken(token);
         showMusicSuccess("Cadastro VIP realizado com sucesso!");
-        navigate("/home");
+        navigate("/");
       } else {
         showMusicSuccess("Cadastro realizado! Faça login para continuar.");
         navigate("/login");
       }
     } catch (err) {
-      const errorMessage = err.data?.message || err.data?.error || err.message || "Erro nos bastidores ao tentar criar conta.";
+      const status = err.status || err.response?.status;
+      const apiMessage = err.response?.data?.message || "";
+
+      // O back-end retorna 400 com a mensagem da EmailJaCadastradoException
+      const isEmailTaken =
+        status === 400 &&
+        (apiMessage.toLowerCase().includes("email") ||
+          apiMessage.toLowerCase().includes("e-mail") ||
+          apiMessage.toLowerCase().includes("cadastrado") ||
+          apiMessage.toLowerCase().includes("already"));
+
+      const errorMessage = isEmailTaken
+        ? "Este e-mail já está em uso. Tente fazer login ou use outro endereço."
+        : apiMessage || "Erro nos bastidores ao tentar criar conta.";
+
       showMusicError(errorMessage);
     } finally {
       setIsLoading(false);
     }
+
   };
 
   const strength = calculatePasswordStrength(password);
@@ -182,8 +198,8 @@ function Registration() {
             </div>
             {password && (
               <div className="password-strength-container">
-                <div
-                  className="password-strength-bar"
+                <div 
+                  className="password-strength-bar" 
                   style={{ width: strength.width, backgroundColor: strength.color }}
                 ></div>
               </div>
@@ -216,13 +232,13 @@ function Registration() {
             </div>
           </div>
 
-          <button
-            className="registration-button-primary"
+          <button 
+            className="registration-button-primary" 
             onClick={handleSubmit}
             disabled={isLoading}
             style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
           >
-            {isLoading ? "Processando VIP..." : <>Criar conta <FaChevronRight /></>}
+            {isLoading ? <ButtonSpinner color="#045547" /> : <>Criar conta <FaChevronRight /></>}
           </button>
         </div>
 

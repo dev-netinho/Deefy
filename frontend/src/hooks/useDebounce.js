@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 /**
  * Custom hook for debouncing a value.
- * Delays updating the debounced value until after the specified delay
+ * Delays updating the debounced value until after the specified delay 
  * has passed since the last time the value changed.
  *
  * @param {any} value - The value to debounce

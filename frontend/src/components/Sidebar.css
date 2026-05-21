@@ -22,13 +22,14 @@
 .sidebar-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   padding: 0 8px 36px;
 }
 
 .sidebar-logo {
-  width: 38px;
-  height: 38px;
+  width: 96px;
+  height: 96px;
   object-fit: contain;
   flex-shrink: 0;
 }

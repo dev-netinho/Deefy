@@ -13,6 +13,7 @@ import { setToken } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { showMusicError, showMusicSuccess } from "../utils/musicToast";
+import ButtonSpinner from "../components/ButtonSpinner";
 
 function Login() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ function Login() {
 
     setIsLoading(true);
     try {
-      const response = await api.post("/api/v1/auth/login", { email, senha: password });
+      const response = await api.post("/auth/login", { email, senha: password });
       const token = response.data.token || response.data?.data?.token;
 
       if (token) {
@@ -52,7 +53,12 @@ function Login() {
         showMusicError("Música pausada: O servidor não retornou um token de acesso.");
       }
     } catch (err) {
-      const errorMessage = err.data?.message || err.data?.error || err.message || "Erro de conexão ao palco. Tente novamente.";
+      const status = err.status || err.response?.status;
+      const apiMessage = err.response?.data?.message || err.response?.data?.error;
+      const errorMessage =
+        status === 401 || status === 403
+          ? "E-mail ou senha inválidos."
+          : apiMessage || err.message || "Erro de conexão ao palco. Tente novamente.";
       showMusicError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -118,15 +124,22 @@ function Login() {
             >
               Esqueci minha senha
             </p>*/}
+            <p
+              className="login-forgot-password"
+              onClick={() => navigate("/forgot-password")}
+            >
+              Esqueci minha senha
+            </p>
+
           </div>
 
-          <button
-            className="login-button-primary"
-            onClick={handleSubmit}
+          <button 
+            className="login-button-primary" 
+            onClick={handleSubmit} 
             disabled={isLoading}
             style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
           >
-            {isLoading ? "Afinando os instrumentos..." : <>Entrar <FaChevronRight /></>}
+            {isLoading ? <ButtonSpinner color="#045547" /> : <>Entrar <FaChevronRight /></>}
           </button>
         </div>
 

@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
+import { musicService } from "../services/musicService";
 
 /**
  * Sanitizes a raw user input string to prevent XSS injection.
@@ -10,39 +11,66 @@ import { useMemo } from "react";
  * @returns {string}
  */
 function sanitizeQuery(raw) {
-  return raw
+  if (!raw) return "";
+  return String(raw)
     .replace(/[<>"'`]/g, "")   // strip HTML-significant chars
     .replace(/javascript:/gi, "") // strip protocol handlers
     .trim();
 }
 
 /**
- * Searches a list of songs by the given query.
- * Matches against title, artist, album, and genre (case-insensitive).
+ * Searches songs via the backend API.
  *
- * @param {import('../mocks/musicData').Song[]} songs - Full song catalogue
  * @param {string} rawQuery - Raw string from the search input
- * @returns {{ sanitizedQuery: string, results: import('../mocks/musicData').Song[], isEmpty: boolean }}
+ * @returns {{ sanitizedQuery: string, results: any[], isEmpty: boolean, isLoading: boolean }}
  */
-export function useMusicSearch(songs, rawQuery) {
+export function useMusicSearch(rawQuery) {
+  const [results, setResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(false);
+
   const sanitizedQuery = sanitizeQuery(rawQuery);
 
-  const results = useMemo(() => {
-    if (!sanitizedQuery) return songs;
+  useEffect(() => {
+    if (!sanitizedQuery) {
+      setResults([]);
+      setIsEmpty(false);
+      setIsLoading(false);
+      return;
+    }
 
-    const lower = sanitizedQuery.toLowerCase();
-    return songs.filter(
-      (song) =>
-        song.title.toLowerCase().includes(lower) ||
-        song.artist.toLowerCase().includes(lower) ||
-        song.album.toLowerCase().includes(lower) ||
-        song.genre.toLowerCase().includes(lower)
-    );
-  }, [songs, sanitizedQuery]);
+    let isMounted = true;
+    setIsLoading(true);
+
+    musicService
+      .searchMusicsByTitle(sanitizedQuery)
+      .then((data) => {
+        if (isMounted) {
+          setResults(data);
+          setIsEmpty(data.length === 0);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setResults([]);
+          setIsEmpty(true);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [sanitizedQuery]);
 
   return {
     sanitizedQuery,
     results,
-    isEmpty: sanitizedQuery.length > 0 && results.length === 0,
+    isEmpty,
+    isLoading,
   };
 }

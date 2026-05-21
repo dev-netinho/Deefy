@@ -20,7 +20,6 @@ function Sidebar() {
         {/* Logo */}
         <div className="sidebar-brand">
           <img src={logo} alt="Deefy" className="sidebar-logo" />
-          <span className="sidebar-wordmark">Deefy</span>
         </div>
 
         {/* Nav */}
