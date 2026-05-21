@@ -11,18 +11,13 @@ import {
   FaVolumeUp,
 } from "react-icons/fa";
 import { FiChevronDown, FiList, FiMaximize2, FiRepeat } from "react-icons/fi";
+import fallbackCover from "../assets/logo.svg";
+import { usePlayer } from "../context/usePlayer";
+import { showMusicInfo } from "../utils/musicToast";
 import "./MusicPlayer.css";
 
-const MOCK_TRACK = {
-  title: "Nightdrive Anthem",
-  artist: "Synth Lord",
-  album: "Neon Nights",
-  coverUrl: "https://picsum.photos/seed/deefy-nightdrive/160/160",
-  durationInSeconds: 252,
-};
-
 function formatTime(seconds) {
-  const safeSeconds = Number.isFinite(seconds) ? seconds : 0;
+  const safeSeconds = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
   const minutes = Math.floor(safeSeconds / 60);
   const remainingSeconds = Math.floor(safeSeconds % 60);
 
@@ -30,34 +25,57 @@ function formatTime(seconds) {
 }
 
 function MusicPlayer() {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const {
+    currentTrack,
+    queue,
+    currentIndex,
+    isPlaying,
+    currentTime,
+    duration,
+    progressPercent,
+    effectiveVolume,
+    isMuted,
+    isShuffle,
+    isRepeat,
+    hasTrack,
+    canPlay,
+    togglePlay,
+    seekTo,
+    setVolume,
+    toggleMute,
+    nextTrack,
+    previousTrack,
+    toggleShuffle,
+    toggleRepeat,
+  } = usePlayer();
+
   const [isFavorite, setIsFavorite] = useState(false);
-  const [isShuffle, setIsShuffle] = useState(false);
-  const [isRepeat, setIsRepeat] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isExpandedClosing, setIsExpandedClosing] = useState(false);
   const [dragStartY, setDragStartY] = useState(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [progress, setProgress] = useState(34);
-  const [volume, setVolume] = useState(72);
   const compactDragActiveRef = useRef(false);
   const expandedDragActiveRef = useRef(false);
   const suppressCompactClickRef = useRef(false);
   const dragStartYRef = useRef(null);
   const dragOffsetYRef = useRef(0);
 
-  const isMuted = volume === 0;
-  const currentSeconds = (progress / 100) * MOCK_TRACK.durationInSeconds;
-  const currentTime = formatTime(currentSeconds);
-  const duration = formatTime(MOCK_TRACK.durationInSeconds);
+  const trackTitle = currentTrack?.title || "Escolha uma musica";
+  const trackArtist = currentTrack?.artist || "Clique em uma faixa para comecar";
+  const trackAlbum = currentTrack?.album || "Deefy";
+  const trackCover = currentTrack?.coverUrl || fallbackCover;
+  const currentTimeText = formatTime(currentTime);
+  const durationText = duration > 0 ? formatTime(duration) : currentTrack?.duration || "--:--";
+  const rangeMax = duration > 0 ? duration : 100;
+  const rangeValue = duration > 0 ? Math.min(currentTime, duration) : 0;
 
   const progressStyle = {
-    "--deefy-player-fill": `${progress}%`,
+    "--deefy-player-fill": `${progressPercent}%`,
   };
 
   const volumeStyle = {
-    "--deefy-player-fill": `${volume}%`,
+    "--deefy-player-fill": `${effectiveVolume}%`,
   };
 
   const expandedDragStyle = {
@@ -81,11 +99,7 @@ function MusicPlayer() {
     expandedDragActiveRef.current = false;
   };
 
-  const togglePlaying = () => setIsPlaying((current) => !current);
   const toggleFavorite = () => setIsFavorite((current) => !current);
-  const toggleShuffle = () => setIsShuffle((current) => !current);
-  const toggleRepeat = () => setIsRepeat((current) => !current);
-  const toggleMute = () => setVolume(isMuted ? 70 : 0);
   const openExpandedPlayer = () => {
     resetDrag();
     setIsExpandedClosing(false);
@@ -99,6 +113,23 @@ function MusicPlayer() {
 
   const stopCompactControlClick = (event) => {
     event.stopPropagation();
+  };
+
+  const handleQueueInfo = (event) => {
+    stopCompactControlClick(event);
+    showMusicInfo(
+      queue.length
+        ? `Fila atual: ${currentIndex + 1} de ${queue.length} musicas.`
+        : "A fila sera criada quando voce tocar uma lista."
+    );
+  };
+
+  const handleSeekChange = (event) => {
+    seekTo(Number(event.target.value));
+  };
+
+  const handleVolumeChange = (event) => {
+    setVolume(Number(event.target.value));
   };
 
   const handleCompactPlayerClick = (event) => {
@@ -254,7 +285,7 @@ function MusicPlayer() {
   return (
     <>
       <aside
-        className="deefy-player-shell"
+        className={`deefy-player-shell${!hasTrack ? " deefy-player-shell--empty" : ""}`}
         aria-label="Player musical"
         onClick={handleCompactPlayerClick}
         onTouchStart={handleCompactTouchStart}
@@ -265,15 +296,15 @@ function MusicPlayer() {
         <div className="deefy-player-track">
           <img
             className="deefy-player-cover"
-            src={MOCK_TRACK.coverUrl}
-            alt={`Capa de ${MOCK_TRACK.title}`}
+            src={trackCover}
+            alt={hasTrack ? `Capa de ${trackTitle}` : "Logo Deefy"}
             draggable="false"
           />
 
           <div className="deefy-player-copy">
-            <p className="deefy-player-title">{MOCK_TRACK.title}</p>
+            <p className="deefy-player-title">{trackTitle}</p>
             <p className="deefy-player-meta">
-              {MOCK_TRACK.artist} - {MOCK_TRACK.album}
+              {trackArtist} - {trackAlbum}
             </p>
           </div>
 
@@ -288,6 +319,7 @@ function MusicPlayer() {
             }}
             aria-label="Favoritar"
             aria-pressed={isFavorite}
+            disabled={!hasTrack}
           >
             <span className="deefy-player-favorite-icon">
               {isFavorite ? <FaHeart /> : <FaRegHeart />}
@@ -306,8 +338,9 @@ function MusicPlayer() {
                 stopCompactControlClick(event);
                 toggleShuffle();
               }}
-              aria-label="Aleatório"
+              aria-label="Aleatorio"
               aria-pressed={isShuffle}
+              disabled={!hasTrack}
             >
               <FaRandom />
             </button>
@@ -315,8 +348,12 @@ function MusicPlayer() {
             <button
               type="button"
               className="deefy-player-control-action deefy-player-skip-action"
-              onClick={stopCompactControlClick}
-              aria-label="Música anterior"
+              onClick={(event) => {
+                stopCompactControlClick(event);
+                previousTrack();
+              }}
+              aria-label="Musica anterior"
+              disabled={!hasTrack}
             >
               <FaStepBackward />
             </button>
@@ -328,10 +365,11 @@ function MusicPlayer() {
               }`}
               onClick={(event) => {
                 stopCompactControlClick(event);
-                togglePlaying();
+                togglePlay();
               }}
               aria-label="Reproduzir/Pausar"
               aria-pressed={isPlaying}
+              disabled={!canPlay}
             >
               <span className="deefy-player-main-icon">
                 {isPlaying ? <FaPause /> : <FaPlay />}
@@ -341,8 +379,12 @@ function MusicPlayer() {
             <button
               type="button"
               className="deefy-player-control-action deefy-player-skip-action"
-              onClick={stopCompactControlClick}
-              aria-label="Próxima música"
+              onClick={(event) => {
+                stopCompactControlClick(event);
+                nextTrack();
+              }}
+              aria-label="Proxima musica"
+              disabled={!hasTrack}
             >
               <FaStepForward />
             </button>
@@ -358,25 +400,27 @@ function MusicPlayer() {
               }}
               aria-label="Repetir"
               aria-pressed={isRepeat}
+              disabled={!hasTrack}
             >
               <FiRepeat />
             </button>
           </div>
 
           <div className="deefy-player-timeline">
-            <span className="deefy-player-time">{currentTime}</span>
+            <span className="deefy-player-time">{currentTimeText}</span>
             <input
               className="deefy-player-range"
               type="range"
               min="0"
-              max="100"
-              value={progress}
+              max={rangeMax}
+              value={rangeValue}
               onClick={stopCompactControlClick}
-              onChange={(event) => setProgress(Number(event.target.value))}
+              onChange={handleSeekChange}
               style={progressStyle}
               aria-label="Progresso da musica"
+              disabled={!duration}
             />
-            <span className="deefy-player-time">{duration}</span>
+            <span className="deefy-player-time">{durationText}</span>
           </div>
         </div>
 
@@ -384,7 +428,7 @@ function MusicPlayer() {
           <button
             type="button"
             className="deefy-player-control-action"
-            onClick={stopCompactControlClick}
+            onClick={handleQueueInfo}
             aria-label="Abrir fila de musicas"
           >
             <FiList />
@@ -407,9 +451,9 @@ function MusicPlayer() {
             type="range"
             min="0"
             max="100"
-            value={volume}
+            value={effectiveVolume}
             onClick={stopCompactControlClick}
-            onChange={(event) => setVolume(Number(event.target.value))}
+            onChange={handleVolumeChange}
             style={volumeStyle}
             aria-label="Volume"
           />
@@ -479,8 +523,8 @@ function MusicPlayer() {
             <div className="deefy-player-expanded-art-wrap">
               <img
                 className="deefy-player-expanded-cover"
-                src={MOCK_TRACK.coverUrl}
-                alt={`Capa de ${MOCK_TRACK.title}`}
+                src={trackCover}
+                alt={hasTrack ? `Capa de ${trackTitle}` : "Logo Deefy"}
                 draggable="false"
               />
             </div>
@@ -488,9 +532,9 @@ function MusicPlayer() {
             <div className="deefy-player-expanded-content">
               <div className="deefy-player-expanded-track-row">
                 <div className="deefy-player-expanded-copy">
-                  <p className="deefy-player-expanded-title">{MOCK_TRACK.title}</p>
+                  <p className="deefy-player-expanded-title">{trackTitle}</p>
                   <p className="deefy-player-expanded-meta">
-                    {MOCK_TRACK.artist} - {MOCK_TRACK.album}
+                    {trackArtist} - {trackAlbum}
                   </p>
                 </div>
 
@@ -502,6 +546,7 @@ function MusicPlayer() {
                   onClick={toggleFavorite}
                   aria-label="Favoritar"
                   aria-pressed={isFavorite}
+                  disabled={!hasTrack}
                 >
                   <span className="deefy-player-favorite-icon">
                     {isFavorite ? <FaHeart /> : <FaRegHeart />}
@@ -514,15 +559,16 @@ function MusicPlayer() {
                   className="deefy-player-range deefy-player-expanded-range"
                   type="range"
                   min="0"
-                  max="100"
-                  value={progress}
-                  onChange={(event) => setProgress(Number(event.target.value))}
+                  max={rangeMax}
+                  value={rangeValue}
+                  onChange={handleSeekChange}
                   style={progressStyle}
                   aria-label="Progresso da musica"
+                  disabled={!duration}
                 />
                 <div className="deefy-player-expanded-time-row">
-                  <span className="deefy-player-time">{currentTime}</span>
-                  <span className="deefy-player-time">{duration}</span>
+                  <span className="deefy-player-time">{currentTimeText}</span>
+                  <span className="deefy-player-time">{durationText}</span>
                 </div>
               </div>
 
@@ -536,8 +582,9 @@ function MusicPlayer() {
                     isShuffle ? "is-active" : ""
                   }`}
                   onClick={toggleShuffle}
-                  aria-label="Aleatório"
+                  aria-label="Aleatorio"
                   aria-pressed={isShuffle}
+                  disabled={!hasTrack}
                 >
                   <FaRandom />
                 </button>
@@ -545,7 +592,9 @@ function MusicPlayer() {
                 <button
                   type="button"
                   className="deefy-player-control-action deefy-player-expanded-control deefy-player-expanded-skip"
-                  aria-label="Música anterior"
+                  onClick={previousTrack}
+                  aria-label="Musica anterior"
+                  disabled={!hasTrack}
                 >
                   <FaStepBackward />
                 </button>
@@ -555,9 +604,10 @@ function MusicPlayer() {
                   className={`deefy-player-main-action deefy-player-expanded-main ${
                     isPlaying ? "is-playing" : ""
                   }`}
-                  onClick={togglePlaying}
+                  onClick={togglePlay}
                   aria-label="Reproduzir/Pausar"
                   aria-pressed={isPlaying}
+                  disabled={!canPlay}
                 >
                   <span className="deefy-player-main-icon">
                     {isPlaying ? <FaPause /> : <FaPlay />}
@@ -567,7 +617,9 @@ function MusicPlayer() {
                 <button
                   type="button"
                   className="deefy-player-control-action deefy-player-expanded-control deefy-player-expanded-skip"
-                  aria-label="Próxima música"
+                  onClick={nextTrack}
+                  aria-label="Proxima musica"
+                  disabled={!hasTrack}
                 >
                   <FaStepForward />
                 </button>
@@ -580,6 +632,7 @@ function MusicPlayer() {
                   onClick={toggleRepeat}
                   aria-label="Repetir"
                   aria-pressed={isRepeat}
+                  disabled={!hasTrack}
                 >
                   <FiRepeat />
                 </button>
@@ -602,8 +655,8 @@ function MusicPlayer() {
                   type="range"
                   min="0"
                   max="100"
-                  value={volume}
-                  onChange={(event) => setVolume(Number(event.target.value))}
+                  value={effectiveVolume}
+                  onChange={handleVolumeChange}
                   style={volumeStyle}
                   aria-label="Volume"
                 />

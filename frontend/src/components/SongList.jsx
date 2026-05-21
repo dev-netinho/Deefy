@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { MdPlayArrow } from "react-icons/md";
+import { usePlayer } from "../context/usePlayer";
 import "./SongList.css";
 
 /**
@@ -11,7 +11,18 @@ import "./SongList.css";
  * }} props
  */
 function SongList({ songs, title = "Todas as Músicas" }) {
-  const [activeSongId, setActiveSongId] = useState(null);
+  const { currentTrack, isPlaying, playTrack, togglePlay } = usePlayer();
+
+  const handleSongAction = (song) => {
+    const isActive = String(currentTrack?.id) === String(song.id);
+
+    if (isActive) {
+      togglePlay();
+      return;
+    }
+
+    playTrack(song, songs);
+  };
 
   return (
     <section className="song-list" aria-label={title}>
@@ -28,23 +39,34 @@ function SongList({ songs, title = "Todas as Músicas" }) {
 
         {/* Rows */}
         {songs.map((song, index) => {
-          const isActive = activeSongId === song.id;
+          const isActive = String(currentTrack?.id) === String(song.id);
+          const isUnavailable = !song.fileUrl;
+
           return (
             <div
               key={song.id}
-              className={`song-row${isActive ? " song-row--active" : ""}`}
+              className={`song-row${isActive ? " song-row--active" : ""}${
+                isUnavailable ? " song-row--disabled" : ""
+              }`}
               role="row"
-              tabIndex={0}
-              onClick={() => setActiveSongId(isActive ? null : song.id)}
-              onKeyDown={(e) =>
-                (e.key === "Enter" || e.key === " ") &&
-                setActiveSongId(isActive ? null : song.id)
-              }
+              tabIndex={isUnavailable ? -1 : 0}
+              aria-disabled={isUnavailable}
+              onClick={() => !isUnavailable && handleSongAction(song)}
+              onKeyDown={(e) => {
+                if (isUnavailable || (e.key !== "Enter" && e.key !== " ")) {
+                  return;
+                }
+
+                e.preventDefault();
+                handleSongAction(song);
+              }}
             >
               {/* # / play icon */}
               <span className="song-col-num" role="cell">
                 {isActive ? (
-                  <MdPlayArrow className="song-playing-icon" />
+                  <MdPlayArrow
+                    className={`song-playing-icon${isPlaying ? "" : " song-playing-icon--paused"}`}
+                  />
                 ) : (
                   <span className="song-index">{index + 1}</span>
                 )}
