@@ -35,7 +35,7 @@ public class Music {
     @JoinColumn(name = "album_id")
     private Album album;
 
-    protected Music() {
+    public Music() {
     }
 
     /** Uso em testes unitários (entidade desanexada). */
