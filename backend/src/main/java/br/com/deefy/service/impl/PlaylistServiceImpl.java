@@ -1,10 +1,15 @@
 package br.com.deefy.service.impl;
 
+import br.com.deefy.dto.request.PlaylistRequestDTO;
+import br.com.deefy.exception.MusicNotFoundException;
 import br.com.deefy.exception.PlaylistException;
-import br.com.deefy.model.Playlist;
+import br.com.deefy.exception.UsuarioNaoEncontradoException;
 import br.com.deefy.model.Music;
+import br.com.deefy.model.Playlist;
 import br.com.deefy.model.User;
+import br.com.deefy.repository.MusicRepository;
 import br.com.deefy.repository.PlaylistRepository;
+import br.com.deefy.repository.UserRepository;
 import br.com.deefy.service.PlaylistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,17 +23,19 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Autowired
     private PlaylistRepository playlistRepository;
 
-    // Você precisará desses repositories para buscar as entidades antes de associar
-    // @Autowired private UserRepository userRepository;
-    // @Autowired private MusicRepository musicRepository;
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private MusicRepository musicRepository;
 
     @Override
     @Transactional
-    public Playlist create(Playlist playlist, Long ownerId) {
-        // Aqui você buscaria o User no banco e setaria:
-        // User owner = userRepository.findById(ownerId).orElseThrow(...);
-        // playlist.setOwner(owner);
-        // playlist.setDataCriacao(LocalDateTime.now());
+    public Playlist createPlaylist(Playlist playlist, Long ownerId) {
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
+
+        playlist.setOwner(owner); // Vincula o dono
         return playlistRepository.save(playlist);
     }
 
@@ -43,7 +50,6 @@ public class PlaylistServiceImpl implements PlaylistService {
         Playlist playlist = playlistRepository.findById(id)
                 .orElseThrow(() -> new PlaylistException("Playlist não encontrada com o ID: " + id));
 
-        // Usando o metodo que você já tem no Model! (Item 12 do Trello)
         if (!playlist.belongsTo(ownerId)) {
             throw new PlaylistException("Acesso negado: Você não é o proprietário desta playlist.");
         }
@@ -53,33 +59,56 @@ public class PlaylistServiceImpl implements PlaylistService {
 
     @Override
     @Transactional
-    public Playlist updateName(Long id, String newName, Long ownerId) {
-        Playlist playlist = findById(id, ownerId);
-        playlist.setName(newName);
+    public Playlist updateName(Long id, PlaylistRequestDTO request, Long ownerId) {
+        Playlist playlist = playlistRepository.findById(id)
+                .orElseThrow(() -> new PlaylistException("Playlist não encontrada"));
+
+        // Validação de Segurança: apenas o dono edita
+        if (!playlist.getOwner().getId().equals(ownerId)) {
+            throw new PlaylistException("Você não tem permissão para editar esta playlist");
+        }
+
+        // Atualiza apenas os campos permitidos
+        playlist.setName(request.name());
+        playlist.setPublica(request.publica());
+
         return playlistRepository.save(playlist);
     }
 
     @Override
     @Transactional
-    public void delete(Long id, Long ownerId) {
-        Playlist playlist = findById(id, ownerId);
+    public void deletePlaylist(Long id, Long ownerId) {
+        Playlist playlist = playlistRepository.findById(id)
+                .orElseThrow(() -> new PlaylistException("Playlist não encontrada"));
+
+        // Valida se quem está deletando é realmente o dono
+        if (!playlist.getOwner().getId().equals(ownerId)) {
+            throw new PlaylistException("Você não tem permissão para deletar esta playlist");
+        }
+
         playlistRepository.delete(playlist);
     }
 
     @Override
     @Transactional
     public Playlist addMusicToPlaylist(Long playlistId, Long musicId, Long ownerId) {
-        Playlist playlist = findById(playlistId, ownerId);
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new PlaylistException("Playlist não encontrada"));
 
-        // Usando o metodo que você já tem no Model! (Item 11 do Trello)
-        if (playlist.hasTrackWithMusicId(musicId)) {
-            throw new PlaylistException("Esta música já está presente na playlist.");
+        // Validação de segurança
+        if (!playlist.getOwner().getId().equals(ownerId)) {
+            throw new PlaylistException("Apenas o dono pode adicionar músicas a esta playlist");
         }
 
-        // Exemplo de como adicionar (supondo que você buscou a música no musicRepository)
-        // Music music = musicRepository.findById(musicId).orElseThrow(...);
-        // playlist.addTrack(music);
+        Music music = musicRepository.findById(musicId)
+                .orElseThrow(() -> new MusicNotFoundException(musicId));
 
+        // Regra de negócio: evitar duplicatas
+        if (playlist.getTracks().contains(music)) {
+            throw new PlaylistException("Esta música já está presente na playlist");
+        }
+
+        playlist.getTracks().add(music);
         return playlistRepository.save(playlist);
     }
 

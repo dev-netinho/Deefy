@@ -5,6 +5,7 @@ import br.com.deefy.dto.request.ListeningHistoryResponse;
 import br.com.deefy.exception.HistoryNotFoundException;
 import br.com.deefy.exception.MusicNotFoundException;
 import br.com.deefy.exception.UsuarioNaoEncontradoException;
+import br.com.deefy.exception.MusicNotFoundException;
 import br.com.deefy.mapper.ListeningHistoryMapper;
 import br.com.deefy.model.ListeningHistory;
 import br.com.deefy.model.Music;

@@ -7,6 +7,6 @@ import java.util.List;
 
 @Repository
 public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
-    // Busca as playlists filtrando pelo ID do usuário (Item 7 do Trello)
-    List<Playlist> findByOwnerId(Long usuarioId);
+    // Busca as playlists filtrando pelo ID do usuário
+    List<Playlist> findByOwnerId(Long ownerId);
 }

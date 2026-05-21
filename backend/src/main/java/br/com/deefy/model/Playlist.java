@@ -24,8 +24,13 @@ public class Playlist {
     @Column(name = "publica", nullable = false)
     private boolean publica;
 
-    @Column(name = "datacriacao", nullable = false)
+    @Column(name = "datacriacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
+
+    @PrePersist
+    protected void onCreate() {
+        this.dataCriacao = LocalDateTime.now();
+    }
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -35,7 +40,7 @@ public class Playlist {
     @OrderColumn(name = "ordem")
     private List<Music> tracks = new ArrayList<>();
 
-    protected Playlist() {
+    public Playlist() {
     }
 
     public Playlist(Long id, User owner, String name, boolean publica, LocalDateTime dataCriacao, List<Music> tracks) {
