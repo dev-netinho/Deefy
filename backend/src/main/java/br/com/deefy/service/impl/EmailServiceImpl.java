@@ -1,72 +1,98 @@
 package br.com.deefy.service.impl;
 
 import br.com.deefy.service.EmailService;
-import jakarta.mail.internet.MimeMessage;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmailServiceImpl implements EmailService {
 
-    // Injeta o motor do Spring Mail configurado no application.properties
-    private final JavaMailSender mailSender;
+    private final String apiKey;
+    private final String remetente;
+    private final ObjectMapper objectMapper;
+    private final HttpClient httpClient;
 
-    @Value("${spring.mail.username}")
-    private String remetente;
-
-    public EmailServiceImpl(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public EmailServiceImpl(
+            @Value("${resend.api.key}") String apiKey,
+            @Value("${resend.from}") String remetente,
+            ObjectMapper objectMapper) {
+        this.apiKey = apiKey;
+        this.remetente = remetente;
+        this.objectMapper = objectMapper;
+        this.httpClient = HttpClient.newHttpClient();
     }
 
+    @Async
     @Override
     public void enviarEmailLinkSenha(String emailDestino, String token) {
+        String linkDeRecuperacao = "http://localhost:3000/reset-password?token=" + token;
+
+        String htmlContent =
+                "<div style='background-color: #0d0d0d; padding: 40px 20px; font-family: sans-serif; text-align: center;'>" +
+                        "<table align='center' style='max-width: 460px; background-color: #181818; border-radius: 16px; padding: 40px; border: 1px solid #262626;'>" +
+                        "<tr><td><h1 style='color: #2ce5c2; font-style: italic; margin: 0;'>deefy</h1></td></tr>" +
+                        "<tr><td><h2 style='color: #ffffff; margin: 20px 0 10px 0;'>Recuperação de Conta</h2>" +
+                        "<p style='color: #a0a0a0; font-size: 14px; margin-bottom: 30px;'>Clique abaixo para criar sua nova credencial de acesso:</p></td></tr>" +
+                        "<tr><td><a href='" + linkDeRecuperacao + "' style='display: inline-block; padding: 14px 36px; background-color: #2ce5c2; color: #0d0d0d; text-decoration: none; font-weight: bold; border-radius: 12px;'>Redefinir Minha Senha</a></td></tr>" +
+                        "</table>" +
+                        "</div>";
+
+        dispararEmail(emailDestino, "Deefy - Recuperação de Senha", htmlContent);
+    }
+
+    @Async
+    @Override
+    public void enviarEmailAtivacaoConta(String emailDestino, String token) {
+        String linkDeAtivacao = "http://localhost:3000/verify-account?token=" + token;
+
+        String htmlContent =
+                "<div style='background-color: #0d0d0d; padding: 40px 20px; font-family: sans-serif; text-align: center;'>" +
+                        "<table align='center' style='max-width: 460px; background-color: #181818; border-radius: 16px; padding: 40px; border: 1px solid #262626;'>" +
+                        "<tr><td><h1 style='color: #2ce5c2; font-style: italic; margin: 0;'>deefy</h1></td></tr>" +
+                        "<tr><td><h2 style='color: #ffffff; margin: 20px 0 10px 0;'>Seja bem-vindo!</h2>" +
+                        "<p style='color: #a0a0a0; font-size: 14px; margin-bottom: 30px;'>Clique abaixo para ativar a sua conta e liberar o seu acesso:</p></td></tr>" +
+                        "<tr><td><a href='" + linkDeAtivacao + "' style='display: inline-block; padding: 14px 36px; background-color: #2ce5c2; color: #0d0d0d; text-decoration: none; font-weight: bold; border-radius: 12px;'>Ativar Minha Conta</a></td></tr>" +
+                        "</table>" +
+                        "</div>";
+
+        dispararEmail(emailDestino, "Deefy - Ative sua Conta", htmlContent);
+    }
+
+    private void dispararEmail(String destinatario, String assunto, String htmlBody) {
         try {
-            // MimeMessage permite o envio de e-mails complexos com formatação HTML
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            Map<String, Object> payload = Map.of(
+                    "from", this.remetente,
+                    "to", List.of(destinatario),
+                    "subject", assunto,
+                    "html", htmlBody
+            );
 
-            //PRECISA MUDAR ISSO AQUI PARA URL DA  APLICAÇÃO
-            String linkDeRecuperacao = "http://localhost:3000/reset-password?token=" + token;
+            String jsonBody = objectMapper.writeValueAsString(payload);
 
-            helper.setFrom(remetente);
-            helper.setTo(emailDestino);
-            helper.setSubject("Deefy - Recuperação de Senha");
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.resend.com/emails"))
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
 
-            // Template HTML Premium e Tematizado com a identidade visual do Deefy
-            helper.setText(
-                    "<div style='background-color: #0d0d0d; padding: 40px 20px; font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif; min-height: 100%; margin: 0;'>" +
-                            "<table align='center' border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 460px; background-color: #181818; border-radius: 16px; border: 1px solid #262626; padding: 40px; text-align: center;'>" +
-                            "<tr>" +
-                            "<td align='center' style='padding-bottom: 32px;'>" +
-                            // Simulação do Logo Deefy estilizado em CSS
-                            "<h1 style='color: #2ce5c2; font-size: 38px; font-weight: 800; margin: 0; letter-spacing: -1.5px; font-style: italic;'>deefy</h1>" +
-                            "</td>" +
-                            "</tr>" +
-                            "<tr>" +
-                            "<td align='center'>" +
-                            "<h2 style='color: #ffffff; font-size: 22px; font-weight: 600; margin: 0 0 16px 0; letter-spacing: -0.5px;'>Recuperação de Conta</h2>" +
-                            "<p style='color: #a0a0a0; font-size: 14px; line-height: 1.6; margin: 0 0 32px 0;'>Você solicitou a redefinição da sua senha de acesso. Clique no botão abaixo para criar sua nova credencial.</p>" +
-                            "</td>" +
-                            "</tr>" +
-                            "<tr>" +
-                            "<td align='center'>" +
-                            // Botão no padrão do botão "Entrar" (Cyan Neon, texto escuro e cantos arredondados em 12px)
-                            "<a href='" + linkDeRecuperacao + "' style='display: inline-block; padding: 14px 36px; background-color: #2ce5c2; color: #0d0d0d; text-decoration: none; font-weight: bold; font-size: 15px; border-radius: 12px; letter-spacing: -0.2px;'>Redefinir Minha Senha</a>" +
-                            "</td>" +
-                            "</tr>" +
-                            "<tr>" +
-                            "<td align='center' style='padding-top: 32px;'>" +
-                            "<p style='color: #666666; font-size: 12px; margin: 0 0 4px 0;'>Este link é válido por apenas 15 minutos.</p>" +
-                            "<p style='color: #444444; font-size: 11px; margin: 0;'>Se você não solicitou esta alteração, ignore este e-mail.</p>" +
-                            "</td>" +
-                            "</tr>" +
-                            "</table>" +
-                            "</div>", true);
-            mailSender.send(message);
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 300) {
+                throw new RuntimeException("Resend API retornou erro HTTP " + response.statusCode() + ": " + response.body());
+            }
+
         } catch (Exception e) {
-            throw new RuntimeException("Falha ao disparar o e-mail de redefinição de senha: " + e.getMessage());
+            throw new RuntimeException("Falha ao enviar e-mail via Resend API: " + e.getMessage(), e);
         }
     }
 }

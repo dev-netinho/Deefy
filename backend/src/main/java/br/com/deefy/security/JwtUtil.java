@@ -18,6 +18,9 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
+    @Value("${jwt.account.activation.expiration:900000}")
+    private long activationExpiration;
+
     public String generateToken(String email) {
         return Jwts.builder()
                 .subject(email)
@@ -80,5 +83,49 @@ public class JwtUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public String generateAccountActivationToken(String nome, String email, String senhaCriptografada) {
+        return Jwts.builder()
+                .subject(email)
+                .claim("purpose", "account_activation")
+                .claim("nome", nome)
+                .claim("senhaHash", senhaCriptografada)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + activationExpiration))
+                .signWith(getSignKey())
+                .compact();
+    }
+
+    public boolean isAccountActivationTokenValid(String token) {
+        try {
+            var claims = Jwts.parser()
+                    .verifyWith(getSignKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            return "account_activation".equals(claims.get("purpose", String.class));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public String extractNomeFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("nome", String.class);
+    }
+
+    public String extractSenhaHashFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("senhaHash", String.class);
     }
 }
