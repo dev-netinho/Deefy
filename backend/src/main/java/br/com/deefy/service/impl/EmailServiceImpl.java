@@ -22,8 +22,8 @@ public class EmailServiceImpl implements EmailService {
     private final HttpClient httpClient;
 
     public EmailServiceImpl(
-            @Value("${resend.api.key}") String apiKey,
-            @Value("${resend.from}") String remetente,
+            @Value("${resend.api.key:re_chave_falsa_para_o_github}") String apiKey,
+            @Value("${resend.from:Deefy <onboarding@resend.dev>}") String remetente,
             ObjectMapper objectMapper) {
         this.apiKey = apiKey;
         this.remetente = remetente;
