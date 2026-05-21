@@ -63,6 +63,16 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(ArtistNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleArtistNotFoundException(ArtistNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(GenreNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleGenreNotFoundException(GenreNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     @ExceptionHandler(PlaylistException.class)
     public ResponseEntity<ErrorDetails> handlePlaylistException(PlaylistException ex, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(

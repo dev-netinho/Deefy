@@ -29,7 +29,9 @@ public class OpenApiConfig {
                                 3. Informe o token no formato: Bearer <token>.
 
                                 Modulos ainda sem endpoint publico na staging atual:
-                                Favorites, Rating e History.
+                                Rating e History.
+
+                                Favorites esta disponivel para musicas, artistas e generos.
                                 """)
                         .license(new License().name("Projeto academico")))
                 .addServersItem(new Server()
