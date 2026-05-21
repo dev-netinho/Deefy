@@ -7,9 +7,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -18,15 +20,18 @@ public class EmailServiceImpl implements EmailService {
 
     private final String apiKey;
     private final String remetente;
+    private final String frontendBaseUrl;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
 
     public EmailServiceImpl(
             @Value("${resend.api.key:re_chave_falsa_para_o_github}") String apiKey,
             @Value("${resend.from:Deefy <onboarding@resend.dev>}") String remetente,
+            @Value("${app.frontend.base-url:http://localhost:5173}") String frontendBaseUrl,
             ObjectMapper objectMapper) {
         this.apiKey = apiKey;
         this.remetente = remetente;
+        this.frontendBaseUrl = frontendBaseUrl.replaceAll("/+$", "");
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newHttpClient();
     }
@@ -34,7 +39,7 @@ public class EmailServiceImpl implements EmailService {
     @Async
     @Override
     public void enviarEmailLinkSenha(String emailDestino, String token) {
-        String linkDeRecuperacao = "http://localhost:3000/reset-password?token=" + token;
+        String linkDeRecuperacao = buildFrontendLink("/reset-password", token);
 
         String htmlContent =
                 "<div style='background-color: #0d0d0d; padding: 40px 20px; font-family: sans-serif; text-align: center;'>" +
@@ -52,7 +57,7 @@ public class EmailServiceImpl implements EmailService {
     @Async
     @Override
     public void enviarEmailAtivacaoConta(String emailDestino, String token) {
-        String linkDeAtivacao = "http://localhost:3000/verify-account?token=" + token;
+        String linkDeAtivacao = buildFrontendLink("/verify-account", token);
 
         String htmlContent =
                 "<div style='background-color: #0d0d0d; padding: 40px 20px; font-family: sans-serif; text-align: center;'>" +
@@ -65,6 +70,11 @@ public class EmailServiceImpl implements EmailService {
                         "</div>";
 
         dispararEmail(emailDestino, "Deefy - Ative sua Conta", htmlContent);
+    }
+
+    private String buildFrontendLink(String path, String token) {
+        String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
+        return frontendBaseUrl + path + "?token=" + encodedToken;
     }
 
     private void dispararEmail(String destinatario, String assunto, String htmlBody) {

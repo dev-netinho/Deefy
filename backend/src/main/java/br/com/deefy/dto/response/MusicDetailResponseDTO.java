@@ -11,6 +11,7 @@ public record MusicDetailResponseDTO(
         Integer durationSeconds,
         String coverUrl,
         String previewUrl,
+        String fileUrl,
         LocalDate dataLancamento
 ) {
 }

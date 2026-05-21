@@ -101,7 +101,7 @@ function Registration() {
         showMusicSuccess("Cadastro VIP realizado com sucesso!");
         navigate("/");
       } else {
-        showMusicSuccess("Cadastro realizado! Faça login para continuar.");
+        showMusicSuccess("Cadastro iniciado! Verifique seu e-mail para ativar a conta.");
         navigate("/login");
       }
     } catch (err) {

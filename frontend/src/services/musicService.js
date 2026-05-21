@@ -1,4 +1,29 @@
 import api from './api';
+import fallbackCover from '../assets/logo.svg';
+
+function normalizeMusic(music) {
+  const title = music?.title || music?.titulo || 'Musica sem titulo';
+  const artist = music?.artist || music?.artista || 'Artista nao informado';
+  const album = music?.album || music?.albumTitle || 'Sem album';
+  const fileUrl = music?.fileUrl || music?.arquivoUrl || music?.audioUrl || '';
+  const coverUrl = music?.coverUrl || music?.capaUrl || fallbackCover;
+  const duration = music?.duration || music?.duracaoFormatada || '--:--';
+
+  return {
+    ...music,
+    title,
+    artist,
+    album,
+    duration,
+    fileUrl,
+    audioUrl: fileUrl,
+    coverUrl,
+  };
+}
+
+function normalizeMusicList(payload) {
+  return (payload?.content || payload || []).map(normalizeMusic);
+}
 
 export const musicService = {
   /**
@@ -9,7 +34,7 @@ export const musicService = {
   async getHomeMusics(size = 12) {
     try {
       const response = await api.get(`/musics?size=${size}&sort=id,desc`);
-      return response.data?.content || [];
+      return normalizeMusicList(response.data);
     } catch (error) {
       console.error('Failed to fetch home musics:', error);
       throw error;
@@ -31,7 +56,7 @@ export const musicService = {
           size: 20
         }
       });
-      return response.data?.content || [];
+      return normalizeMusicList(response.data);
     } catch (error) {
       console.error(`Failed to search musics with title "${title}":`, error);
       throw error;
@@ -53,7 +78,7 @@ export const musicService = {
           size: 20
         }
       });
-      return response.data?.content || [];
+      return normalizeMusicList(response.data);
     } catch (error) {
       console.error(`Failed to search musics by artist "${artist}":`, error);
       throw error;

@@ -1,42 +1,24 @@
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: deefy-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-deefy}
-      POSTGRES_USER: ${POSTGRES_USER:-deefy}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - deefy_postgres_data:/var/lib/postgresql/data
-      - ./database/scripts/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./database/scripts/insert.sql:/docker-entrypoint-initdb.d/02-insert.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - deefy-internal
-
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
     container_name: deefy-backend
     restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-deefy}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-deefy}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      JWT_RESET_EXPIRATION: ${JWT_RESET_EXPIRATION:-900000}
+      JWT_ACCOUNT_ACTIVATION_EXPIRATION: ${JWT_ACCOUNT_ACTIVATION_EXPIRATION:-900000}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS}
+      APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM: ${RESEND_FROM}
       SERVER_PORT: 8080
     networks:
-      - deefy-internal
       - traefik-public
     labels:
       - traefik.enable=true
@@ -66,11 +48,6 @@ services:
       - traefik.http.routers.deefy-frontend.tls.certresolver=let-enc
       - traefik.http.services.deefy-frontend.loadbalancer.server.port=80
 
-volumes:
-  deefy_postgres_data:
-
 networks:
-  deefy-internal:
-    driver: bridge
   traefik-public:
     external: true

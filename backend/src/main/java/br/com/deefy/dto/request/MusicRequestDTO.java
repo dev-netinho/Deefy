@@ -1,5 +1,6 @@
 package br.com.deefy.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -21,7 +22,8 @@ public record MusicRequestDTO(
 
         String coverUrl,
 
-        String deezerId,
+        @JsonAlias({"arquivoUrl", "audioUrl"})
+        String fileUrl,
 
         @NotNull(message = "Album ID is required")
         Long albumId

@@ -7,6 +7,7 @@ public record MusicDetailsResponseDTO(
         int duracaoSegundos,
         String previewUrl,
         String capaUrl,
+        String arquivoUrl,
         ArtistaResponseDTO artista,
         AlbumResponseDTO album
 ) {}

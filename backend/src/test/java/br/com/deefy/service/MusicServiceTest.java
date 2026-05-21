@@ -50,6 +50,7 @@ public class MusicServiceTest {
                 405,
                 "https://cover.url",
                 "https://preview.url",
+                "https://file.url",
                 null
         );
 

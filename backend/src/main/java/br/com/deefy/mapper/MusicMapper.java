@@ -21,6 +21,7 @@ public interface MusicMapper {
     MusicDetailResponseDTO toDetailDTO(Music music);
 
     @Mapping(target = "artist", source = "artist")
+    @Mapping(target = "album", source = "albumTitle")
     MusicListResponseDTO toListDTO(Music music);
 
     @Mapping(target = "id", ignore = true)

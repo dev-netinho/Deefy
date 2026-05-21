@@ -63,7 +63,7 @@ class MusicServiceImplTest {
         music = new Music(1L, "Test Music", "Rock", 180, album);
         music.setPreviewUrl("http://example.com/preview.mp3");
         music.setCoverUrl("http://example.com/cover.jpg");
-        music.setExternalId("deezer123");
+        music.setFileUrl("http://example.com/file.mp3");
 
         musicRequestDTO = new MusicRequestDTO(
                 "Test Music",
@@ -71,7 +71,7 @@ class MusicServiceImplTest {
                 180,
                 "http://example.com/preview.mp3",
                 "http://example.com/cover.jpg",
-                "deezer123",
+                "http://example.com/file.mp3",
                 1L
         );
 
@@ -84,6 +84,7 @@ class MusicServiceImplTest {
                 180,
                 "http://example.com/cover.jpg",
                 "http://example.com/preview.mp3",
+                "http://example.com/file.mp3",
                 LocalDate.of(2024, 1, 1)
         );
 
@@ -91,7 +92,12 @@ class MusicServiceImplTest {
                 1L,
                 "Test Music",
                 "Artist Test",
-                "http://example.com/cover.jpg"
+                "Album Test",
+                180,
+                "3:00",
+                "http://example.com/cover.jpg",
+                "http://example.com/preview.mp3",
+                "http://example.com/file.mp3"
         );
     }
 

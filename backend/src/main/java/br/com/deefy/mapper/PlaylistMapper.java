@@ -18,7 +18,12 @@ public interface PlaylistMapper {
 
     // Mapeamento específico para a música, ajustando os nomes dos campos
     // Exemplo: se na sua Entity Music o campo for 'title', mas no DTO for 'titulo'
-    @Mapping(source = "title", target = "titulo") // Ajuste conforme os campos da sua classe Music
+    @Mapping(source = "title", target = "titulo")
+    @Mapping(source = "genre", target = "genero")
+    @Mapping(source = "durationSeconds", target = "duracaoSegundos")
+    @Mapping(source = "coverUrl", target = "capaUrl")
+    @Mapping(source = "fileUrl", target = "arquivoUrl")
+    @Mapping(source = "album.artist", target = "artista")
     MusicDetailsResponseDTO toMusicDTO(Music music);
 
     List<MusicDetailsResponseDTO> toMusicDTOList(List<Music> tracks);

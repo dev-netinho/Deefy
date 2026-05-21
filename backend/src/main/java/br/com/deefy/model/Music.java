@@ -2,9 +2,6 @@ package br.com.deefy.model;
 
 import jakarta.persistence.*;
 
-/**
- * Tabela {@code musica} conforme {@code deefy_schema.sql} (título, álbum/artista, Deezer, etc.).
- */
 @Entity
 @Table(name = "musica")
 public class Music {
@@ -13,20 +10,20 @@ public class Music {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "deezerid", unique = true, length = 100)
-    private String deezerId;
-
     @Column(name = "titulo", nullable = false, length = 100)
     private String title;
 
     @Column(name = "duracao", nullable = false)
     private Integer durationSeconds;
 
-    @Column(name = "previewurl", length = 100)
+    @Column(name = "previewurl", columnDefinition = "TEXT")
     private String previewUrl;
 
-    @Column(name = "capaurl", length = 100)
+    @Column(name = "capaurl", columnDefinition = "TEXT")
     private String coverUrl;
+
+    @Column(name = "arquivourl", nullable = false, columnDefinition = "TEXT")
+    private String fileUrl;
 
     @Column(name = "genero", nullable = false, length = 100)
     private String genre;
@@ -78,12 +75,28 @@ public class Music {
     }
 
     public String getCoverUrl() {
-        return coverUrl;
+        if (coverUrl != null && !coverUrl.isBlank()) {
+            return coverUrl;
+        }
+        return album == null ? null : album.getCapaUrl();
     }
 
-    /** Identificador na API Deezer (coluna {@code deezerid}). */
-    public String getExternalId() {
-        return deezerId;
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public String getAlbumTitle() {
+        return album == null ? null : album.getTitulo();
+    }
+
+    public String getDuration() {
+        if (durationSeconds == null || durationSeconds <= 0) {
+            return "--:--";
+        }
+
+        int minutes = durationSeconds / 60;
+        int seconds = durationSeconds % 60;
+        return "%d:%02d".formatted(minutes, seconds);
     }
 
     public Album getAlbum() {
@@ -102,7 +115,7 @@ public class Music {
         this.coverUrl = coverUrl;
     }
 
-    public void setExternalId(String deezerId) {
-        this.deezerId = deezerId;
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
     }
 }

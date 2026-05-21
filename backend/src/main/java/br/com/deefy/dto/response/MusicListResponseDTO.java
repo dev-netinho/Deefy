@@ -4,6 +4,11 @@ public record MusicListResponseDTO(
         Long id,
         String title,
         String artist,
-        String coverUrl
+        String album,
+        Integer durationSeconds,
+        String duration,
+        String coverUrl,
+        String previewUrl,
+        String fileUrl
 ) {
 }
