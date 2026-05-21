@@ -1,8 +1,12 @@
 package br.com.deefy.controller;
 
+import br.com.deefy.config.OpenApiConfig;
 import br.com.deefy.dto.request.UpdateNameRequestDTO;
 import br.com.deefy.dto.response.UserResponseDTO;
 import br.com.deefy.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +17,8 @@ import java.security.Principal;
 
 @RestController
 @RequestMapping(value = "/api/v1/users")
+@Tag(name = "User/Profile", description = "Usuarios e perfil do usuario autenticado")
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 public class UserController {
 
     private final UserService userService;
@@ -22,6 +28,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/{id}")
+    @Operation(summary = "Buscar usuario por ID", description = "Retorna os dados publicos de um usuario pelo ID.")
     public ResponseEntity<UserResponseDTO> findUserById(
             @PathVariable Long id
     ) {
@@ -30,6 +37,7 @@ public class UserController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar usuarios", description = "Retorna usuarios paginados.")
     public ResponseEntity<Page<UserResponseDTO>> findAllUsers(
             @PageableDefault(size = 5, sort = "id")
             Pageable pageable
@@ -60,6 +68,7 @@ public class UserController {
 
 
     @GetMapping(value = "/me")
+    @Operation(summary = "Buscar meu perfil", description = "Retorna o perfil do usuario autenticado pelo JWT.")
     public ResponseEntity<UserResponseDTO> getMyProfile(Principal principal) {
         // principal.getName() retorna o "username" do JWT, que no nosso caso é o e-mail.
         String email = principal.getName();
@@ -68,6 +77,7 @@ public class UserController {
     }
 
     @PatchMapping(value = "/me/name")
+    @Operation(summary = "Atualizar meu nome", description = "Atualiza o nome do usuario autenticado pelo JWT.")
     public ResponseEntity<UserResponseDTO> updateMyName(
             Principal principal,
             @Valid @RequestBody UpdateNameRequestDTO request) {

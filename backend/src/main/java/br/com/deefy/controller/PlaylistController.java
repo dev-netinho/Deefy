@@ -1,5 +1,6 @@
 package br.com.deefy.controller;
 
+import br.com.deefy.config.OpenApiConfig;
 import br.com.deefy.dto.request.PlaylistRequestDTO;
 import br.com.deefy.dto.response.PlaylistResponseDTO;
 import br.com.deefy.exception.UsuarioNaoEncontradoException;
@@ -8,6 +9,9 @@ import br.com.deefy.model.Playlist;
 import br.com.deefy.model.User;
 import br.com.deefy.repository.UserRepository;
 import br.com.deefy.service.PlaylistService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +22,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/playlists")
+@Tag(name = "Playlist", description = "Playlists do usuario autenticado e suas faixas")
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 public class PlaylistController {
 
     @Autowired
@@ -30,6 +36,7 @@ public class PlaylistController {
     private UserRepository userRepository;
 
     @PostMapping
+    @Operation(summary = "Criar playlist", description = "Cria uma playlist para o usuario autenticado pelo JWT.")
     public ResponseEntity<PlaylistResponseDTO> create(
             @RequestBody PlaylistRequestDTO request,
             @AuthenticationPrincipal Object principal) { // Usamos Object para evitar o erro de Cast
@@ -61,6 +68,7 @@ public class PlaylistController {
 
     // Listar todas as playlists do usuário logado
     @GetMapping
+    @Operation(summary = "Listar playlists do usuario", description = "Retorna as playlists pertencentes ao usuario autenticado.")
     public ResponseEntity<List<PlaylistResponseDTO>> listAll(@AuthenticationPrincipal Object principal) {
         String email;
 
@@ -86,6 +94,7 @@ public class PlaylistController {
 
     // Visualizar uma playlist específica
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar playlist por ID", description = "Retorna uma playlist especifica do usuario autenticado.")
     public ResponseEntity<PlaylistResponseDTO> findById(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
@@ -96,6 +105,7 @@ public class PlaylistController {
 
     // Adicionar uma música à playlist
     @PostMapping("/{playlistId}/tracks/{musicId}")
+    @Operation(summary = "Adicionar musica na playlist", description = "Inclui uma musica existente em uma playlist do usuario autenticado.")
     public ResponseEntity<PlaylistResponseDTO> addMusic(
             @PathVariable Long playlistId,
             @PathVariable Long musicId,
@@ -111,6 +121,7 @@ public class PlaylistController {
     }
 
     @DeleteMapping("/{playlistId}/tracks/{musicId}")
+    @Operation(summary = "Remover musica da playlist", description = "Remove uma musica de uma playlist do usuario autenticado.")
     public ResponseEntity<Void> removeMusic(
             @PathVariable Long playlistId,
             @PathVariable Long musicId,
@@ -133,6 +144,7 @@ public class PlaylistController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar playlist", description = "Atualiza nome e visibilidade da playlist.")
     public ResponseEntity<PlaylistResponseDTO> update(
             @PathVariable Long id,
             @RequestBody PlaylistRequestDTO request,
@@ -149,6 +161,7 @@ public class PlaylistController {
 
     // Excluir uma playlist
     @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir playlist", description = "Exclui uma playlist do usuario autenticado.")
     public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal Object principal) {
         String email;
 

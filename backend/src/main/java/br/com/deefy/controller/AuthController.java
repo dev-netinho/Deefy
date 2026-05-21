@@ -6,6 +6,8 @@ import br.com.deefy.dto.response.UserResponseDTO;
 import br.com.deefy.security.JwtUtil;
 import br.com.deefy.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +24,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@Tag(name = "Auth", description = "Cadastro, login, ativacao de conta e recuperacao de senha")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -35,6 +38,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/login")
+    @Operation(summary = "Autenticar usuario", description = "Retorna um JWT para uso no botao Authorize do Swagger.")
     public ResponseEntity<AuthResponseDTO> login(
             @RequestBody
             @Valid AuthRequestDTO request) {
@@ -48,6 +52,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/register")
+    @Operation(summary = "Cadastrar usuario", description = "Cria um cadastro pendente e dispara e-mail de ativacao.")
     public ResponseEntity<UserResponseDTO> register(
             @Valid
             @RequestBody UserRequestDTO dto
@@ -60,6 +65,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify-account")
+    @Operation(summary = "Ativar conta", description = "Recebe o token enviado por e-mail e ativa a conta do usuario.")
     public ResponseEntity<Map<String, String>> verifyAccount(@Valid @RequestBody ActivateAccountRequestDTO request) {
         userService.activateAccount(request);
 
@@ -69,6 +75,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
+    @Operation(summary = "Solicitar recuperacao de senha", description = "Envia e-mail com link de redefinicao quando o e-mail existir.")
     public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) {
         userService.generatePasswordResetLink(request);
 
@@ -78,6 +85,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
+    @Operation(summary = "Redefinir senha", description = "Recebe token de recuperacao e nova senha.")
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
         userService.resetPassword(request);
         return ResponseEntity.noContent().build(); // Retorna 204 após o sucesso
