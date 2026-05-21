@@ -55,7 +55,7 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    @Value("${jwt.password.reset.expiration}")
+    @Value("${jwt.password.reset.expiration:900000}")
     private long resetExpiration;
 
     // Gera um token focado estritamente em reset de senha
