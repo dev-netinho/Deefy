@@ -45,20 +45,48 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO createUser(UserRequestDTO request){
 
         if(userRepository.existsByEmail(request.email())){
-            throw new EmailJaCadastradoException("Email already exists");
+            throw new EmailJaCadastradoException("Este e-mail já está cadastrado no sistema");
         }
 
-        User user = userMapper.toEntity(request);
 
-        user.setNome(request.nome());
+        String senhaCriptografada = passwordEncoder.encode(request.senha());
 
-        user.setSenha(passwordEncoder.encode(request.senha()));
+
+        String tokenAtivacao = jwtUtil.generateAccountActivationToken(
+                request.nome(),
+                request.email(),
+                senhaCriptografada
+        );
+
+
+        emailService.enviarEmailAtivacaoConta(request.email(), tokenAtivacao);
+
+        return new UserResponseDTO(null, request.nome(), request.email(), LocalDateTime.now());
+    }
+
+    @Override
+    @Transactional
+    public void activateAccount(ActivateAccountRequestDTO request) {
+        if (!jwtUtil.isAccountActivationTokenValid(request.token())) {
+            throw new TokenInvalidoException("O link de ativação é inválido ou já expirou.");
+        }
+
+        String email = jwtUtil.extractEmail(request.token());
+        String nome = jwtUtil.extractNomeFromToken(request.token());
+        String senhaHash = jwtUtil.extractSenhaHashFromToken(request.token());
+
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailJaCadastradoException("Este e-mail já foi ativado e cadastrado no sistema.");
+        }
+
+        User user = new User();
+        user.setNome(nome);
+        user.setEmail(email);
+        user.setSenha(senhaHash);
         user.setTipoUsuario(Tipo.USER);
         user.setCreatedAt(LocalDateTime.now());
 
-        User savedUser = userRepository.save(user);
-
-        return userMapper.toDTO(savedUser);
+        userRepository.save(user);
     }
 
     @Override
@@ -148,23 +176,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequestDTO request) {
-        // 1. Verifica a assinatura criptográfica e a expiração do token
         if (!jwtUtil.isPasswordResetTokenValid(request.token())) {
             throw new TokenInvalidoException("O token de redefinição é inválido ou já expirou.");
         }
 
-        // 2. Extrai o e-mail protegido de dentro do token verificado
         String email = jwtUtil.extractEmail(request.token());
 
-        // 3. Localiza o usuário dono do e-mail
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new UsuarioNaoEncontradoException("Usuário associado ao token não foi encontrado.")
         );
 
-        // 4. Criptografa a nova senha informada e atualiza o objeto
         user.setSenha(passwordEncoder.encode(request.novaSenha()));
 
-        // 5. Salva a nova credencial no banco
         userRepository.save(user);
     }
 }

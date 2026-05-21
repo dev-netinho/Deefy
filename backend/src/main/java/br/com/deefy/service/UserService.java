@@ -23,4 +23,6 @@ public interface UserService {
     void generatePasswordResetLink(ForgotPasswordRequestDTO request);
 
     void resetPassword(ResetPasswordRequestDTO request);
+
+    void activateAccount(ActivateAccountRequestDTO request);
 }

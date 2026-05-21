@@ -1,9 +1,6 @@
 package br.com.deefy.controller;
 
-import br.com.deefy.dto.request.AuthRequestDTO;
-import br.com.deefy.dto.request.ForgotPasswordRequestDTO;
-import br.com.deefy.dto.request.ResetPasswordRequestDTO;
-import br.com.deefy.dto.request.UserRequestDTO;
+import br.com.deefy.dto.request.*;
 import br.com.deefy.dto.response.AuthResponseDTO;
 import br.com.deefy.dto.response.UserResponseDTO;
 import br.com.deefy.security.JwtUtil;
@@ -60,6 +57,15 @@ public class AuthController {
                 .path("/api/v1/users/{id}")
                 .buildAndExpand(user.id()).toUri();
         return ResponseEntity.created(uri).body(user);
+    }
+
+    @PostMapping("/verify-account")
+    public ResponseEntity<Map<String, String>> verifyAccount(@Valid @RequestBody ActivateAccountRequestDTO request) {
+        userService.activateAccount(request);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Conta ativada com sucesso! Você já pode realizar o login.");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/forgot-password")
