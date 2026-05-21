@@ -33,34 +33,38 @@ export function useMusicSearch(rawQuery) {
 
   useEffect(() => {
     if (!sanitizedQuery) {
-      setResults([]);
-      setIsEmpty(false);
-      setIsLoading(false);
       return;
     }
 
     let isMounted = true;
-    setIsLoading(true);
 
-    musicService
-      .searchMusicsByTitle(sanitizedQuery)
-      .then((data) => {
+    Promise.resolve()
+      .then(() => {
         if (isMounted) {
-          setResults(data);
-          setIsEmpty(data.length === 0);
+          setIsLoading(true);
         }
       })
-      .catch(() => {
-        if (isMounted) {
-          setResults([]);
-          setIsEmpty(true);
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      });
+      .then(() =>
+        musicService
+          .searchMusicsByTitle(sanitizedQuery)
+          .then((data) => {
+            if (isMounted) {
+              setResults(data);
+              setIsEmpty(data.length === 0);
+            }
+          })
+          .catch(() => {
+            if (isMounted) {
+              setResults([]);
+              setIsEmpty(true);
+            }
+          })
+          .finally(() => {
+            if (isMounted) {
+              setIsLoading(false);
+            }
+          })
+      );
 
     return () => {
       isMounted = false;
@@ -69,8 +73,8 @@ export function useMusicSearch(rawQuery) {
 
   return {
     sanitizedQuery,
-    results,
-    isEmpty,
-    isLoading,
+    results: sanitizedQuery ? results : [],
+    isEmpty: sanitizedQuery ? isEmpty : false,
+    isLoading: sanitizedQuery ? isLoading : false,
   };
 }

@@ -12,8 +12,6 @@ import {
 } from "react-icons/io5";
 import { IoIosArrowForward } from "react-icons/io";
 import { FaArrowLeft } from "react-icons/fa";
-import logo from "../assets/logo.svg";
-import background from "../assets/background.jpg";
 import "./Configuration.css";
 import { useNavigate } from "react-router-dom";
 

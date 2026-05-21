@@ -38,7 +38,7 @@ function Home() {
   }, []);
 
   // Sanitizes the debounced query and returns API results
-  const { sanitizedQuery, results, isEmpty, isLoading: isSearchingApi } = useMusicSearch(debouncedQuery);
+  const { results, isEmpty, isLoading: isSearchingApi } = useMusicSearch(debouncedQuery);
 
   // isSearching controls the UI transition. Using rawQuery makes the transition instant
   // when the user types the first letter, whereas the results fetch/filter remains debounced.
