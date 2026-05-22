@@ -5,7 +5,6 @@ import br.com.deefy.dto.request.ListeningHistoryResponse;
 import br.com.deefy.exception.HistoryNotFoundException;
 import br.com.deefy.exception.MusicNotFoundException;
 import br.com.deefy.exception.UsuarioNaoEncontradoException;
-import br.com.deefy.exception.MusicNotFoundException;
 import br.com.deefy.mapper.ListeningHistoryMapper;
 import br.com.deefy.model.ListeningHistory;
 import br.com.deefy.model.Music;
@@ -14,20 +13,22 @@ import br.com.deefy.repository.ListeningHistoryRepository;
 import br.com.deefy.repository.MusicRepository;
 import br.com.deefy.repository.UserRepository;
 import br.com.deefy.service.ListeningHistoryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class ListeningHistoryServiceImpl implements ListeningHistoryService {
 
+    private final AuthenticatedUserService authenticatedUserService;
     private final ListeningHistoryRepository listeningHistoryRepository;
     private final UserRepository userRepository;
     private final MusicRepository musicRepository;
     private final ListeningHistoryMapper listeningHistoryMapper;
 
-    public ListeningHistoryServiceImpl(ListeningHistoryRepository listeningHistoryRepository, UserRepository userRepository, MusicRepository musicRepository, ListeningHistoryMapper listeningHistoryMapper) {
+    public ListeningHistoryServiceImpl(AuthenticatedUserService authenticatedUserService, ListeningHistoryRepository listeningHistoryRepository, UserRepository userRepository, MusicRepository musicRepository, ListeningHistoryMapper listeningHistoryMapper) {
+        this.authenticatedUserService = authenticatedUserService;
         this.listeningHistoryRepository = listeningHistoryRepository;
         this.userRepository = userRepository;
         this.musicRepository = musicRepository;
@@ -36,8 +37,9 @@ public class ListeningHistoryServiceImpl implements ListeningHistoryService {
 
     @Override
     public ListeningHistoryResponse saveListeningHistory(ListeningHistoryRequest request) {
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("User not found with id: " + request.userId()));
+        Long userId = authenticatedUserService.getAuthenticatedUser().getId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("User not found with id: " + userId));
 
         Music music = musicRepository.findById(request.musicId())
                 .orElseThrow(() -> new MusicNotFoundException(request.musicId()));
@@ -56,19 +58,16 @@ public class ListeningHistoryServiceImpl implements ListeningHistoryService {
 
 
     @Override
-    public List<ListeningHistoryResponse> getHistoryByUserId(Long userId) {
+    public Page<ListeningHistoryResponse> getHistoryByUserId(Long userId, Pageable pageable) {
         if  (!userRepository.existsById(userId)) {
             throw new UsuarioNaoEncontradoException("User not found with id: " + userId);
         }
 
-        List<ListeningHistory> history = listeningHistoryRepository.findAllByUserIdOrderByDataHoraExecucaoDesc(userId);
-
+        Page<ListeningHistory> history = listeningHistoryRepository.findAllByUserIdOrderByDataHoraExecucaoDesc(userId, pageable);
         if (history.isEmpty()) {
-            throw new HistoryNotFoundException("Listening history not found for user id: " + userId);
+            throw new HistoryNotFoundException("No listening history found for user with id: " + userId);
         }
 
-        return history.stream()
-                .map(listeningHistoryMapper::toResponse)
-                .toList();
+        return history.map(listeningHistoryMapper::toResponse);
     }
 }
