@@ -20,6 +20,8 @@ public interface UserService {
 
     UserResponseDTO updateMyName(String email, UpdateNameRequestDTO request);
 
+    void changeMyPassword(String email, ChangePasswordRequestDTO request);
+
     void generatePasswordResetLink(ForgotPasswordRequestDTO request);
 
     void resetPassword(ResetPasswordRequestDTO request);

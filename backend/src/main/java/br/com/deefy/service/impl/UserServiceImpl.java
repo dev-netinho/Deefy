@@ -4,6 +4,7 @@ package br.com.deefy.service.impl;
 import br.com.deefy.dto.request.*;
 import br.com.deefy.dto.response.UserResponseDTO;
 import br.com.deefy.exception.EmailJaCadastradoException;
+import br.com.deefy.exception.SenhaAtualIncorretaException;
 import br.com.deefy.exception.UsuarioNaoEncontradoException;
 import br.com.deefy.mapper.UserMapper;
 import br.com.deefy.model.Tipo;
@@ -157,6 +158,21 @@ public class UserServiceImpl implements UserService {
         //Salva e converte para DTO
         User savedUser = userRepository.save(user);
         return userMapper.toDTO(savedUser);
+    }
+
+    @Override
+    @Transactional
+    public void changeMyPassword(String email, ChangePasswordRequestDTO request) {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new UsuarioNaoEncontradoException("Usuário não encontrado na base de dados.")
+        );
+
+        if (!passwordEncoder.matches(request.senhaAtual(), user.getSenha())) {
+            throw new SenhaAtualIncorretaException("A senha atual informada está incorreta.");
+        }
+
+        user.setSenha(passwordEncoder.encode(request.novaSenha()));
+        userRepository.save(user);
     }
 
     @Override

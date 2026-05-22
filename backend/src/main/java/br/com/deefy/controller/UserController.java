@@ -1,6 +1,7 @@
 package br.com.deefy.controller;
 
 import br.com.deefy.config.OpenApiConfig;
+import br.com.deefy.dto.request.ChangePasswordRequestDTO;
 import br.com.deefy.dto.request.UpdateNameRequestDTO;
 import br.com.deefy.dto.response.UserResponseDTO;
 import br.com.deefy.service.UserService;
@@ -85,5 +86,16 @@ public class UserController {
         String email = principal.getName();
         UserResponseDTO updatedProfile = userService.updateMyName(email, request);
         return ResponseEntity.ok(updatedProfile);
+    }
+
+    @PatchMapping(value = "/me/password")
+    @Operation(summary = "Alterar minha senha", description = "Altera a senha do usuario autenticado validando a senha atual.")
+    public ResponseEntity<Void> changeMyPassword(
+            Principal principal,
+            @Valid @RequestBody ChangePasswordRequestDTO request) {
+
+        String email = principal.getName();
+        userService.changeMyPassword(email, request);
+        return ResponseEntity.noContent().build();
     }
 }

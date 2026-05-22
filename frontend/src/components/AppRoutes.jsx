@@ -54,7 +54,7 @@ export default function AppRoutes() {
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
         <Route path="/configuration" element={<ProtectedRoute><Configuration /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Navigate to="/configuration" replace /></ProtectedRoute>} />
-        <Route path="/redefinepass" element={<RedefinePass />} />
+        <Route path="/redefinepass" element={<ProtectedRoute><RedefinePass /></ProtectedRoute>} />
         <Route path="/reset-password" element={<RedefinePass />} />
         <Route path="/verify-account" element={<PublicRoute><VerifyAccount /></PublicRoute>} />
         <Route path="/custom-profile" element={<ProtectedRoute><CustomProfile /></ProtectedRoute>} />
