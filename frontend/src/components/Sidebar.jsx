@@ -79,7 +79,7 @@ function Sidebar() {
         </NavLink>
 
         <NavLink
-          to="/settings"
+          to="/configuration"
           className={({ isActive }) =>
             `bottom-nav-item${isActive ? " bottom-nav-item--active" : ""}`
           }

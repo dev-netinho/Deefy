@@ -45,7 +45,7 @@ function Header() {
 
       <button
         className="home-header-settings"
-        onClick={() => navigate("/settings")}
+        onClick={() => navigate("/configuration")}
         aria-label="Configurações"
         title="Configurações"
       >

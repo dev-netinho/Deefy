@@ -51,12 +51,13 @@ export default function AppRoutes() {
         <Route path="/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/registration" element={<PublicRoute><Registration /></PublicRoute>} />
-        <Route path="/edit-profile" element={<EditProfile />} />
-        <Route path="/configuration" element={<Configuration />} />
+        <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+        <Route path="/configuration" element={<ProtectedRoute><Configuration /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Navigate to="/configuration" replace /></ProtectedRoute>} />
         <Route path="/redefinepass" element={<RedefinePass />} />
         <Route path="/reset-password" element={<RedefinePass />} />
         <Route path="/verify-account" element={<PublicRoute><VerifyAccount /></PublicRoute>} />
-        <Route path="/custom-profile" element={<CustomProfile />} />
+        <Route path="/custom-profile" element={<ProtectedRoute><CustomProfile /></ProtectedRoute>} />
       </Routes>
       <PlayerController />
     </>
