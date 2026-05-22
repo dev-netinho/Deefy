@@ -7,9 +7,53 @@ import { IoCameraOutline } from "react-icons/io5";
 import { IoIosArrowForward } from "react-icons/io";
 import "./Configuration.css";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import api from "../services/api";
+import { removeToken } from "../utils/auth";
+
+const USER_STORAGE_KEY = "@deefy-user";
+
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 function Configuration() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(() => getStoredUser());
+  const hasStoredUser = Boolean(user);
+  const displayName = user?.nome || user?.name || "Ouvinte";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api.get("/users/me")
+      .then((response) => {
+        if (!isMounted) return;
+
+        const profile = response.data;
+        setUser(profile);
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(profile));
+      })
+      .catch(() => {
+        if (isMounted && !hasStoredUser) {
+          setUser({ nome: "Ouvinte" });
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hasStoredUser]);
+
+  const handleLogout = () => {
+    removeToken();
+    navigate("/login");
+  };
 
   return (
     <div
@@ -29,7 +73,7 @@ function Configuration() {
               <div className="configuration-edit-photo-text" >Editar<br />Foto</div>
             </div>
           </div>
-          <h2>João Gomes</h2>
+          <h2>{displayName}</h2>
         </div>
 
 
@@ -93,7 +137,7 @@ function Configuration() {
 
         <button
           className="configuration-button-primary"
-          onClick={() => navigate("/")}
+          onClick={handleLogout}
           style={{ marginTop: "24px" }}
         >
           <MdOutlineExitToApp /> Sair da conta

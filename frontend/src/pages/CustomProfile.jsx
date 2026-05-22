@@ -1,18 +1,46 @@
 import { IoCameraOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import background from "../assets/background2.jpg";
 import "./CustomProfile.css";
 import "./Registration.css";
 import { useNavigate } from "react-router-dom";
 import { showMusicError, showMusicSuccess } from "../utils/musicToast";
 import ButtonSpinner from "../components/ButtonSpinner";
+import api from "../services/api";
+
+const USER_STORAGE_KEY = "@deefy-user";
 
 function CustomProfile() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api.get("/users/me")
+      .then((response) => {
+        if (!isMounted) return;
+        setFullName(response.data?.nome || "");
+      })
+      .catch(() => {
+        try {
+          const raw = localStorage.getItem(USER_STORAGE_KEY);
+          const storedUser = raw ? JSON.parse(raw) : null;
+          if (isMounted && storedUser?.nome) {
+            setFullName(storedUser.nome);
+          }
+        } catch {
+          /* noop */
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const validate = () => {
     if (!fullName.trim()) return "Informe o nome do usuário.";
@@ -30,17 +58,17 @@ function CustomProfile() {
 
     setIsLoading(true);
     try {
-      // Simulação de atualização de perfil
-      setTimeout(() => {
-        setSent(true);
-        showMusicSuccess("Perfil atualizado com sucesso!");
-        setIsLoading(false);
-      }, 800);
+      const response = await api.patch("/users/me/name", { nome: fullName.trim() });
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
+      setSent(true);
+      showMusicSuccess("Perfil atualizado com sucesso!");
+      setTimeout(() => navigate("/configuration"), 800);
     } catch (err) {
       const message =
         err.response?.data?.message ||
         "Erro ao atualizar o perfil. Tente novamente.";
       showMusicError(message);
+    } finally {
       setIsLoading(false);
     }
   };

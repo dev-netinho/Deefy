@@ -23,7 +23,7 @@ function getUserName() {
     const raw = localStorage.getItem("@deefy-user");
     if (raw) {
       const parsed = JSON.parse(raw);
-      return parsed?.name || "Ouvinte";
+      return parsed?.nome || parsed?.name || "Ouvinte";
     }
   } catch {
     /* noop */
