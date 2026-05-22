@@ -20,6 +20,10 @@ public interface UserService {
 
     UserResponseDTO updateMyName(String email, UpdateNameRequestDTO request);
 
+    UserResponseDTO updateMyProfilePhoto(String email, UpdateProfilePhotoRequestDTO request);
+
+    UserResponseDTO removeMyProfilePhoto(String email);
+
     void changeMyPassword(String email, ChangePasswordRequestDTO request);
 
     void generatePasswordResetLink(ForgotPasswordRequestDTO request);

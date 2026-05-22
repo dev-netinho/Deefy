@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
         emailService.enviarEmailAtivacaoConta(request.email(), tokenAtivacao);
 
-        return new UserResponseDTO(null, request.nome(), request.email(), LocalDateTime.now());
+        return new UserResponseDTO(null, request.nome(), request.email(), null, LocalDateTime.now());
     }
 
     @Override
@@ -173,6 +173,28 @@ public class UserServiceImpl implements UserService {
 
         user.setSenha(passwordEncoder.encode(request.novaSenha()));
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDTO updateMyProfilePhoto(String email, UpdateProfilePhotoRequestDTO request) {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new UsuarioNaoEncontradoException("Usuário não encontrado na base de dados.")
+        );
+
+        user.setFotoPerfilUrl(request.fotoPerfilUrl());
+        return userMapper.toDTO(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDTO removeMyProfilePhoto(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new UsuarioNaoEncontradoException("Usuário não encontrado na base de dados.")
+        );
+
+        user.setFotoPerfilUrl(null);
+        return userMapper.toDTO(userRepository.save(user));
     }
 
     @Override

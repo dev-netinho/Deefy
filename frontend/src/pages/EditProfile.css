@@ -25,6 +25,9 @@
   display: flex;
   align-items: center;
   width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   padding: 34px 34px 28px;
   border-radius: 28px;
   background: rgba(20, 20, 22, 0.72);
@@ -35,6 +38,11 @@
     0 16px 40px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
   cursor: pointer
+}
+
+.edit-profile-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 
 .edit-profile-card:hover {
@@ -125,6 +133,9 @@
 
 .edit-profile-user-img {
   background: #D9D9D9;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   border-radius: 50%;
   width: 256px;
   height: 256px;

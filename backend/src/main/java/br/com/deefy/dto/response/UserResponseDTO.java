@@ -6,6 +6,7 @@ public record UserResponseDTO(
         Long id,
         String nome,
         String email,
+        String fotoPerfilUrl,
         LocalDateTime createdAt
 ) {
 }

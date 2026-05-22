@@ -27,6 +27,7 @@ function Configuration() {
   const [user, setUser] = useState(() => getStoredUser());
   const hasStoredUser = Boolean(user);
   const displayName = user?.nome || user?.name || "Ouvinte";
+  const profilePhotoUrl = user?.fotoPerfilUrl || user?.fotoPerfilurl || "";
 
   useEffect(() => {
     let isMounted = true;
@@ -64,7 +65,11 @@ function Configuration() {
       <section className="configuration-wrapper">
         <div className="configuration-user">
           <div className="configuration-avatar-wrapper">
-            <div className="configuration-user-img"></div>
+            <div
+              className="configuration-user-img"
+              style={profilePhotoUrl ? { backgroundImage: `url(${profilePhotoUrl})` } : undefined}
+              aria-label="Foto de perfil"
+            ></div>
 
             <div className="configuration-edit-photo-btn" onClick={() => navigate("/edit-profile")}>
               <div className="configuration-edit-photo-icon-wrapper">

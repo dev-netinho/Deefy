@@ -27,6 +27,9 @@ public class User {
     @Column(nullable = false, length = 100)
     private String senha;
 
+    @Column(name = "fotoperfilurl")
+    private String fotoPerfilUrl;
+
     @Transient
     private Tipo tipoUsuario;
 
@@ -67,6 +70,14 @@ public class User {
 
     public void setSenha(String senha) {
         this.senha = senha;
+    }
+
+    public String getFotoPerfilUrl() {
+        return fotoPerfilUrl;
+    }
+
+    public void setFotoPerfilUrl(String fotoPerfilUrl) {
+        this.fotoPerfilUrl = fotoPerfilUrl;
     }
 
     public Tipo getTipoUsuario() {

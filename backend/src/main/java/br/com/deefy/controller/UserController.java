@@ -2,6 +2,7 @@ package br.com.deefy.controller;
 
 import br.com.deefy.config.OpenApiConfig;
 import br.com.deefy.dto.request.ChangePasswordRequestDTO;
+import br.com.deefy.dto.request.UpdateProfilePhotoRequestDTO;
 import br.com.deefy.dto.request.UpdateNameRequestDTO;
 import br.com.deefy.dto.response.UserResponseDTO;
 import br.com.deefy.service.UserService;
@@ -97,5 +98,24 @@ public class UserController {
         String email = principal.getName();
         userService.changeMyPassword(email, request);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "/me/photo")
+    @Operation(summary = "Atualizar minha foto de perfil", description = "Salva a URL publica da foto de perfil do usuario autenticado.")
+    public ResponseEntity<UserResponseDTO> updateMyProfilePhoto(
+            Principal principal,
+            @Valid @RequestBody UpdateProfilePhotoRequestDTO request) {
+
+        String email = principal.getName();
+        UserResponseDTO updatedProfile = userService.updateMyProfilePhoto(email, request);
+        return ResponseEntity.ok(updatedProfile);
+    }
+
+    @DeleteMapping(value = "/me/photo")
+    @Operation(summary = "Remover minha foto de perfil", description = "Remove a URL da foto de perfil do usuario autenticado.")
+    public ResponseEntity<UserResponseDTO> removeMyProfilePhoto(Principal principal) {
+        String email = principal.getName();
+        UserResponseDTO updatedProfile = userService.removeMyProfilePhoto(email);
+        return ResponseEntity.ok(updatedProfile);
     }
 }
