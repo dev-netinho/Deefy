@@ -96,8 +96,8 @@
 }
 
 .song-playing-icon--paused {
-  opacity: 0.55;
   animation: none;
+  opacity: 0.56;
 }
 
 /* Song info column (cover + text) */

@@ -37,13 +37,15 @@ function normalizeTrack(track) {
   const durationSeconds =
     Number(track.durationSeconds || track.duracaoSegundos || track.duracao) || 0;
   const fallbackDuration = durationSeconds || parseDuration(track.duration);
+  const genre = track.genre || track.genero || track.album || track.albumTitle || "";
 
   return {
     ...track,
     id: track.id,
     title: track.title || track.titulo || "Musica sem titulo",
     artist: track.artist || track.artista || "Artista nao informado",
-    album: track.album || track.albumTitle || "Sem album",
+    album: genre || "Sem genero",
+    genre,
     coverUrl: track.coverUrl || track.capaUrl || fallbackCover,
     fileUrl,
     audioUrl: fileUrl,
@@ -53,11 +55,7 @@ function normalizeTrack(track) {
 }
 
 function sameTrack(left, right) {
-  if (!left || !right) {
-    return false;
-  }
-
-  return String(left.id) === String(right.id);
+  return Boolean(left && right && String(left.id) === String(right.id));
 }
 
 function readStoredState() {
@@ -95,7 +93,7 @@ function persistState(nextState) {
       })
     );
   } catch {
-    // Storage can be unavailable in private contexts; playback must still work.
+    // localStorage can be unavailable; playback must continue working.
   }
 }
 
@@ -237,14 +235,13 @@ export default function PlayerProvider({ children }) {
     const playableQueue = normalizedQueue.length ? normalizedQueue : [normalizedTrack];
     const nextIndex = playableQueue.findIndex((item) => sameTrack(item, normalizedTrack));
     const safeIndex = nextIndex >= 0 ? nextIndex : 0;
-    const selectedTrack = playableQueue[safeIndex];
 
     pendingPlayRef.current = true;
     setQueue(playableQueue);
     setCurrentIndex(safeIndex);
-    setCurrentTrack(selectedTrack);
+    setCurrentTrack(playableQueue[safeIndex]);
     setCurrentTime(0);
-    setDuration(selectedTrack.durationSeconds || 0);
+    setDuration(playableQueue[safeIndex].durationSeconds || 0);
     setPlaybackError(null);
   };
 
@@ -296,9 +293,6 @@ export default function PlayerProvider({ children }) {
     lastAudibleVolumeRef.current = volume;
     setIsMuted(true);
   };
-
-  const toggleShuffle = () => setIsShuffle((current) => !current);
-  const toggleRepeat = () => setIsRepeat((current) => !current);
 
   useEffect(() => {
     const audio = new Audio();
@@ -425,8 +419,8 @@ export default function PlayerProvider({ children }) {
     toggleMute,
     nextTrack,
     previousTrack,
-    toggleShuffle,
-    toggleRepeat,
+    toggleShuffle: () => setIsShuffle((current) => !current),
+    toggleRepeat: () => setIsRepeat((current) => !current),
   };
 
   return (

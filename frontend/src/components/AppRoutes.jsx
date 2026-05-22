@@ -1,15 +1,18 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
+import Configuration from '../pages/Configuration.jsx'
+import CustomProfile from '../pages/CustomProfile.jsx'
+import EditProfile from '../pages/EditProfile.jsx'
 import ForgotPass from '../pages/ForgotPass.jsx'
 import Home from '../pages/home.jsx'
 import Login from '../pages/Login.jsx'
 import Preferences from '../pages/Preferences.jsx'
+import RedefinePass from '../pages/RedefinePass.jsx'
 import Registration from '../pages/Registration.jsx'
-import ResetPassword from '../pages/ResetPassword.jsx'
 import VerifyAccount from '../pages/VerifyAccount.jsx'
 import Welcome from '../pages/Welcome.jsx'
-import MusicPlayer from './MusicPlayer.jsx'
 import { isAuthenticated } from '../utils/auth'
+import MusicPlayer from './MusicPlayer.jsx'
 
 function PlayerController() {
   const location = useLocation()
@@ -43,15 +46,18 @@ export default function AppRoutes() {
     <>
       <Routes>
         <Route path="/" element={<PublicRoute><Welcome /></PublicRoute>} />
-        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/registration" element={<PublicRoute><Registration /></PublicRoute>} />
         <Route path="/forgot-password" element={<PublicRoute><ForgotPass /></PublicRoute>} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-account" element={<VerifyAccount />} />
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/registration" element={<PublicRoute><Registration /></PublicRoute>} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/configuration" element={<Configuration />} />
+        <Route path="/redefinepass" element={<RedefinePass />} />
+        <Route path="/reset-password" element={<RedefinePass />} />
+        <Route path="/verify-account" element={<PublicRoute><VerifyAccount /></PublicRoute>} />
+        <Route path="/custom-profile" element={<CustomProfile />} />
       </Routes>
-
       <PlayerController />
     </>
   )

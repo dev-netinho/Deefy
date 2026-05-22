@@ -16,7 +16,7 @@ public class Music {
     @Column(name = "duracao", nullable = false)
     private Integer durationSeconds;
 
-    @Column(name = "previewurl", columnDefinition = "TEXT")
+    @Transient
     private String previewUrl;
 
     @Column(name = "capaurl", columnDefinition = "TEXT")
@@ -29,19 +29,19 @@ public class Music {
     private String genre;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "album_id")
-    private Album album;
+    @JoinColumn(name = "artista_id")
+    private Artist artist;
 
     public Music() {
     }
 
     /** Uso em testes unitários (entidade desanexada). */
-    public Music(Long id, String title, String genre, Integer durationSeconds, Album album) {
+    public Music(Long id, String title, String genre, Integer durationSeconds, Artist artist) {
         this.id = id;
         this.title = title;
         this.genre = genre;
         this.durationSeconds = durationSeconds;
-        this.album = album;
+        this.artist = artist;
     }
 
     public Long getId() {
@@ -53,13 +53,10 @@ public class Music {
     }
 
     /**
-     * Nome do artista vem do álbum ({@code album.artista.nome}), quando existir.
+     * Nome do artista vem da FK direta {@code musica.artista_id}.
      */
     public String getArtist() {
-        if (album == null || album.getArtist() == null) {
-            return null;
-        }
-        return album.getArtist().getNome();
+        return artist == null ? null : artist.getNome();
     }
 
     public String getGenre() {
@@ -78,7 +75,7 @@ public class Music {
         if (coverUrl != null && !coverUrl.isBlank()) {
             return coverUrl;
         }
-        return album == null ? null : album.getCapaUrl();
+        return null;
     }
 
     public String getFileUrl() {
@@ -86,7 +83,7 @@ public class Music {
     }
 
     public String getAlbumTitle() {
-        return album == null ? null : album.getTitulo();
+        return genre;
     }
 
     public String getDuration() {
@@ -99,12 +96,24 @@ public class Music {
         return "%d:%02d".formatted(minutes, seconds);
     }
 
-    public Album getAlbum() {
-        return album;
+    public Artist getArtistEntity() {
+        return artist;
     }
 
-    public void setAlbum(Album album) {
-        this.album = album;
+    public void setArtist(Artist artist) {
+        this.artist = artist;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
+    public void setDurationSeconds(Integer durationSeconds) {
+        this.durationSeconds = durationSeconds;
     }
 
     public void setPreviewUrl(String previewUrl) {

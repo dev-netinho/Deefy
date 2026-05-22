@@ -40,6 +40,18 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
+.deefy-player-shell--empty {
+  opacity: 0.92;
+}
+
+.deefy-player-shell button:disabled,
+.deefy-player-shell input:disabled,
+.deefy-player-expanded button:disabled,
+.deefy-player-expanded input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .deefy-player-shell button {
   all: unset;
   box-sizing: border-box;
@@ -49,13 +61,6 @@
   outline: 0;
   line-height: 1;
   -webkit-tap-highlight-color: transparent;
-}
-
-.deefy-player-shell button:disabled,
-.deefy-player-expanded button:disabled,
-.deefy-player-range:disabled {
-  cursor: not-allowed;
-  opacity: 0.42;
 }
 
 .deefy-player-shell svg {

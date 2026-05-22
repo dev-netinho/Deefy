@@ -33,5 +33,5 @@ createRoot(document.getElementById('root')).render(
         <AppRoutes />
       </PlayerProvider>
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 )

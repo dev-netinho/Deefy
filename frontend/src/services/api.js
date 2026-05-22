@@ -1,14 +1,11 @@
 import axios from 'axios';
 import { getToken, removeToken } from '../utils/auth';
 
-
-export const API_BASE_URL = 'https://deefy.olua.me/api/v1';
-
 const getBaseURL = () => {
   const envUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
 
   if (!envUrl) {
-    return API_BASE_URL;
+    throw new Error('[API Config]: VITE_API_URL não definida. Verifique o arquivo .env.');
   }
 
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(envUrl)) {

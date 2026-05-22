@@ -4,7 +4,7 @@ import br.com.deefy.dto.response.MusicDetailResponseDTO;
 import br.com.deefy.exception.MusicNotFoundException;
 import br.com.deefy.mapper.MusicMapper;
 import br.com.deefy.model.Music;
-import br.com.deefy.repository.AlbumRepository;
+import br.com.deefy.repository.ArtistRepository;
 import br.com.deefy.repository.MusicRepository;
 import br.com.deefy.service.impl.MusicServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +28,7 @@ public class MusicServiceTest {
     private MusicMapper musicMapper;
 
     @Mock
-    private AlbumRepository albumRepository;
+    private ArtistRepository artistRepository;
 
     @InjectMocks
     private MusicServiceImpl musicService;

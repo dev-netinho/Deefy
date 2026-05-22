@@ -3,13 +3,12 @@ package br.com.deefy.service.impl;
 import br.com.deefy.dto.request.MusicRequestDTO;
 import br.com.deefy.dto.response.MusicDetailResponseDTO;
 import br.com.deefy.dto.response.MusicListResponseDTO;
-import br.com.deefy.exception.AlbumNotFoundException;
+import br.com.deefy.exception.ArtistNotFoundException;
 import br.com.deefy.exception.MusicNotFoundException;
 import br.com.deefy.mapper.MusicMapper;
-import br.com.deefy.model.Album;
 import br.com.deefy.model.Artist;
 import br.com.deefy.model.Music;
-import br.com.deefy.repository.AlbumRepository;
+import br.com.deefy.repository.ArtistRepository;
 import br.com.deefy.repository.MusicRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,7 +36,7 @@ class MusicServiceImplTest {
     private MusicRepository musicRepository;
 
     @Mock
-    private AlbumRepository albumRepository;
+    private ArtistRepository artistRepository;
 
     @Mock
     private MusicMapper musicMapper;
@@ -47,7 +45,6 @@ class MusicServiceImplTest {
     private MusicServiceImpl musicService;
 
     private Music music;
-    private Album album;
     private Artist artist;
     private MusicRequestDTO musicRequestDTO;
     private MusicDetailResponseDTO musicDetailResponseDTO;
@@ -56,11 +53,8 @@ class MusicServiceImplTest {
     @BeforeEach
     void setUp() {
         artist = new Artist(1L, "Artist Test");
-        album = new Album(1L, "Album Test", artist);
-        album.setDataLancamento(LocalDate.of(2024, 1, 1));
-        album.setCapaUrl("http://example.com/cover.jpg");
 
-        music = new Music(1L, "Test Music", "Rock", 180, album);
+        music = new Music(1L, "Test Music", "Rock", 180, artist);
         music.setPreviewUrl("http://example.com/preview.mp3");
         music.setCoverUrl("http://example.com/cover.jpg");
         music.setFileUrl("http://example.com/file.mp3");
@@ -79,20 +73,20 @@ class MusicServiceImplTest {
                 1L,
                 "Test Music",
                 "Artist Test",
-                "Album Test",
+                "Rock",
                 "Rock",
                 180,
                 "http://example.com/cover.jpg",
                 "http://example.com/preview.mp3",
                 "http://example.com/file.mp3",
-                LocalDate.of(2024, 1, 1)
+                null
         );
 
         musicListResponseDTO = new MusicListResponseDTO(
                 1L,
                 "Test Music",
                 "Artist Test",
-                "Album Test",
+                "Rock",
                 180,
                 "3:00",
                 "http://example.com/cover.jpg",
@@ -103,7 +97,7 @@ class MusicServiceImplTest {
 
     @Test
     void createMusic_Success() {
-        when(albumRepository.findById(1L)).thenReturn(Optional.of(album));
+        when(artistRepository.findById(1L)).thenReturn(Optional.of(artist));
         when(musicMapper.toEntity(musicRequestDTO)).thenReturn(music);
         when(musicRepository.save(any(Music.class))).thenReturn(music);
         when(musicMapper.toDetailDTO(music)).thenReturn(musicDetailResponseDTO);
@@ -113,15 +107,15 @@ class MusicServiceImplTest {
         assertNotNull(result);
         assertEquals("Test Music", result.title());
         assertEquals("Artist Test", result.artist());
-        verify(albumRepository).findById(1L);
+        verify(artistRepository).findById(1L);
         verify(musicRepository).save(any(Music.class));
     }
 
     @Test
-    void createMusic_AlbumNotFound_ThrowsException() {
-        when(albumRepository.findById(1L)).thenReturn(Optional.empty());
+    void createMusic_ArtistNotFound_ThrowsException() {
+        when(artistRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(AlbumNotFoundException.class, () -> musicService.createMusic(musicRequestDTO));
+        assertThrows(ArtistNotFoundException.class, () -> musicService.createMusic(musicRequestDTO));
         verify(musicRepository, never()).save(any());
     }
 
@@ -189,7 +183,7 @@ class MusicServiceImplTest {
     @Test
     void updateMusic_Success() {
         when(musicRepository.findById(1L)).thenReturn(Optional.of(music));
-        when(albumRepository.findById(1L)).thenReturn(Optional.of(album));
+        when(artistRepository.findById(1L)).thenReturn(Optional.of(artist));
         when(musicRepository.save(any(Music.class))).thenReturn(music);
         when(musicMapper.toDetailDTO(music)).thenReturn(musicDetailResponseDTO);
 
@@ -208,14 +202,14 @@ class MusicServiceImplTest {
     }
 
     @Test
-    void updateMusic_AlbumNotFound_ThrowsException() {
+    void updateMusic_ArtistNotFound_ThrowsException() {
         when(musicRepository.findById(1L)).thenReturn(Optional.of(music));
-        when(albumRepository.findById(99L)).thenReturn(Optional.empty());
+        when(artistRepository.findById(99L)).thenReturn(Optional.empty());
 
         MusicRequestDTO invalidRequest = new MusicRequestDTO(
                 "Test", "Rock", 180, null, null, null, 99L
         );
-        assertThrows(AlbumNotFoundException.class, () -> musicService.updateMusic(1L, invalidRequest));
+        assertThrows(ArtistNotFoundException.class, () -> musicService.updateMusic(1L, invalidRequest));
     }
 
     @Test

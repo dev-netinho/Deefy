@@ -3,12 +3,12 @@ package br.com.deefy.service.impl;
 import br.com.deefy.dto.request.MusicRequestDTO;
 import br.com.deefy.dto.response.MusicDetailResponseDTO;
 import br.com.deefy.dto.response.MusicListResponseDTO;
+import br.com.deefy.exception.ArtistNotFoundException;
 import br.com.deefy.exception.MusicNotFoundException;
-import br.com.deefy.exception.AlbumNotFoundException;
 import br.com.deefy.mapper.MusicMapper;
-import br.com.deefy.model.Album;
+import br.com.deefy.model.Artist;
 import br.com.deefy.model.Music;
-import br.com.deefy.repository.AlbumRepository;
+import br.com.deefy.repository.ArtistRepository;
 import br.com.deefy.repository.MusicRepository;
 import br.com.deefy.service.MusicService;
 import jakarta.transaction.Transactional;
@@ -20,23 +20,23 @@ import org.springframework.stereotype.Service;
 public class MusicServiceImpl implements MusicService {
 
     private final MusicRepository musicRepository;
-    private final AlbumRepository albumRepository;
+    private final ArtistRepository artistRepository;
     private final MusicMapper musicMapper;
 
-    public MusicServiceImpl(MusicRepository musicRepository, AlbumRepository albumRepository, MusicMapper musicMapper) {
+    public MusicServiceImpl(MusicRepository musicRepository, ArtistRepository artistRepository, MusicMapper musicMapper) {
         this.musicRepository = musicRepository;
-        this.albumRepository = albumRepository;
+        this.artistRepository = artistRepository;
         this.musicMapper = musicMapper;
     }
 
     @Override
     @Transactional
     public MusicDetailResponseDTO createMusic(MusicRequestDTO request) {
-        Album album = albumRepository.findById(request.albumId())
-                .orElseThrow(() -> new AlbumNotFoundException(request.albumId()));
+        Artist artist = artistRepository.findById(request.artistId())
+                .orElseThrow(() -> new ArtistNotFoundException(request.artistId()));
 
         Music music = musicMapper.toEntity(request);
-        music.setAlbum(album);
+        music.setArtist(artist);
 
         Music savedMusic = musicRepository.save(music);
         return musicMapper.toDetailDTO(savedMusic);
@@ -73,11 +73,11 @@ public class MusicServiceImpl implements MusicService {
         Music music = musicRepository.findById(id)
                 .orElseThrow(() -> new MusicNotFoundException(id));
 
-        Album album = albumRepository.findById(request.albumId())
-                .orElseThrow(() -> new AlbumNotFoundException(request.albumId()));
+        Artist artist = artistRepository.findById(request.artistId())
+                .orElseThrow(() -> new ArtistNotFoundException(request.artistId()));
 
         musicMapper.updateEntity(request, music);
-        music.setAlbum(album);
+        music.setArtist(artist);
 
         Music savedMusic = musicRepository.save(music);
         return musicMapper.toDetailDTO(savedMusic);

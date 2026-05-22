@@ -33,38 +33,40 @@ export function useMusicSearch(rawQuery) {
 
   useEffect(() => {
     if (!sanitizedQuery) {
+      queueMicrotask(() => {
+        setResults([]);
+        setIsEmpty(false);
+        setIsLoading(false);
+      });
       return;
     }
 
     let isMounted = true;
+    queueMicrotask(() => {
+      if (isMounted) {
+        setIsLoading(true);
+      }
+    });
 
-    Promise.resolve()
-      .then(() => {
+    musicService
+      .searchMusicsByTitle(sanitizedQuery)
+      .then((data) => {
         if (isMounted) {
-          setIsLoading(true);
+          setResults(data);
+          setIsEmpty(data.length === 0);
         }
       })
-      .then(() =>
-        musicService
-          .searchMusicsByTitle(sanitizedQuery)
-          .then((data) => {
-            if (isMounted) {
-              setResults(data);
-              setIsEmpty(data.length === 0);
-            }
-          })
-          .catch(() => {
-            if (isMounted) {
-              setResults([]);
-              setIsEmpty(true);
-            }
-          })
-          .finally(() => {
-            if (isMounted) {
-              setIsLoading(false);
-            }
-          })
-      );
+      .catch(() => {
+        if (isMounted) {
+          setResults([]);
+          setIsEmpty(true);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
 
     return () => {
       isMounted = false;
@@ -73,8 +75,8 @@ export function useMusicSearch(rawQuery) {
 
   return {
     sanitizedQuery,
-    results: sanitizedQuery ? results : [],
-    isEmpty: sanitizedQuery ? isEmpty : false,
-    isLoading: sanitizedQuery ? isLoading : false,
+    results,
+    isEmpty,
+    isLoading,
   };
 }

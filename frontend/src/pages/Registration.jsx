@@ -2,7 +2,9 @@ import {
   MdOutlineRemoveRedEye,
   MdOutlineEmail,
   MdOutlineLock,
-  MdOutlineVisibilityOff
+  MdOutlineVisibilityOff,
+  MdOutlineMarkEmailRead,
+  MdClose
 } from "react-icons/md";
 import { FaChevronRight, FaGoogle, FaUser } from "react-icons/fa";
 import logo from "../assets/logo.svg";
@@ -10,11 +12,52 @@ import background from "../assets/background.jpg";
 import { useState } from "react";
 import "./Registration.css";
 import api from "../services/api";
-import { setToken } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
-import { showMusicError, showMusicSuccess } from "../utils/musicToast";
+import { showMusicError } from "../utils/musicToast";
 import ButtonSpinner from "../components/ButtonSpinner";
 
+// ─── Email Confirmation Modal ───────────────────────────────────────────────
+function EmailConfirmModal({ email, onClose }) {
+  return (
+    <div className="email-modal-backdrop" onClick={onClose}>
+      <div className="email-modal-card" onClick={(e) => e.stopPropagation()}>
+        <button className="email-modal-close" onClick={onClose} aria-label="Fechar">
+          <MdClose />
+        </button>
+
+        <div className="email-modal-icon-ring">
+          <MdOutlineMarkEmailRead className="email-modal-main-icon" />
+          <div className="email-modal-pulse" />
+        </div>
+
+        <h2 className="email-modal-title">Confirme seu e-mail</h2>
+
+        <p className="email-modal-subtitle">
+          Enviamos um link de ativação para:
+        </p>
+        <div className="email-modal-address">
+          <MdOutlineEmail />
+          <span>{email}</span>
+        </div>
+
+        <p className="email-modal-instructions">
+          Clique no link que chegou na sua caixa de entrada para ativar sua
+          conta. Verifique também a pasta de spam, caso não encontre.
+        </p>
+
+        <button className="email-modal-button-primary" onClick={onClose}>
+          OK, entendi
+        </button>
+
+        <p className="email-modal-footer">
+          Após confirmar, <span onClick={onClose}>faça login</span> para acessar a Deefy.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Registration Page ───────────────────────────────────────────────────────
 function Registration() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
@@ -24,6 +67,7 @@ function Registration() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const calculatePasswordStrength = (pass) => {
     let score = 0;
@@ -88,22 +132,15 @@ function Registration() {
     }
 
     try {
-      const response = await api.post("/auth/register", {
+      await api.post("/auth/register", {
         nome: fullName,
         email,
         senha: password
       });
 
-      const token = response.data.token || response.data?.data?.token;
-
-      if (token) {
-        setToken(token);
-        showMusicSuccess("Cadastro VIP realizado com sucesso!");
-        navigate("/");
-      } else {
-        showMusicSuccess("Cadastro iniciado! Verifique seu e-mail para ativar a conta.");
-        navigate("/login");
-      }
+      // Backend retorna pendência de ativação por e-mail (sem JWT)
+      // Exibe o modal instruindo o usuário a confirmar o e-mail
+      setShowEmailModal(true);
     } catch (err) {
       const status = err.status || err.response?.status;
       const apiMessage = err.response?.data?.message || "";
@@ -135,6 +172,13 @@ function Registration() {
       style={{ backgroundImage: `url(${background})` }}
     >
       <div className="registration-overlay"></div>
+
+      {showEmailModal && (
+        <EmailConfirmModal
+          email={email}
+          onClose={() => navigate("/login")}
+        />
+      )}
 
       <section className="registration-wrapper">
         <div className="registration-logo">

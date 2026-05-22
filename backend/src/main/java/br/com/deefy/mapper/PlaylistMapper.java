@@ -23,7 +23,8 @@ public interface PlaylistMapper {
     @Mapping(source = "durationSeconds", target = "duracaoSegundos")
     @Mapping(source = "coverUrl", target = "capaUrl")
     @Mapping(source = "fileUrl", target = "arquivoUrl")
-    @Mapping(source = "album.artist", target = "artista")
+    @Mapping(source = "artistEntity", target = "artista")
+    @Mapping(target = "album", ignore = true)
     MusicDetailsResponseDTO toMusicDTO(Music music);
 
     List<MusicDetailsResponseDTO> toMusicDTOList(List<Music> tracks);

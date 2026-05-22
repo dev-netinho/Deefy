@@ -1,28 +1,45 @@
 import api from './api';
 import fallbackCover from '../assets/logo.svg';
 
+function formatDuration(seconds) {
+  const safeSeconds = Number(seconds);
+
+  if (!Number.isFinite(safeSeconds) || safeSeconds <= 0) {
+    return '--:--';
+  }
+
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = Math.floor(safeSeconds % 60);
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
+}
+
 function normalizeMusic(music) {
-  const title = music?.title || music?.titulo || 'Musica sem titulo';
-  const artist = music?.artist || music?.artista || 'Artista nao informado';
-  const album = music?.album || music?.albumTitle || 'Sem album';
-  const fileUrl = music?.fileUrl || music?.arquivoUrl || music?.audioUrl || '';
-  const coverUrl = music?.coverUrl || music?.capaUrl || fallbackCover;
-  const duration = music?.duration || music?.duracaoFormatada || '--:--';
+  const durationSeconds = Number(
+    music?.durationSeconds ?? music?.duracaoSegundos ?? music?.duracao
+  );
+  const genre = music?.genre ?? music?.genero ?? music?.album ?? music?.albumTitle;
 
   return {
     ...music,
-    title,
-    artist,
-    album,
-    duration,
-    fileUrl,
-    audioUrl: fileUrl,
-    coverUrl,
+    id: music?.id,
+    title: music?.title ?? music?.titulo ?? 'Musica sem titulo',
+    artist: music?.artist ?? music?.artista ?? 'Artista nao informado',
+    album: genre ?? 'Sem genero',
+    genre,
+    coverUrl: music?.coverUrl ?? music?.capaUrl ?? fallbackCover,
+    fileUrl: music?.fileUrl ?? music?.arquivoUrl ?? '',
+    durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : 0,
+    duration: music?.duration ?? formatDuration(durationSeconds),
   };
 }
 
-function normalizeMusicList(payload) {
-  return (payload?.content || payload || []).map(normalizeMusic);
+function normalizePageContent(data) {
+  if (Array.isArray(data)) {
+    return data.map(normalizeMusic);
+  }
+
+  return (data?.content || []).map(normalizeMusic);
 }
 
 export const musicService = {
@@ -34,7 +51,7 @@ export const musicService = {
   async getHomeMusics(size = 12) {
     try {
       const response = await api.get(`/musics?size=${size}&sort=id,desc`);
-      return normalizeMusicList(response.data);
+      return normalizePageContent(response.data);
     } catch (error) {
       console.error('Failed to fetch home musics:', error);
       throw error;
@@ -56,7 +73,7 @@ export const musicService = {
           size: 20
         }
       });
-      return normalizeMusicList(response.data);
+      return normalizePageContent(response.data);
     } catch (error) {
       console.error(`Failed to search musics with title "${title}":`, error);
       throw error;
@@ -78,7 +95,7 @@ export const musicService = {
           size: 20
         }
       });
-      return normalizeMusicList(response.data);
+      return normalizePageContent(response.data);
     } catch (error) {
       console.error(`Failed to search musics by artist "${artist}":`, error);
       throw error;

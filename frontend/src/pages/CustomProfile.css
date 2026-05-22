@@ -1,4 +1,4 @@
-.forgot-page {
+.custom-profile-page {
   min-height: 100vh !important;
   background-size: cover !important;
   background-position: center !important;
@@ -11,7 +11,7 @@
   overflow: hidden !important;
 }
 
-.forgot-overlay {
+.custom-profile-overlay {
   position: absolute !important;
   inset: 0 !important;
   background:
@@ -21,7 +21,7 @@
   z-index: 1 !important;
 }
 
-.forgot-wrapper {
+.custom-profile-wrapper {
   position: relative !important;
   z-index: 2 !important;
   width: 100% !important;
@@ -34,11 +34,11 @@
   animation: forgotFadeUp 0.9s ease !important;
 }
 
-.forgot-icon-circle {
-  width: 96px !important;
-  height: 96px !important;
+.custom-profile-icon-circle {
+  width: 200px !important;
+  height: 200px !important;
   border-radius: 50% !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: rgba(255, 255, 255, 0.808) !important;
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
   backdrop-filter: blur(10px) !important;
   display: flex !important;
@@ -49,19 +49,69 @@
   animation: forgotFloat 3.4s ease-in-out infinite !important;
 }
 
-.forgot-main-icon {
+.custom-profile-main-icon {
   font-size: 48px !important;
   color: #1dd3b0 !important;
 }
 
-.forgot-text {
+.custom-profile-edit-photo-btn {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #02FFD4;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.10), 0px 10px 15px -3px rgba(0, 0, 0, 0.10);
+  transition: transform 0.2s ease, filter 0.2s ease;
+  z-index: 10;
+}
+
+.custom-profile-edit-photo-btn:hover {
+  transform: translateX(-50%) scale(1.05);
+  filter: brightness(1.05);
+}
+
+.custom-profile-edit-photo-icon-wrapper {
+  color: #005D4C;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.custom-profile-edit-photo-icon {
+  width: 13.33px;
+  height: 12px;
+  background: #005D4C;
+}
+
+.custom-profile-edit-photo-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  color: #005D4C;
+  font-size: 12px;
+  font-family: Inter, sans-serif;
+  font-weight: 700;
+  line-height: 16px;
+  word-wrap: break-word;
+}
+
+.custom-profile-text {
   width: 100% !important;
   text-align: center !important;
   margin-bottom: 28px !important;
   animation: forgotFadeIn 1.1s ease !important;
 }
 
-.forgot-text h1 {
+.custom-profile-text h1 {
   margin: 0 0 16px 0 !important;
   font-size: 3rem !important;
   line-height: 1.05 !important;
@@ -71,7 +121,7 @@
   text-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
 }
 
-.forgot-text p {
+.custom-profile-text p {
   margin: 0 auto !important;
   max-width: 430px !important;
   color: #adaaaa !important;
@@ -80,7 +130,7 @@
   text-align: center !important;
 }
 
-.forgot-form-area {
+.custom-profile-form-area {
   width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
@@ -88,12 +138,12 @@
   margin-bottom: 24px !important;
 }
 
-.forgot-input-group {
+.custom-profile-input-group {
   width: 100% !important;
   display: block !important;
 }
 
-.forgot-input-group h3 {
+.custom-profile-input-group h3 {
   margin: 0 0 10px 0 !important;
   color: #a7a7a7 !important;
   font-size: 0.9rem !important;
@@ -102,7 +152,7 @@
   text-align: left !important;
 }
 
-.forgot-input-box {
+.custom-profile-input-box {
   position: relative !important;
   width: 100% !important;
   min-height: 58px !important;
@@ -118,16 +168,16 @@
   transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important;
 }
 
-.forgot-input-box:hover {
+.custom-profile-input-box:hover {
   transform: translateY(-1px) !important;
 }
 
-.forgot-input-box:focus-within {
+.custom-profile-input-box:focus-within {
   border-color: rgba(57, 240, 208, 0.5) !important;
   box-shadow: 0 0 0 4px rgba(57, 240, 208, 0.08) !important;
 }
 
-.forgot-input-icon {
+.custom-profile-input-icon {
   position: absolute !important;
   left: 16px !important;
   top: 50% !important;
@@ -138,7 +188,7 @@
   z-index: 2 !important;
 }
 
-.forgot-input-box input {
+.custom-profile-input-box input {
   width: 100% !important;
   height: 100% !important;
   padding: 0 16px 0 50px !important;
@@ -153,11 +203,11 @@
   display: block !important;
 }
 
-.forgot-input-box input::placeholder {
+.custom-profile-input-box input::placeholder {
   color: #7f7f7f !important;
 }
 
-.forgot-button-primary {
+.custom-profile-button-primary {
   width: 100% !important;
   min-height: 64px !important;
   height: 64px !important;
@@ -176,17 +226,17 @@
   transition: transform 0.28s ease, box-shadow 0.28s ease, filter 0.28s ease !important;
 }
 
-.forgot-button-primary:hover {
+.custom-profile-button-primary:hover {
   transform: translateY(-3px) scale(1.01) !important;
   box-shadow: 0 0 40px rgba(57, 240, 208, 0.34) !important;
   filter: brightness(1.03) !important;
 }
 
-.forgot-button-primary:active {
+.custom-profile-button-primary:active {
   transform: scale(0.99) !important;
 }
 
-.forgot-info-card {
+.custom-profile-info-card {
   width: 100% !important;
   padding: 24px 24px 22px !important;
   border-radius: 32px !important;
@@ -203,19 +253,19 @@
   text-align: left !important;
 }
 
-.forgot-info-icon {
+.custom-profile-info-icon {
   color: #01cbff !important;
   font-size: 24px !important;
   min-width: 24px !important;
   margin-top: 2px !important;
 }
 
-.forgot-info-text {
+.custom-profile-info-text {
   display: block !important;
   text-align: left !important;
 }
 
-.forgot-info-text h2 {
+.custom-profile-info-text h2 {
   margin: 0 0 8px 0 !important;
   color: #ffffff !important;
   font-size: 1rem !important;
@@ -223,7 +273,7 @@
   text-align: left !important;
 }
 
-.forgot-info-text p {
+.custom-profile-info-text p {
   margin: 0 !important;
   color: #adaaaa !important;
   font-size: 0.95rem !important;
@@ -231,7 +281,7 @@
   text-align: left !important;
 }
 
-.forgot-back-login {
+.custom-profile-back-login {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -243,12 +293,12 @@
   animation: forgotFadeIn 1.4s ease !important;
 }
 
-.forgot-back-login:hover {
+.custom-profile-back-login:hover {
   color: #39f0d0 !important;
   transform: translateX(-3px) !important;
 }
 
-.forgot-back-login span {
+.custom-profile-back-login span {
   font-size: 1rem !important;
   font-weight: 500 !important;
 }
@@ -258,6 +308,7 @@
     opacity: 0;
     transform: translateY(28px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -268,80 +319,68 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
 @keyframes forgotFloat {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
     box-shadow: 0 0 40px rgba(57, 240, 208, 0.12);
   }
+
   50% {
     transform: translateY(-6px);
     box-shadow: 0 0 55px rgba(57, 240, 208, 0.18);
   }
 }
 
-.forgot-input-eye {
-  position: absolute !important;
-  right: 16px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  font-size: 1.4rem !important;
-  color: #9a9a9a !important;
-  cursor: pointer !important;
-  transition: color 0.25s ease, transform 0.25s ease;
-  z-index: 2;
-}
-
-.forgot-input-eye:hover {
-  color: #ffffff !important;
-}
-
 @media (max-width: 600px) {
-  .forgot-page {
+  .custom-profile-page {
     padding: 18px !important;
   }
 
-  .forgot-icon-circle {
+  .custom-profile-icon-circle {
     width: 84px !important;
     height: 84px !important;
     margin-bottom: 22px !important;
   }
 
-  .forgot-main-icon {
+  .custom-profile-main-icon {
     font-size: 40px !important;
   }
 
-  .forgot-text h1 {
+  .custom-profile-text h1 {
     font-size: 2.2rem !important;
   }
 
-  .forgot-text p {
+  .custom-profile-text p {
     font-size: 1rem !important;
   }
 
-  .forgot-input-box {
+  .custom-profile-input-box {
     min-height: 54px !important;
     height: 54px !important;
     border-radius: 16px !important;
   }
 
-  .forgot-button-primary {
+  .custom-profile-button-primary {
     min-height: 56px !important;
     height: 56px !important;
     font-size: 1rem !important;
     border-radius: 16px !important;
   }
 
-  .forgot-info-card {
+  .custom-profile-info-card {
     padding: 20px !important;
     border-radius: 24px !important;
   }
 
-  .forgot-info-text p {
+  .custom-profile-info-text p {
     font-size: 0.9rem !important;
   }
 }

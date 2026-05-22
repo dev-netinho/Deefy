@@ -25,7 +25,8 @@ public record MusicRequestDTO(
         @JsonAlias({"arquivoUrl", "audioUrl"})
         String fileUrl,
 
-        @NotNull(message = "Album ID is required")
-        Long albumId
+        @JsonAlias({"artistaId"})
+        @NotNull(message = "Artist ID is required")
+        Long artistId
 ) {
 }
