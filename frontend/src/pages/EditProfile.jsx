@@ -1,7 +1,6 @@
 import { MdOutlineUploadFile } from "react-icons/md";
-import { IoCameraOutline, IoLinkOutline, IoTrashOutline } from "react-icons/io5";
+import { IoCameraOutline, IoCloseOutline, IoTrashOutline } from "react-icons/io5";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import background from "../assets/background2.jpg";
 import "./EditProfile.css";
 import api from "../services/api";
@@ -11,11 +10,13 @@ import ButtonSpinner from "../components/ButtonSpinner";
 const USER_STORAGE_KEY = "@deefy-user";
 
 function EditProfile() {
-  const navigate = useNavigate();
-  const fileInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
-  const [inputUrl, setInputUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isCameraStarting, setIsCameraStarting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -26,7 +27,6 @@ function EditProfile() {
 
         const photoUrl = response.data?.fotoPerfilUrl || "";
         setProfilePhotoUrl(photoUrl);
-        setInputUrl(photoUrl);
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
       })
       .catch(() => {
@@ -36,41 +36,20 @@ function EditProfile() {
           const photoUrl = storedUser?.fotoPerfilUrl || "";
           if (isMounted) {
             setProfilePhotoUrl(photoUrl);
-            setInputUrl(photoUrl);
           }
         } catch {
-          /* noop */
+          /* localStorage pode estar vazio ou corrompido; a tela continua funcional. */
         }
       });
 
     return () => {
       isMounted = false;
+      stopCamera();
     };
   }, []);
 
-  const saveProfilePhoto = async () => {
-    if (isLoading) return;
-
-    const trimmedUrl = inputUrl.trim();
-    if (!trimmedUrl) {
-      showMusicError("Cole uma URL pública da imagem para salvar.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await api.patch("/users/me/photo", { fotoPerfilUrl: trimmedUrl });
-      const photoUrl = response.data?.fotoPerfilUrl || "";
-      setProfilePhotoUrl(photoUrl);
-      setInputUrl(photoUrl);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
-      showMusicSuccess("Foto de perfil atualizada!");
-      setTimeout(() => navigate("/configuration"), 800);
-    } catch (err) {
-      showMusicError(err.response?.data?.message || err.message || "Erro ao salvar foto de perfil.");
-    } finally {
-      setIsLoading(false);
-    }
+  const updateStoredUser = (user) => {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
   };
 
   const uploadProfilePhoto = async (file) => {
@@ -87,16 +66,15 @@ function EditProfile() {
 
       const photoUrl = response.data?.fotoPerfilUrl || "";
       setProfilePhotoUrl(photoUrl);
-      setInputUrl(photoUrl);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
-      showMusicSuccess("Foto de perfil enviada!");
-      setTimeout(() => navigate("/configuration"), 800);
+      updateStoredUser(response.data);
+      showMusicSuccess("Foto de perfil atualizada!");
+      closeCamera();
     } catch (err) {
       showMusicError(err.response?.data?.message || err.message || "Erro ao enviar foto de perfil.");
     } finally {
       setIsLoading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      if (galleryInputRef.current) {
+        galleryInputRef.current.value = "";
       }
     }
   };
@@ -108,15 +86,88 @@ function EditProfile() {
     try {
       const response = await api.delete("/users/me/photo");
       setProfilePhotoUrl("");
-      setInputUrl("");
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
+      updateStoredUser(response.data);
       showMusicSuccess("Foto de perfil removida.");
-      setTimeout(() => navigate("/configuration"), 800);
     } catch (err) {
       showMusicError(err.response?.data?.message || err.message || "Erro ao remover foto de perfil.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const openCamera = async () => {
+    if (isLoading || isCameraStarting) return;
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      showMusicError("Este navegador não permite abrir a câmera diretamente.");
+      return;
+    }
+
+    setIsCameraOpen(true);
+    setIsCameraStarting(true);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: "user",
+          width: { ideal: 960 },
+          height: { ideal: 960 },
+        },
+      });
+
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+    } catch {
+      setIsCameraOpen(false);
+      showMusicError("Não foi possível acessar a câmera. Verifique a permissão do navegador.");
+    } finally {
+      setIsCameraStarting(false);
+    }
+  };
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  const closeCamera = () => {
+    stopCamera();
+    setIsCameraOpen(false);
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      showMusicError("A câmera ainda não está pronta para capturar.");
+      return;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext("2d");
+    context.translate(canvas.width, 0);
+    context.scale(-1, 1);
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        showMusicError("Não foi possível capturar a foto.");
+        return;
+      }
+
+      const file = new File([blob], "foto-perfil.jpg", { type: "image/jpeg" });
+      uploadProfilePhoto(file);
+    }, "image/jpeg", 0.92);
   };
 
   return (
@@ -134,60 +185,42 @@ function EditProfile() {
               style={profilePhotoUrl ? { backgroundImage: `url(${profilePhotoUrl})` } : undefined}
               aria-label="Foto de perfil"
             ></div>
-            <button
-              className="edit-profile-edit-photo-btn"
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-            >
-              <span className="edit-profile-edit-photo-icon-wrapper">
-                <IoCameraOutline />
-              </span>
-              <span className="edit-profile-edit-photo-text">Tirar<br />Foto</span>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              capture="user"
-              className="edit-profile-file-input"
-              onChange={(event) => uploadProfilePhoto(event.target.files?.[0])}
-            />
           </div>
           <div className="edit-profile-text-content">
             <h2>Mude a sua foto de perfil</h2>
-            <p>Tire uma foto agora, envie uma imagem ou cole uma URL pública.</p>
-          </div>
-        </div>
-
-        <div className="edit-profile-input-group">
-          <h3>URL DA FOTO</h3>
-          <div className="edit-profile-input-box">
-            <IoLinkOutline className="edit-profile-input-icon" />
-            <input
-              type="url"
-              placeholder="https://..."
-              value={inputUrl}
-              onChange={(event) => setInputUrl(event.target.value)}
-              disabled={isLoading}
-            />
+            <p>Use a sua foto favorita!</p>
           </div>
         </div>
 
         <button
           className="edit-profile-card"
           type="button"
-          onClick={saveProfilePhoto}
+          onClick={() => galleryInputRef.current?.click()}
           disabled={isLoading}
         >
           <div className="edit-profile-input-icon-box">
             <MdOutlineUploadFile className="edit-profile-input-icon" />
           </div>
           <div className="edit-profile-text-content">
-            <h1>Salvar foto</h1>
-            <p>Grava a URL em fotoperfilurl no banco.</p>
+            <h1>Upload da galeria</h1>
+            <p>Selecione uma imagem da sua galeria.</p>
           </div>
-          {isLoading && <ButtonSpinner />}
+        </button>
+
+        <button
+          className="edit-profile-card"
+          type="button"
+          onClick={openCamera}
+          disabled={isLoading || isCameraStarting}
+        >
+          <div className="edit-profile-input-icon-box">
+            <IoCameraOutline className="edit-profile-input-icon" />
+          </div>
+          <div className="edit-profile-text-content">
+            <h1>Tirar foto</h1>
+            <p>Tire uma foto com a sua câmera.</p>
+          </div>
+          {isCameraStarting && <ButtonSpinner />}
         </button>
 
         <button
@@ -203,9 +236,58 @@ function EditProfile() {
             <h1>Remover foto do perfil</h1>
             <p>Redefina a sua foto de perfil para o padrão</p>
           </div>
+          {isLoading && <ButtonSpinner />}
         </button>
 
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="edit-profile-file-input"
+          onChange={(event) => uploadProfilePhoto(event.target.files?.[0])}
+        />
       </section>
+
+      {isCameraOpen && (
+        <div className="edit-profile-camera-modal" role="dialog" aria-modal="true">
+          <div className="edit-profile-camera-card">
+            <button
+              className="edit-profile-camera-close"
+              type="button"
+              onClick={closeCamera}
+              aria-label="Fechar câmera"
+              disabled={isLoading}
+            >
+              <IoCloseOutline />
+            </button>
+
+            <div className="edit-profile-camera-preview">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="edit-profile-camera-video"
+              />
+              {isCameraStarting && (
+                <div className="edit-profile-camera-loading">
+                  <ButtonSpinner />
+                  <span>Abrindo câmera...</span>
+                </div>
+              )}
+            </div>
+
+            <div className="edit-profile-camera-actions">
+              <button type="button" onClick={closeCamera} disabled={isLoading}>
+                Cancelar
+              </button>
+              <button type="button" onClick={capturePhoto} disabled={isLoading || isCameraStarting}>
+                {isLoading ? <ButtonSpinner /> : "Usar esta foto"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
