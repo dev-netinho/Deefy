@@ -154,6 +154,7 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
+  border: 0;
   box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.10), 0px 10px 15px -3px rgba(0, 0, 0, 0.10);
   transition: transform 0.2s ease, filter 0.2s ease;
 }
@@ -163,18 +164,20 @@
   filter: brightness(1.05);
 }
 
+.edit-profile-edit-photo-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.edit-profile-file-input {
+  display: none;
+}
+
 .edit-profile-edit-photo-icon-wrapper {
   color: #005D4C;
   display: inline-flex;
-  flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-}
-
-.edit-profile-edit-photo-icon {
-  width: 13.33px;
-  height: 12px;
-  background: #005D4C;
 }
 
 .edit-profile-edit-photo-text {

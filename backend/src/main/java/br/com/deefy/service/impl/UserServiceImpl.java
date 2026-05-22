@@ -10,12 +10,14 @@ import br.com.deefy.mapper.UserMapper;
 import br.com.deefy.model.Tipo;
 import br.com.deefy.model.User;
 import br.com.deefy.repository.UserRepository;
+import br.com.deefy.service.ProfilePhotoStorageService;
 import br.com.deefy.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import br.com.deefy.security.JwtUtil;
 import br.com.deefy.service.EmailService;
 import br.com.deefy.exception.TokenInvalidoException;
@@ -30,15 +32,18 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
+    private final ProfilePhotoStorageService profilePhotoStorageService;
 
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder,
                            EmailService emailService,
-                           JwtUtil jwtUtil){
+                           JwtUtil jwtUtil,
+                           ProfilePhotoStorageService profilePhotoStorageService){
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.jwtUtil = jwtUtil;
+        this.profilePhotoStorageService = profilePhotoStorageService;
     }
 
     @Override
@@ -183,6 +188,18 @@ public class UserServiceImpl implements UserService {
         );
 
         user.setFotoPerfilUrl(request.fotoPerfilUrl());
+        return userMapper.toDTO(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDTO uploadMyProfilePhoto(String email, MultipartFile file) {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new UsuarioNaoEncontradoException("Usuário não encontrado na base de dados.")
+        );
+
+        String publicUrl = profilePhotoStorageService.uploadProfilePhoto(user, file);
+        user.setFotoPerfilUrl(publicUrl);
         return userMapper.toDTO(userRepository.save(user));
     }
 

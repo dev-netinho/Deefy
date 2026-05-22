@@ -1,6 +1,6 @@
 import { MdOutlineUploadFile } from "react-icons/md";
-import { IoLinkOutline, IoTrashOutline } from "react-icons/io5";
-import { useEffect, useState } from "react";
+import { IoCameraOutline, IoLinkOutline, IoTrashOutline } from "react-icons/io5";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import background from "../assets/background2.jpg";
 import "./EditProfile.css";
@@ -12,6 +12,7 @@ const USER_STORAGE_KEY = "@deefy-user";
 
 function EditProfile() {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
   const [inputUrl, setInputUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +73,34 @@ function EditProfile() {
     }
   };
 
+  const uploadProfilePhoto = async (file) => {
+    if (!file || isLoading) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setIsLoading(true);
+    try {
+      const response = await api.post("/users/me/photo/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const photoUrl = response.data?.fotoPerfilUrl || "";
+      setProfilePhotoUrl(photoUrl);
+      setInputUrl(photoUrl);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
+      showMusicSuccess("Foto de perfil enviada!");
+      setTimeout(() => navigate("/configuration"), 800);
+    } catch (err) {
+      showMusicError(err.response?.data?.message || err.message || "Erro ao enviar foto de perfil.");
+    } finally {
+      setIsLoading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   const removeProfilePhoto = async () => {
     if (isLoading) return;
 
@@ -105,10 +134,29 @@ function EditProfile() {
               style={profilePhotoUrl ? { backgroundImage: `url(${profilePhotoUrl})` } : undefined}
               aria-label="Foto de perfil"
             ></div>
+            <button
+              className="edit-profile-edit-photo-btn"
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+            >
+              <span className="edit-profile-edit-photo-icon-wrapper">
+                <IoCameraOutline />
+              </span>
+              <span className="edit-profile-edit-photo-text">Tirar<br />Foto</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              capture="user"
+              className="edit-profile-file-input"
+              onChange={(event) => uploadProfilePhoto(event.target.files?.[0])}
+            />
           </div>
           <div className="edit-profile-text-content">
             <h2>Mude a sua foto de perfil</h2>
-            <p>Cole uma URL pública de imagem para salvar no seu perfil.</p>
+            <p>Tire uma foto agora, envie uma imagem ou cole uma URL pública.</p>
           </div>
         </div>
 

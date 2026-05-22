@@ -58,6 +58,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(ProfilePhotoStorageException.class)
+    public ResponseEntity<Map<String, Object>> handleProfilePhotoStorage(ProfilePhotoStorageException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(MusicNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleMusicaNaoEncontradaException(MusicNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(

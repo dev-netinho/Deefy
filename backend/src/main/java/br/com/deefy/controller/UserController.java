@@ -13,8 +13,10 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.security.Principal;
 
 @RestController
@@ -108,6 +110,17 @@ public class UserController {
 
         String email = principal.getName();
         UserResponseDTO updatedProfile = userService.updateMyProfilePhoto(email, request);
+        return ResponseEntity.ok(updatedProfile);
+    }
+
+    @PostMapping(value = "/me/photo/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Enviar minha foto de perfil", description = "Envia uma imagem para o Storage e salva a URL publica em fotoperfilurl.")
+    public ResponseEntity<UserResponseDTO> uploadMyProfilePhoto(
+            Principal principal,
+            @RequestPart("file") MultipartFile file) {
+
+        String email = principal.getName();
+        UserResponseDTO updatedProfile = userService.uploadMyProfilePhoto(email, file);
         return ResponseEntity.ok(updatedProfile);
     }
 
