@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { removeToken } from "../utils/auth";
+import defaultProfileAvatar from "../assets/default-profile-avatar.svg";
 
 const USER_STORAGE_KEY = "@deefy-user";
 
@@ -28,6 +29,7 @@ function Configuration() {
   const hasStoredUser = Boolean(user);
   const displayName = user?.nome || user?.name || "Ouvinte";
   const profilePhotoUrl = user?.fotoPerfilUrl || user?.fotoPerfilurl || "";
+  const avatarUrl = profilePhotoUrl || defaultProfileAvatar;
 
   useEffect(() => {
     let isMounted = true;
@@ -67,7 +69,7 @@ function Configuration() {
           <div className="configuration-avatar-wrapper">
             <div
               className="configuration-user-img"
-              style={profilePhotoUrl ? { backgroundImage: `url(${profilePhotoUrl})` } : undefined}
+              style={{ backgroundImage: `url(${avatarUrl})` }}
               aria-label="Foto de perfil"
             ></div>
 

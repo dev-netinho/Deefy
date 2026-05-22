@@ -2,6 +2,7 @@ import { IoCameraOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import background from "../assets/background2.jpg";
+import defaultProfileAvatar from "../assets/default-profile-avatar.svg";
 import "./CustomProfile.css";
 import "./Registration.css";
 import { useNavigate } from "react-router-dom";
@@ -14,8 +15,10 @@ const USER_STORAGE_KEY = "@deefy-user";
 function CustomProfile() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const avatarUrl = profilePhotoUrl || defaultProfileAvatar;
 
   useEffect(() => {
     let isMounted = true;
@@ -24,13 +27,18 @@ function CustomProfile() {
       .then((response) => {
         if (!isMounted) return;
         setFullName(response.data?.nome || "");
+        setProfilePhotoUrl(response.data?.fotoPerfilUrl || "");
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
       })
       .catch(() => {
         try {
           const raw = localStorage.getItem(USER_STORAGE_KEY);
           const storedUser = raw ? JSON.parse(raw) : null;
-          if (isMounted && storedUser?.nome) {
-            setFullName(storedUser.nome);
+          if (isMounted) {
+            if (storedUser?.nome) {
+              setFullName(storedUser.nome);
+            }
+            setProfilePhotoUrl(storedUser?.fotoPerfilUrl || "");
           }
         } catch {
           /* noop */
@@ -82,7 +90,11 @@ function CustomProfile() {
 
       <section className="custom-profile-wrapper">
 
-        <div className="custom-profile-icon-circle">
+        <div
+          className="custom-profile-icon-circle"
+          style={{ backgroundImage: `url(${avatarUrl})` }}
+          aria-label="Foto de perfil"
+        >
           <div className="custom-profile-edit-photo-btn" onClick={() => navigate("/edit-profile")}>
             <div className="custom-profile-edit-photo-icon-wrapper">
               <IoCameraOutline />

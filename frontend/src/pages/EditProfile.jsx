@@ -2,6 +2,7 @@ import { MdOutlineUploadFile } from "react-icons/md";
 import { IoCameraOutline, IoCloseOutline, IoTrashOutline } from "react-icons/io5";
 import { useEffect, useRef, useState } from "react";
 import background from "../assets/background2.jpg";
+import defaultProfileAvatar from "../assets/default-profile-avatar.svg";
 import "./EditProfile.css";
 import api from "../services/api";
 import { showMusicError, showMusicSuccess } from "../utils/musicToast";
@@ -17,6 +18,7 @@ function EditProfile() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isCameraStarting, setIsCameraStarting] = useState(false);
+  const avatarUrl = profilePhotoUrl || defaultProfileAvatar;
 
   useEffect(() => {
     let isMounted = true;
@@ -182,7 +184,7 @@ function EditProfile() {
           <div className="edit-profile-avatar-wrapper">
             <div
               className="edit-profile-user-img"
-              style={profilePhotoUrl ? { backgroundImage: `url(${profilePhotoUrl})` } : undefined}
+              style={{ backgroundImage: `url(${avatarUrl})` }}
               aria-label="Foto de perfil"
             ></div>
           </div>
