@@ -8,8 +8,10 @@ export const musicService = {
    */
   async getHomeMusics(size = 12) {
     try {
-      // Fetch random musics directly from the backend endpoint
-      const response = await api.get(`/musics/random?size=${size}`);
+      // A API oficial da staging expõe o catálogo paginado em /musics.
+      const response = await api.get('/musics', {
+        params: { size }
+      });
       return response.data?.content || response.data || [];
     } catch (error) {
       console.error('Failed to fetch home musics:', error);

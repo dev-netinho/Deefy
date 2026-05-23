@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { removeToken } from '../utils/auth';
+import { getToken, removeToken } from '../utils/auth';
 
 const getBaseURL = () => {
   const envUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
@@ -26,9 +26,15 @@ const api = axios.create({
   },
 });
 
-// Interceptor de requisição (opcional, útil para enviar tokens futuramente)
+// Interceptor de requisição: anexa o JWT salvo após o login.
 api.interceptors.request.use(
   (config) => {
+    const token = getToken();
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     if (import.meta.env.DEV) {
       console.debug('[API Request]:', {
         method: config.method?.toUpperCase(),

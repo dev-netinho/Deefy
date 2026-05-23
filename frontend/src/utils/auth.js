@@ -3,24 +3,28 @@ const TOKEN_KEY = import.meta.env.VITE_STORAGE_TOKEN_KEY || "@deefy-token";
 const ROLE_KEY = "@deefy-role";
 
 /**
- * Marca o usuário como autenticado (o token real agora fica em cookie HttpOnly)
+ * Salva o JWT retornado pelo backend e marca o usuário como autenticado.
  */
-export const setToken = () => {
+export const setToken = (token) => {
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
   localStorage.setItem("@deefy-auth", "true");
 };
 
 /**
- * Busca o token JWT salvo (descontinuado)
+ * Busca o token JWT salvo.
  * @returns {string | null}
  */
 export const getToken = () => {
-  return null;
+  return localStorage.getItem(TOKEN_KEY);
 };
 
 /**
  * Remove o token e dados de sessão (Logout)
  */
 export const removeToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem("@deefy-auth");
   localStorage.removeItem("@deefy-user");
   localStorage.removeItem(ROLE_KEY);
@@ -62,4 +66,3 @@ export const isAdmin = () => {
   const role = getUserRole();
   return role === "ROLE_ADMIN" || role === "ADMIN";
 };
-
