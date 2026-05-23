@@ -57,4 +57,16 @@ public class Artist {
     public String getFotoUrl() {
         return fotoUrl;
     }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
+    }
 }

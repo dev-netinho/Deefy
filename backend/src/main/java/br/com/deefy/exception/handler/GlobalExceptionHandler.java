@@ -2,6 +2,7 @@ package br.com.deefy.exception.handler;
 
 import br.com.deefy.dto.ErrorDetails;
 import br.com.deefy.exception.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -61,6 +62,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ProfilePhotoStorageException.class)
     public ResponseEntity<Map<String, Object>> handleProfilePhotoStorage(ProfilePhotoStorageException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Não foi possível concluir a operação porque existem vínculos no banco de dados.");
     }
 
     @ExceptionHandler(MusicNotFoundException.class)

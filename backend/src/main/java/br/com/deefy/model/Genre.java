@@ -53,4 +53,20 @@ public class Genre {
     public Artist getArtista() {
         return artista;
     }
+
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+
+    public void setCapaUrl(String capaUrl) {
+        this.capaUrl = capaUrl;
+    }
+
+    public void setDataLancamento(LocalDate dataLancamento) {
+        this.dataLancamento = dataLancamento;
+    }
+
+    public void setArtista(Artist artista) {
+        this.artista = artista;
+    }
 }
