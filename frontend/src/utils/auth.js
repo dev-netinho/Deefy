@@ -35,7 +35,7 @@ export const removeToken = () => {
  * @returns {boolean}
  */
 export const isAuthenticated = () => {
-  return localStorage.getItem("@deefy-auth") === "true";
+  return localStorage.getItem("@deefy-auth") === "true" && Boolean(getToken());
 };
 
 /**
