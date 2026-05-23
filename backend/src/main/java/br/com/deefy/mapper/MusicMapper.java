@@ -5,54 +5,26 @@ import br.com.deefy.dto.response.MusicDetailResponseDTO;
 import br.com.deefy.dto.response.MusicListResponseDTO;
 import br.com.deefy.model.Music;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-
-import java.util.Objects;
 
 @Mapper(componentModel = "spring")
 public interface MusicMapper {
 
-    default Music toEntity(MusicRequestDTO requestDTO) {
-        Music music = new Music();
-        updateEntity(requestDTO, music);
-        return music;
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "artist", ignore = true)
+    @Mapping(target = "fileUrl", source = "fileUrl", defaultValue = "")
+    Music toEntity(MusicRequestDTO requestDTO);
 
-    default MusicDetailResponseDTO toDetailDTO(Music music) {
-        return new MusicDetailResponseDTO(
-                music.getId(),
-                music.getTitle(),
-                music.getArtist(),
-                music.getAlbumTitle(),
-                music.getGenre(),
-                music.getDurationSeconds(),
-                music.getCoverUrl(),
-                music.getPreviewUrl(),
-                music.getFileUrl(),
-                null
-        );
-    }
+    @Mapping(target = "album", source = "albumTitle")
+    @Mapping(target = "dataLancamento", ignore = true)
+    MusicDetailResponseDTO toDetailDTO(Music music);
 
-    default MusicListResponseDTO toListDTO(Music music) {
-        return new MusicListResponseDTO(
-                music.getId(),
-                music.getTitle(),
-                music.getArtist(),
-                music.getAlbumTitle(),
-                music.getDurationSeconds(),
-                music.getDuration(),
-                music.getCoverUrl(),
-                music.getPreviewUrl(),
-                music.getFileUrl()
-        );
-    }
+    @Mapping(target = "album", source = "albumTitle")
+    MusicListResponseDTO toListDTO(Music music);
 
-    default void updateEntity(MusicRequestDTO requestDTO, @MappingTarget Music music) {
-        music.setTitle(requestDTO.title());
-        music.setGenre(requestDTO.genre());
-        music.setDurationSeconds(requestDTO.durationSeconds());
-        music.setPreviewUrl(requestDTO.previewUrl());
-        music.setCoverUrl(requestDTO.coverUrl());
-        music.setFileUrl(Objects.requireNonNullElse(requestDTO.fileUrl(), ""));
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "artist", ignore = true)
+    @Mapping(target = "fileUrl", source = "fileUrl", defaultValue = "")
+    void updateEntity(MusicRequestDTO requestDTO, @MappingTarget Music music);
 }
