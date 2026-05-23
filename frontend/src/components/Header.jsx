@@ -1,4 +1,3 @@
-import { MdSettings } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import "./Header.css";
 
@@ -23,7 +22,7 @@ function getUserName() {
     const raw = localStorage.getItem("@deefy-user");
     if (raw) {
       const parsed = JSON.parse(raw);
-      return parsed?.nome || parsed?.name || "Ouvinte";
+      return parsed?.name || "Ouvinte";
     }
   } catch {
     /* noop */
@@ -39,18 +38,9 @@ function Header() {
   return (
     <header className="home-header">
       <div className="home-header-greeting">
-        <p className="home-header-sub">{greeting},</p>
-        <h1 className="home-header-name">{name} 👋</h1>
+        <p className="home-header-sub">{greeting}</p>
+        <h1 className="home-header-name">{name}</h1>
       </div>
-
-      <button
-        className="home-header-settings"
-        onClick={() => navigate("/configuration")}
-        aria-label="Configurações"
-        title="Configurações"
-      >
-        <MdSettings />
-      </button>
     </header>
   );
 }

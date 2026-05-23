@@ -1,57 +1,22 @@
-import { IoCameraOutline } from "react-icons/io5";
+import { IoChevronBack, IoCameraOutline } from "react-icons/io5";
+import { MdOutlinePerson } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import background from "../assets/background2.jpg";
-import defaultProfileAvatar from "../assets/default-profile-avatar.svg";
 import "./CustomProfile.css";
 import "./Registration.css";
 import { useNavigate } from "react-router-dom";
 import { showMusicError, showMusicSuccess } from "../utils/musicToast";
 import ButtonSpinner from "../components/ButtonSpinner";
-import api from "../services/api";
-
-const USER_STORAGE_KEY = "@deefy-user";
 
 function CustomProfile() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const avatarUrl = profilePhotoUrl || defaultProfileAvatar;
-
-  useEffect(() => {
-    let isMounted = true;
-
-    api.get("/users/me")
-      .then((response) => {
-        if (!isMounted) return;
-        setFullName(response.data?.nome || "");
-        setProfilePhotoUrl(response.data?.fotoPerfilUrl || "");
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
-      })
-      .catch(() => {
-        try {
-          const raw = localStorage.getItem(USER_STORAGE_KEY);
-          const storedUser = raw ? JSON.parse(raw) : null;
-          if (isMounted) {
-            if (storedUser?.nome) {
-              setFullName(storedUser.nome);
-            }
-            setProfilePhotoUrl(storedUser?.fotoPerfilUrl || "");
-          }
-        } catch {
-          /* noop */
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const validate = () => {
-    if (!fullName.trim()) return "Informe o nome do usuário.";
+    if (!fullName.trim()) return "O nome de usuário é obrigatório.";
     if (fullName.trim().length < 3) return "O nome precisa ter pelo menos 3 caracteres.";
     return null;
   };
@@ -66,17 +31,17 @@ function CustomProfile() {
 
     setIsLoading(true);
     try {
-      const response = await api.patch("/users/me/name", { nome: fullName.trim() });
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
-      setSent(true);
-      showMusicSuccess("Perfil atualizado com sucesso!");
-      setTimeout(() => navigate("/configuration"), 800);
+      // Simulação de atualização de perfil
+      setTimeout(() => {
+        setSent(true);
+        showMusicSuccess("Perfil atualizado com sucesso!");
+        setIsLoading(false);
+      }, 800);
     } catch (err) {
       const message =
         err.response?.data?.message ||
         "Erro ao atualizar o perfil. Tente novamente.";
       showMusicError(message);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -90,11 +55,7 @@ function CustomProfile() {
 
       <section className="custom-profile-wrapper">
 
-        <div
-          className="custom-profile-icon-circle"
-          style={{ backgroundImage: `url(${avatarUrl})` }}
-          aria-label="Foto de perfil"
-        >
+        <div className="custom-profile-icon-circle">
           <div className="custom-profile-edit-photo-btn" onClick={() => navigate("/edit-profile")}>
             <div className="custom-profile-edit-photo-icon-wrapper">
               <IoCameraOutline />

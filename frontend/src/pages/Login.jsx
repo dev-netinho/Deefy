@@ -9,7 +9,8 @@ import logo from "../assets/logo.svg";
 import background from "../assets/background.jpg";
 import "./Login.css";
 import api from "../services/api";
-import { setToken } from "../utils/auth";
+import { setToken, setUserRole } from "../utils/auth";
+import { getRoleFromToken } from "../utils/jwt";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { showMusicError, showMusicSuccess } from "../utils/musicToast";
@@ -47,6 +48,10 @@ function Login() {
 
       if (token) {
         setToken(token);
+        // Extract and persist the role from the JWT so the UI can show/hide admin features.
+        // The server always validates the role — this is only used for UI rendering.
+        const role = getRoleFromToken(token);
+        setUserRole(role);
         showMusicSuccess("Acesso liberado aos bastidores!");
         navigate("/home");
       } else {

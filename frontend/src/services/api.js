@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getToken, removeToken } from '../utils/auth';
+import { removeToken } from '../utils/auth';
 
 const getBaseURL = () => {
   const envUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
@@ -19,6 +19,7 @@ const getBaseURL = () => {
 const api = axios.create({
   baseURL: getBaseURL(),
   timeout: 10000, // Timeout de 10 segundos para não travar a aplicação indefinidamente
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -28,10 +29,6 @@ const api = axios.create({
 // Interceptor de requisição (opcional, útil para enviar tokens futuramente)
 api.interceptors.request.use(
   (config) => {
-    if (config.url?.startsWith('/api/v1/')) {
-      config.url = config.url.replace('/api/v1', '');
-    }
-
     if (import.meta.env.DEV) {
       console.debug('[API Request]:', {
         method: config.method?.toUpperCase(),
@@ -39,12 +36,6 @@ api.interceptors.request.use(
       });
     }
 
-    const token = getToken();
-    const isAuthRoute = config.url?.startsWith('/auth/');
-
-    if (token && !isAuthRoute) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => {

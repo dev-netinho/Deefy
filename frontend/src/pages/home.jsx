@@ -2,11 +2,9 @@ import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
-import FeaturedSection from "../components/FeaturedSection";
 import SongList from "../components/SongList";
 import SongListSkeleton from "../components/SongListSkeleton";
 import EmptyState from "../components/EmptyState";
-import { MOCK_PLAYLISTS } from "../mocks/musicData";
 import { useMusicSearch } from "../hooks/useMusicSearch";
 import { useDebounce } from "../hooks/useDebounce";
 import { musicService } from "../services/musicService";
@@ -63,7 +61,6 @@ function Home() {
           {/* ── Default state (no query) ── */}
           {!isSearching && (
             <>
-              <FeaturedSection playlists={MOCK_PLAYLISTS} />
               {isLoadingHome ? (
                 <SongListSkeleton count={12} />
               ) : (

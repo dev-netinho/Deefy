@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { MdOutlineCheckCircle, MdOutlineErrorOutline } from "react-icons/md";
 import background from "../assets/background2.jpg";
 import api from "../services/api";
@@ -11,17 +11,16 @@ function VerifyAccount() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
   const navigate = useNavigate();
-
-  const [status, setStatus] = useState("loading"); // loading, success, error
-  const [errorMessage, setErrorMessage] = useState("");
+  
+  const [status, setStatus] = useState(() => (token ? "loading" : "error"));
+  const [errorMessage, setErrorMessage] = useState(() =>
+    token ? "" : "Link de ativação inválido ou ausente."
+  );
   const hasAttempted = useRef(false); // To prevent strict mode double rendering from firing API twice
 
   useEffect(() => {
     if (!token) {
-      queueMicrotask(() => {
-        setStatus("error");
-        setErrorMessage("Link de ativação inválido ou ausente.");
-      });
+      // State already initialized via lazy initializer above — no setState call needed here.
       return;
     }
 
@@ -43,6 +42,7 @@ function VerifyAccount() {
 
     verify();
   }, [token]);
+
 
   return (
     <div
@@ -93,13 +93,6 @@ function VerifyAccount() {
               <p>{errorMessage}</p>
             </div>
             <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-              <button
-                className="forgot-button-primary"
-                onClick={() => navigate("/login")}
-                style={{ flex: 1, backgroundColor: "transparent", border: "1px solid rgba(255, 255, 255, 0.2)" }}
-              >
-                Ir para Login
-              </button>
               <button
                 className="forgot-button-primary"
                 onClick={() => navigate("/registration")}

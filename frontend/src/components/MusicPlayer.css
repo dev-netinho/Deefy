@@ -40,18 +40,6 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-.deefy-player-shell--empty {
-  opacity: 0.92;
-}
-
-.deefy-player-shell button:disabled,
-.deefy-player-shell input:disabled,
-.deefy-player-expanded button:disabled,
-.deefy-player-expanded input:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
 .deefy-player-shell button {
   all: unset;
   box-sizing: border-box;
@@ -1009,7 +997,7 @@
   .deefy-player-shell {
     left: 18px;
     right: 18px;
-    bottom: 86px;
+    bottom: 96px;
     min-height: 88px;
     padding: 12px 14px;
     grid-template-columns: minmax(0, 1fr) 44px;
@@ -1199,7 +1187,7 @@
   .deefy-player-shell {
     left: 10px;
     right: 10px;
-    bottom: 78px;
+    bottom: 90px;
     min-height: 84px;
     padding: 10px 12px;
     gap: 9px;
