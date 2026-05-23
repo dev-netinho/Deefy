@@ -53,6 +53,17 @@ public class ArtistController {
         return ResponseEntity.ok(toDTO(artistRepository.save(artist)));
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir artista", description = "Remove artista quando nao houver musicas, generos ou outros vinculos associados.")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (!artistRepository.existsById(id)) {
+            throw new ArtistNotFoundException(id);
+        }
+
+        artistRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
     private AdminArtistResponseDTO toDTO(Artist artist) {
         return new AdminArtistResponseDTO(
                 artist.getId(),
