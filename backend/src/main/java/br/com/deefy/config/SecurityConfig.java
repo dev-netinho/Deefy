@@ -78,6 +78,9 @@ public class SecurityConfig {
                                 "/api/v1/musics/**"
                         ).hasRole("ADMIN")
 
+                        .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()
+                        .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
