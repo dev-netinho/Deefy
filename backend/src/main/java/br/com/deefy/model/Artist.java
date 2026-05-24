@@ -2,9 +2,6 @@ package br.com.deefy.model;
 
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Tabela {@code artista} conforme {@code deefy_schema.sql}.
  */
@@ -25,9 +22,6 @@ public class Artist {
     @Column(name = "fotourl", length = 100)
     private String fotoUrl;
 
-    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Album> albums = new ArrayList<>();
-
     protected Artist() {
     }
 
@@ -35,11 +29,6 @@ public class Artist {
     public Artist(Long id, String nome) {
         this.id = id;
         this.nome = nome;
-    }
-
-
-    public List<Album> getAlbums() {
-        return albums;
     }
 
     public Long getId() {
