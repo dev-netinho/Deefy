@@ -108,7 +108,7 @@ function Registration() {
       const response = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
       const data = await response.json();
       return data.Answer && data.Answer.length > 0;
-    } catch {
+    } catch (e) {
       return false; // Fallback in case of network issues
     }
   };
@@ -145,13 +145,8 @@ function Registration() {
       const status = err.status || err.response?.status;
       const apiMessage = err.response?.data?.message || "";
 
-      // O back-end retorna 400 com a mensagem da EmailJaCadastradoException
-      const isEmailTaken =
-        status === 400 &&
-        (apiMessage.toLowerCase().includes("email") ||
-          apiMessage.toLowerCase().includes("e-mail") ||
-          apiMessage.toLowerCase().includes("cadastrado") ||
-          apiMessage.toLowerCase().includes("already"));
+      // O back-end agora retorna 400 com o código estruturado "EMAIL_ALREADY_EXISTS"
+      const isEmailTaken = err.response?.data?.errorCode === "EMAIL_ALREADY_EXISTS";
 
       const errorMessage = isEmailTaken
         ? "Este e-mail já está em uso. Tente fazer login ou use outro endereço."

@@ -7,6 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Locale;
+
 import static org.springframework.security.core.userdetails.User.withUsername;
 
 @Service
@@ -23,11 +26,24 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with this email: " + email));
 
-        Tipo tipoUsuario = user.getTipoUsuario() == null ? Tipo.USER : user.getTipoUsuario();
-
         return withUsername(user.getEmail())
                 .password(user.getSenha())
-                .roles(tipoUsuario.name())
+                .authorities(resolveAuthority(user))
                 .build();
+    }
+
+    private String resolveAuthority(User user) {
+        if (user.getTipoUsuario() == Tipo.ADMIN) {
+            return "ROLE_ADMIN";
+        }
+
+        String perfilNome = user.getPerfil() == null ? "" : user.getPerfil().getNome();
+        String normalizedPerfil = perfilNome.toUpperCase(Locale.ROOT);
+
+        if (normalizedPerfil.contains("ADMIN")) {
+            return "ROLE_ADMIN";
+        }
+
+        return "ROLE_USER";
     }
 }

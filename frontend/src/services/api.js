@@ -19,17 +19,20 @@ const getBaseURL = () => {
 const api = axios.create({
   baseURL: getBaseURL(),
   timeout: 10000, // Timeout de 10 segundos para não travar a aplicação indefinidamente
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
 
-// Interceptor de requisição (opcional, útil para enviar tokens futuramente)
+// Interceptor de requisição: anexa o JWT salvo após o login.
 api.interceptors.request.use(
   (config) => {
-    if (config.url?.startsWith('/api/v1/')) {
-      config.url = config.url.replace('/api/v1', '');
+    const token = getToken();
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     if (import.meta.env.DEV) {
@@ -39,12 +42,6 @@ api.interceptors.request.use(
       });
     }
 
-    const token = getToken();
-    const isAuthRoute = config.url?.startsWith('/auth/');
-
-    if (token && !isAuthRoute) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => {

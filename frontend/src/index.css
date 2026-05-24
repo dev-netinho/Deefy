@@ -18,6 +18,13 @@
   --heading: var(--inter);
   --mono: ui-monospace, Consolas, monospace;
 
+  /* ── Design system tokens used by admin & app components ── */
+  --color-bg:             #0a0a0a;
+  --color-text-primary:   #ffffff;
+  --color-text-secondary: #7a7a7a;
+  --color-accent:         #39f0d0;
+  --font-primary:         'Inter', sans-serif;
+
   font: 18px/145% var(--inter);
   letter-spacing: 0.18px;
   color-scheme: light dark;

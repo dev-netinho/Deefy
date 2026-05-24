@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deefy - Integração Backend, Supabase e Frontend</title>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --paper: #fffaf0;
+      --ink: #18221f;
+      --muted: #68736d;
+      --line: #ded4c2;
+      --accent: #0a7f68;
+      --accent-soft: #dff3ec;
+      --danger: #9d2f2f;
+      --code: #25221d;
+      --code-ink: #f9f0df;
+      --shadow: 0 18px 50px rgba(57, 44, 25, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(10, 127, 104, 0.10), transparent 34rem),
+        linear-gradient(180deg, #f8f4eb 0%, var(--bg) 100%);
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.55;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      overflow-x: auto;
+      padding: 0.75rem 1rem;
+      background: rgba(246, 241, 232, 0.86);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    nav strong {
+      white-space: nowrap;
+      margin-right: 0.5rem;
+      font-family: Verdana, sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    nav a {
+      color: var(--ink);
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-family: Verdana, sans-serif;
+      font-size: 0.78rem;
+      background: rgba(255, 250, 240, 0.72);
+    }
+
+    .deck {
+      width: min(1180px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 1rem 0 4rem;
+    }
+
+    .slide {
+      min-height: 88vh;
+      margin: 1rem 0 2rem;
+      padding: clamp(1.4rem, 4vw, 4rem);
+      background: rgba(255, 250, 240, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .slide.compact {
+      min-height: auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 1rem;
+      color: var(--accent);
+      font-family: Verdana, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      letter-spacing: -0.04em;
+      line-height: 0.98;
+    }
+
+    h1 {
+      max-width: 950px;
+      font-size: clamp(3.4rem, 9vw, 8.5rem);
+    }
+
+    h2 {
+      max-width: 960px;
+      font-size: clamp(2.5rem, 6.5vw, 6rem);
+    }
+
+    h3 {
+      font-size: clamp(1.45rem, 3vw, 2.35rem);
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      max-width: 880px;
+      margin: 1rem 0 0;
+      color: var(--muted);
+      font-size: clamp(1.02rem, 1.8vw, 1.28rem);
+    }
+
+    .lead {
+      font-size: clamp(1.18rem, 2.2vw, 1.55rem);
+      color: #33413b;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      grid-column: span 4;
+      padding: 1.25rem;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.58);
+    }
+
+    .card.wide {
+      grid-column: span 6;
+    }
+
+    .card.full {
+      grid-column: 1 / -1;
+    }
+
+    .card.good {
+      border-color: rgba(10, 127, 104, 0.32);
+      background: var(--accent-soft);
+    }
+
+    .card.warn {
+      border-color: rgba(157, 47, 47, 0.28);
+      background: #fff2ee;
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-family: Verdana, sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    ul {
+      margin: 1rem 0 0;
+      padding-left: 1.2rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    li {
+      margin: 0.48rem 0;
+    }
+
+    code {
+      padding: 0.12rem 0.35rem;
+      border-radius: 7px;
+      background: #eee4d1;
+      color: #30291e;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 1rem 0 0;
+      padding: 1.2rem;
+      border-radius: 18px;
+      background: var(--code);
+      color: var(--code-ink);
+      font-size: 0.92rem;
+      line-height: 1.55;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    pre code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.5rem;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.52);
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #efe5d2;
+      font-family: Verdana, sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-top: 2rem;
+    }
+
+    .pill {
+      padding: 0.8rem 1rem;
+      border-radius: 999px;
+      background: #efe5d2;
+      border: 1px solid var(--line);
+      font-family: Verdana, sans-serif;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .arrow {
+      display: flex;
+      align-items: center;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .footer-note {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-family: Verdana, sans-serif;
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 780px) {
+      .slide {
+        min-height: auto;
+        border-radius: 22px;
+      }
+
+      .card, .card.wide {
+        grid-column: 1 / -1;
+      }
+
+      h1 {
+        font-size: 3.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <strong>Deefy Integração</strong>
+    <a href="#visao">Visão</a>
+    <a href="#online">Backend online</a>
+    <a href="#supabase">Supabase</a>
+    <a href="#jwt">JWT</a>
+    <a href="#frontend">Frontend</a>
+    <a href="#musicas">Músicas</a>
+    <a href="#deploy">Deploy</a>
+    <a href="#checklist">Checklist</a>
+  </nav>
+
+  <main class="deck">
+    <section class="slide" id="visao">
+      <p class="eyebrow">Apresentação técnica</p>
+      <h1>Como a integração Deefy funciona.</h1>
+      <p class="lead">
+        Este material explica a arquitetura que deixa o backend online, conectado ao banco Supabase,
+        protegendo endpoints com JWT e expondo dados para o frontend consumir sem acessar o banco diretamente.
+      </p>
+      <div class="flow">
+        <span class="pill">Frontend React</span>
+        <span class="arrow">→</span>
+        <span class="pill">API Spring Boot</span>
+        <span class="arrow">→</span>
+        <span class="pill">PostgreSQL Supabase</span>
+        <span class="arrow">→</span>
+        <span class="pill">Storage público</span>
+      </div>
+      <p class="footer-note">
+        Regra principal: o frontend conversa com a API Deefy. O banco e as chaves sensíveis ficam no backend/deploy.
+      </p>
+    </section>
+
+    <section class="slide" id="online">
+      <p class="eyebrow">Parte 1</p>
+      <h2>O que significa deixar o backend online?</h2>
+      <p>
+        O backend deixa de rodar apenas em <code>localhost:8080</code> e passa a responder em um domínio público.
+        No nosso caso, o domínio principal serve o frontend e roteia chamadas <code>/api/v1</code> para o Spring Boot.
+      </p>
+      <div class="grid">
+        <article class="card">
+          <strong>Frontend público</strong>
+          O navegador abre <code>https://deefy.olua.me</code> e recebe os arquivos estáticos gerados pelo Vite.
+        </article>
+        <article class="card">
+          <strong>API pública</strong>
+          O Spring Boot responde em <code>https://deefy.olua.me/api/v1</code>.
+        </article>
+        <article class="card">
+          <strong>Banco privado</strong>
+          A conexão PostgreSQL acontece do backend para o Supabase, nunca direto do navegador.
+        </article>
+      </div>
+      <pre><code>GET https://deefy.olua.me/api/v1/musics
+Authorization: Bearer &lt;JWT_DO_LOGIN&gt;</code></pre>
+    </section>
+
+    <section class="slide" id="supabase">
+      <p class="eyebrow">Parte 2</p>
+      <h2>Como o backend consome o Supabase.</h2>
+      <p>
+        Para o Spring Boot, o Supabase funciona como um PostgreSQL remoto. A aplicação usa JDBC/JPA normalmente,
+        mas as credenciais ficam em variáveis de ambiente no servidor.
+      </p>
+      <div class="grid">
+        <article class="card wide good">
+          <strong>Correto</strong>
+          Configurar <code>SPRING_DATASOURCE_URL</code>, usuário e senha no <code>.env</code> do deploy.
+          O código Java continua usando repository/service/controller.
+        </article>
+        <article class="card wide warn">
+          <strong>Evitar</strong>
+          Não colocar senha do banco, service role ou tokens Supabase dentro de arquivos versionados.
+        </article>
+      </div>
+      <pre><code># Exemplo sem segredo real
+SPRING_DATASOURCE_URL=jdbc:postgresql://host.supabase.com:6543/postgres?sslmode=require
+SPRING_DATASOURCE_USERNAME=postgres.projeto
+SPRING_DATASOURCE_PASSWORD=********
+
+SUPABASE_STORAGE_PUBLIC_BASE_URL=https://projeto.supabase.co/storage/v1/object/public
+SUPABASE_STORAGE_MUSIC_BUCKET=musicas
+SUPABASE_STORAGE_IMAGE_BUCKET=imagens</code></pre>
+    </section>
+
+    <section class="slide" id="jwt">
+      <p class="eyebrow">Parte 3</p>
+      <h2>Login, token e rotas protegidas.</h2>
+      <p>
+        O login retorna um JWT. Esse token precisa ser enviado em toda requisição protegida.
+        Sem isso, o backend responde <code>401</code> ou <code>403</code>, mesmo que a música exista no banco.
+      </p>
+      <div class="grid">
+        <article class="card">
+          <strong>Login</strong>
+          <code>POST /api/v1/auth/login</code> retorna <code>{ token: "..." }</code>.
+        </article>
+        <article class="card">
+          <strong>Salvar token</strong>
+          O frontend guarda o JWT localmente para a sessão do usuário.
+        </article>
+        <article class="card">
+          <strong>Enviar token</strong>
+          O Axios adiciona <code>Authorization: Bearer token</code>.
+        </article>
+      </div>
+      <pre><code>// Exemplo de interceptor no frontend
+api.interceptors.request.use((config) =&gt; {
+  const token = getToken();
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});</code></pre>
+    </section>
+
+    <section class="slide" id="frontend">
+      <p class="eyebrow">Parte 4</p>
+      <h2>O frontend não deve saber do banco.</h2>
+      <p>
+        O React precisa conhecer somente a URL da API. Essa URL é definida no build do Vite por
+        <code>VITE_API_URL</code>. Se ela não entrar no build Docker, o site renderiza uma tela preta porque
+        a configuração da API quebra antes de montar a aplicação.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Responsabilidade</th>
+            <th>Onde fica</th>
+            <th>Exemplo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>URL pública da API</td>
+            <td>Build do frontend</td>
+            <td><code>VITE_API_URL=https://deefy.olua.me</code></td>
+          </tr>
+          <tr>
+            <td>Senha do banco</td>
+            <td>Somente backend/deploy</td>
+            <td><code>SPRING_DATASOURCE_PASSWORD</code></td>
+          </tr>
+          <tr>
+            <td>Service role/storage privado</td>
+            <td>Somente backend/deploy</td>
+            <td><code>SUPABASE_SERVICE_ROLE_KEY</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <pre><code># Dockerfile do frontend precisa receber a URL no build
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+RUN npm run build</code></pre>
+    </section>
+
+    <section class="slide" id="musicas">
+      <p class="eyebrow">Parte 5</p>
+      <h2>Por que a home ficou sem músicas?</h2>
+      <p>
+        O banco tinha músicas. O problema era contrato de integração: o frontend chamava um endpoint que ainda
+        não existia e também não enviava JWT nas chamadas protegidas.
+      </p>
+      <div class="grid">
+        <article class="card warn">
+          <strong>Antes</strong>
+          <code>GET /musics/random?size=12</code> não existia no backend oficial.
+        </article>
+        <article class="card warn">
+          <strong>Antes</strong>
+          O token era recebido no login, mas não era salvo nem enviado no Axios.
+        </article>
+        <article class="card good">
+          <strong>Depois</strong>
+          A home chama <code>GET /musics?size=12</code> e o Axios envia <code>Bearer token</code>.
+        </article>
+      </div>
+      <pre><code>// Endpoint existente na API oficial
+const response = await api.get('/musics', {
+  params: { size: 12 }
+});
+
+const musics = response.data?.content || [];</code></pre>
+    </section>
+
+    <section class="slide" id="deploy">
+      <p class="eyebrow">Parte 6</p>
+      <h2>Fluxo de deploy seguro.</h2>
+      <p>
+        O deploy precisa preservar o <code>.env</code> do servidor, reconstruir o frontend com a URL correta
+        e subir backend/frontend apontando para o mesmo contrato.
+      </p>
+      <div class="flow">
+        <span class="pill">git push staging</span>
+        <span class="arrow">→</span>
+        <span class="pill">build backend</span>
+        <span class="arrow">→</span>
+        <span class="pill">build frontend com VITE_API_URL</span>
+        <span class="arrow">→</span>
+        <span class="pill">docker compose up</span>
+      </div>
+      <pre><code># Exemplo conceitual
+docker compose -f docker-compose.prod.yml up -d --build backend frontend
+
+# Verificações
+curl -I https://deefy.olua.me/
+curl -I https://deefy.olua.me/swagger-ui/index.html</code></pre>
+    </section>
+
+    <section class="slide compact" id="checklist">
+      <p class="eyebrow">Checklist para o time</p>
+      <h2>Antes de dizer que quebrou, testar nesta ordem.</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Etapa</th>
+            <th>Teste</th>
+            <th>Resultado esperado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Frontend carregou?</td>
+            <td>Abrir <code>https://deefy.olua.me</code></td>
+            <td>A tela inicial aparece, sem erro de <code>VITE_API_URL</code>.</td>
+          </tr>
+          <tr>
+            <td>Login funciona?</td>
+            <td><code>POST /api/v1/auth/login</code></td>
+            <td>Retorna token JWT.</td>
+          </tr>
+          <tr>
+            <td>Token está sendo enviado?</td>
+            <td>Ver Network no navegador</td>
+            <td>Requisições protegidas têm <code>Authorization: Bearer</code>.</td>
+          </tr>
+          <tr>
+            <td>Catálogo funciona?</td>
+            <td><code>GET /api/v1/musics?size=12</code></td>
+            <td>Retorna página com <code>content</code> contendo músicas.</td>
+          </tr>
+          <tr>
+            <td>Player toca?</td>
+            <td>Clicar em uma música</td>
+            <td>O áudio usa <code>fileUrl</code> público do Supabase Storage.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="footer-note">
+        Alterações necessárias feitas nesta rodada: salvar JWT no login, enviar JWT no Axios e alinhar a home ao endpoint
+        real de músicas. Não houve alteração de layout ou regra visual do frontend.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

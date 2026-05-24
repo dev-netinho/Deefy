@@ -4,7 +4,7 @@ import "./FeaturedSection.css";
  * Displays a horizontal scroll row of user playlists.
  * Only rendered when no search query is active.
  *
- * @param {{ playlists: import('../mocks/musicData').Playlist[] }} props
+ * @param {{ playlists: Array<Object> }} props
  */
 function FeaturedSection({ playlists }) {
   return (

@@ -4,6 +4,7 @@ import br.com.deefy.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -56,6 +57,29 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/artists/**",
+                                "/api/v1/genres/**",
+                                "/api/v1/albums/**",
+                                "/api/v1/musics/**",
+                                "/api/v1/storage/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,
+                                "/api/v1/artists/**",
+                                "/api/v1/genres/**",
+                                "/api/v1/albums/**",
+                                "/api/v1/musics/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/v1/artists/**",
+                                "/api/v1/genres/**",
+                                "/api/v1/albums/**",
+                                "/api/v1/musics/**"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()
+                        .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

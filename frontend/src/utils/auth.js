@@ -1,16 +1,19 @@
 // Chave que será usada no localStorage (buscada do .env para organização)
 const TOKEN_KEY = import.meta.env.VITE_STORAGE_TOKEN_KEY || "@deefy-token";
+const ROLE_KEY = "@deefy-role";
 
 /**
- * Salva o token JWT no localStorage
- * @param {string} token 
+ * Salva o JWT retornado pelo backend e marca o usuário como autenticado.
  */
 export const setToken = (token) => {
-  localStorage.setItem(TOKEN_KEY, token);
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+  localStorage.setItem("@deefy-auth", "true");
 };
 
 /**
- * Busca o token JWT salvo
+ * Busca o token JWT salvo.
  * @returns {string | null}
  */
 export const getToken = () => {
@@ -22,14 +25,44 @@ export const getToken = () => {
  */
 export const removeToken = () => {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem("@deefy-auth");
   localStorage.removeItem("@deefy-user");
+  localStorage.removeItem(ROLE_KEY);
 };
 
-
 /**
- * Verifica se o usuário está autenticado (existe um token)
+ * Verifica se o usuário está autenticado
  * @returns {boolean}
  */
 export const isAuthenticated = () => {
-  return getToken() !== null;
+  return localStorage.getItem("@deefy-auth") === "true" && Boolean(getToken());
+};
+
+/**
+ * Salva a role do usuário no localStorage (ex: "ROLE_ADMIN")
+ * @param {string} role
+ */
+export const setUserRole = (role) => {
+  if (role) localStorage.setItem(ROLE_KEY, role);
+};
+
+/**
+ * Busca a role do usuário salva
+ * @returns {string | null}
+ */
+export const getUserRole = () => {
+  return localStorage.getItem(ROLE_KEY);
+};
+
+/**
+ * Verifica se o usuário logado tem role de ADMIN.
+ *
+ * ⚠️ SECURITY NOTE: This check is ONLY for UI visibility (showing/hiding buttons).
+ * All admin operations must be protected server-side. Never trust client-side roles.
+ *
+ * @returns {boolean}
+ */
+export const isAdmin = () => {
+  const role = getUserRole();
+  return role === "ROLE_ADMIN" || role === "ADMIN";
 };

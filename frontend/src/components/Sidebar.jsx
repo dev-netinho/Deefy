@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { IoMdHome } from "react-icons/io";
-import { MdPlaylistPlay, MdLogout, MdSettings } from "react-icons/md";
-import { removeToken } from "../utils/auth";
+import { MdPlaylistPlay, MdLogout, MdSettings, MdLibraryAdd, MdManageAccounts } from "react-icons/md";
+import { removeToken, isAdmin } from "../utils/auth";
 import logo from "../assets/logo.svg";
 import "./Sidebar.css";
 
@@ -15,6 +15,31 @@ function Sidebar() {
 
   return (
     <>
+      {/* ── Mobile Admin Header ────────────────────────── */}
+      {isAdmin() && (
+        <header className="admin-mobile-header">
+          <NavLink
+            to="/admin"
+            end
+            className={({ isActive }) =>
+              `admin-mobile-link${isActive ? " admin-mobile-link--active" : ""}`
+            }
+          >
+            <MdLibraryAdd />
+            <span>Catálogo</span>
+          </NavLink>
+          <NavLink
+            to="/admin/users"
+            className={({ isActive }) =>
+              `admin-mobile-link${isActive ? " admin-mobile-link--active" : ""}`
+            }
+          >
+            <MdManageAccounts />
+            <span>Usuários</span>
+          </NavLink>
+        </header>
+      )}
+
       {/* ── Desktop sidebar ─────────────────────────────── */}
       <aside className="sidebar">
         {/* Logo */}
@@ -44,6 +69,39 @@ function Sidebar() {
             <MdPlaylistPlay className="sidebar-icon" />
             <span>Playlists</span>
           </NavLink>
+
+          <NavLink
+            to="/configuration"
+            className={({ isActive }) =>
+              `sidebar-link${isActive ? " sidebar-link--active" : ""}`
+            }
+          >
+            <MdSettings className="sidebar-icon" />
+            <span>Configurações</span>
+          </NavLink>
+
+          {isAdmin() && (
+            <>
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `sidebar-link sidebar-link--admin${isActive ? " sidebar-link--active" : ""}`
+                }
+              >
+                <MdLibraryAdd className="sidebar-icon" />
+                <span>Catálogo</span>
+              </NavLink>
+              <NavLink
+                to="/admin/users"
+                className={({ isActive }) =>
+                  `sidebar-link sidebar-link--admin${isActive ? " sidebar-link--active" : ""}`
+                }
+              >
+                <MdManageAccounts className="sidebar-icon" />
+                <span>Usuários</span>
+              </NavLink>
+            </>
+          )}
         </nav>
 
         {/* Footer */}

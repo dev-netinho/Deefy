@@ -10,10 +10,15 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/v1/musics")
@@ -55,6 +60,20 @@ public class MusicController {
     ) {
         Page<MusicListResponseDTO> musicPage = musicService.findAllMusic(pageable);
         return ResponseEntity.ok().body(musicPage);
+    }
+
+    @GetMapping(value = "/random")
+    @Operation(summary = "Listar musicas aleatorias", description = "Compatibilidade com o frontend: retorna uma lista embaralhada de musicas para a home.")
+    public ResponseEntity<List<MusicListResponseDTO>> findRandomMusic(
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        int requestedSize = Math.max(1, Math.min(size, 50));
+        int fetchSize = Math.min(requestedSize * 4, 200);
+        List<MusicListResponseDTO> musics = new ArrayList<>(
+                musicService.findAllMusic(PageRequest.of(0, fetchSize)).getContent()
+        );
+        Collections.shuffle(musics);
+        return ResponseEntity.ok(musics.stream().limit(requestedSize).toList());
     }
 
     @GetMapping(value = "/search/title")

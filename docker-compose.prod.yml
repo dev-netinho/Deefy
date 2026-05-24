@@ -40,6 +40,8 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${APP_FRONTEND_BASE_URL}
     container_name: deefy-frontend
     restart: unless-stopped
     depends_on:
