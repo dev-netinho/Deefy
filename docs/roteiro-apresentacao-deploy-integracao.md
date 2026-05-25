@@ -768,6 +768,7 @@ Arquivos alterados:
 - `frontend/src/utils/recommendationEngine.js`
 - `frontend/src/services/musicService.js`
 - `backend/src/main/java/br/com/deefy/controller/MusicController.java`
+- `backend/src/main/java/br/com/deefy/controller/SwaggerRedirectController.java`
 - `backend/src/main/java/br/com/deefy/repository/MusicRepository.java`
 - `backend/src/main/java/br/com/deefy/service/MusicService.java`
 - `backend/src/main/java/br/com/deefy/service/impl/MusicServiceImpl.java`
@@ -802,6 +803,7 @@ Novas rotas de backend:
 
 - `GET /api/v1/musics/search/genre?genre=...`
 - `GET /api/v1/musics/search/album?album=...`
+- `GET /api/v1/swagger-ui/index.html`, como alias/redirect para `/swagger-ui/index.html`
 
 Observacao sobre album:
 
