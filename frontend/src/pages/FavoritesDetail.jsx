@@ -7,7 +7,6 @@ import { MdClose, MdPlayArrow, MdShuffle } from 'react-icons/md'
 import Sidebar from '../components/Sidebar.jsx'
 import SongList from '../components/SongList.jsx'
 import SongListSkeleton from '../components/SongListSkeleton.jsx'
-import MusicPlayer from '../components/MusicPlayer.jsx'
 import { usePlayer } from '../contexts/PlayerContext.jsx'
 import { musicService } from '../services/musicService.js'
 import { getMusicIdFromTrack, normalizeMusic } from '../utils/musicNormalizer.js'
@@ -193,7 +192,6 @@ function FavoritesDetail() {
         )}
       </main>
 
-      <MusicPlayer />
     </div>
   )
 }

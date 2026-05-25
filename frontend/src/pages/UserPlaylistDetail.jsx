@@ -3,7 +3,6 @@ import './UserPlaylistDetail.css'
 import Sidebar from '../components/Sidebar.jsx'
 import SongList from '../components/SongList.jsx'
 import SongListSkeleton from '../components/SongListSkeleton.jsx'
-import MusicPlayer from '../components/MusicPlayer.jsx'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -212,7 +211,6 @@ function UserPlaylistDetail() {
             <SongListSkeleton count={8} />
           </div>
         </main>
-        <MusicPlayer />
       </div>
     )
   }
@@ -234,7 +232,6 @@ function UserPlaylistDetail() {
           </div>
           Playlist não encontrada.
         </main>
-        <MusicPlayer />
       </div>
     )
   }
@@ -360,7 +357,6 @@ function UserPlaylistDetail() {
         )}
       </main>
 
-      <MusicPlayer />
     </div>
   )
 }

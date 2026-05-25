@@ -2,7 +2,6 @@ import './PlaylistDetail.css'
 import Sidebar from '../components/Sidebar.jsx'
 import SongList from '../components/SongList.jsx'
 import SongListSkeleton from '../components/SongListSkeleton.jsx'
-import MusicPlayer from '../components/MusicPlayer.jsx'
 import { Link, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { MdClose } from 'react-icons/md'
@@ -62,7 +61,6 @@ function PlaylistDetail() {
             <SongListSkeleton count={8} />
           </div>
         </main>
-        <MusicPlayer />
       </div>
     )
   }
@@ -84,7 +82,6 @@ function PlaylistDetail() {
           </div>
           Playlist não encontrada ou em construção.
         </main>
-        <MusicPlayer />
       </div>
     )
   }
@@ -164,7 +161,6 @@ function PlaylistDetail() {
         />
       </main>
 
-      <MusicPlayer />
     </div>
   )
 }

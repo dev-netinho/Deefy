@@ -30,13 +30,13 @@ function SongList({
   onFavoriteChanged,
   allowAddToPlaylist = true,
 }) {
-  const { playTrack } = usePlayer();
-  const [activeSongId, setActiveSongId] = useState(null);
+  const { currentTrack, playTrack, togglePlay } = usePlayer();
   const [favoriteSongIds, setFavoriteSongIds] = useState(() => new Set());
   const normalizedSongs = useMemo(
     () => (songs || []).map(normalizeMusic).filter(Boolean),
     [songs],
   );
+  const currentTrackId = getSongId(currentTrack);
 
   useEffect(() => {
     if (isFavoriteContext) {
@@ -102,9 +102,18 @@ function SongList({
 
         {/* Rows */}
         {normalizedSongs.map((song, index) => {
-          const isActive = activeSongId === song.id;
           const songId = getSongId(song);
+          const isActive = Boolean(songId && currentTrackId === songId);
           const isFavorite = isFavoriteContext || favoriteSongIds.has(songId) || Boolean(song.isFavorite);
+          const handleSongAction = () => {
+            if (isActive) {
+              togglePlay();
+              return;
+            }
+
+            recordListeningSignal(song);
+            playTrack(song, normalizedSongs);
+          };
 
           return (
             <div
@@ -112,20 +121,11 @@ function SongList({
               className={`song-row${isActive ? " song-row--active" : ""}${isFavorite ? " song-row--favorite" : ""}`}
               role="row"
               tabIndex={0}
-              onClick={() => {
-                setActiveSongId(isActive ? null : song.id);
-                if (!isActive) {
-                  recordListeningSignal(song);
-                  playTrack(song, normalizedSongs);
-                }
-              }}
+              onClick={handleSongAction}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
-                  setActiveSongId(isActive ? null : song.id);
-                  if (!isActive) {
-                    recordListeningSignal(song);
-                    playTrack(song, normalizedSongs);
-                  }
+                  e.preventDefault();
+                  handleSongAction();
                 }
               }}
             >

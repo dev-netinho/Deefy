@@ -56,6 +56,11 @@ function resolveMediaUrl(value) {
   return value;
 }
 
+function sameTrack(left, right) {
+  if (!left || !right) return false;
+  return String(left.id) === String(right.id);
+}
+
 function normalizeTrack(track) {
   if (!track) return EMPTY_TRACK;
 
@@ -63,6 +68,8 @@ function normalizeTrack(track) {
     track.artistName ||
     track.artist?.name ||
     track.artist?.nome ||
+    track.artista?.nome ||
+    track.artista?.name ||
     track.artist ||
     track.artista ||
     "";
@@ -77,6 +84,8 @@ function normalizeTrack(track) {
 
   const audioUrl = resolveMediaUrl(
     track.audioUrl ||
+      track.arquivoUrl ||
+      track.arquivourl ||
       track.url ||
       track.fileUrl ||
       track.src ||
@@ -87,6 +96,7 @@ function normalizeTrack(track) {
 
   const coverUrl = resolveMediaUrl(
     track.coverUrl ||
+      track.capaUrl ||
       track.imageUrl ||
       track.thumbnailUrl ||
       track.cover ||
@@ -105,9 +115,10 @@ function normalizeTrack(track) {
     isFavorite: Boolean(track.isFavorite || track.favorite),
     durationSeconds:
       track.durationSeconds ||
+      track.duracaoSegundos ||
       track.durationInSeconds ||
       track.lengthSeconds ||
-      parseDuration(track.duration),
+      parseDuration(track.duration || track.duracao),
   };
 }
 
@@ -130,14 +141,16 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   const playlistMenuRef = useRef(null);
   const contextIsPlayingRef = useRef(false);
   const shouldResumePlaybackRef = useRef(false);
+  const lastPlaybackCommandIdRef = useRef(null);
 
   const {
     currentTrack: contextTrack,
     isPlaying: contextIsPlaying,
     queue,
+    playbackCommand,
     playNext,
     playPrevious,
-    togglePlay: toggleContextPlay,
+    setPlaying: setContextPlaying,
   } = usePlayer();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -161,7 +174,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   }, [queue, contextTrack]);
 
   const currentTrackIndex = contextTrack
-    ? tracks.findIndex((track) => track?.id === contextTrack.id)
+    ? tracks.findIndex((track) => sameTrack(track, contextTrack))
     : -1;
   const activeTrackIndex = currentTrackIndex >= 0 ? currentTrackIndex : 0;
   const rawTrack = contextTrack || tracks[activeTrackIndex] || null;
@@ -203,10 +216,10 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
 
   const syncContextPlaying = useCallback((nextPlaying) => {
     if (contextIsPlayingRef.current !== nextPlaying) {
-      toggleContextPlay();
+      setContextPlaying(nextPlaying);
       contextIsPlayingRef.current = nextPlaying;
     }
-  }, [toggleContextPlay]);
+  }, [setContextPlaying]);
 
   useEffect(() => {
     contextIsPlayingRef.current = contextIsPlaying;
@@ -285,7 +298,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
     setDuration(Number.isFinite(audio.duration) ? audio.duration : currentTrack.durationSeconds || 0);
   };
 
-  const togglePlaying = () => {
+  const togglePlaying = useCallback(() => {
     const audio = audioRef.current;
 
     if (!audio || !hasAudioUrl) {
@@ -312,7 +325,19 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
         syncContextPlaying(false);
         console.warn("Deefy player: play bloqueado pelo navegador ou URL invalida.", error);
       });
-  };
+  }, [hasAudioUrl, isPlaying, syncContextPlaying]);
+
+  useEffect(() => {
+    if (!playbackCommand || playbackCommand.id === lastPlaybackCommandIdRef.current) {
+      return;
+    }
+
+    lastPlaybackCommandIdRef.current = playbackCommand.id;
+
+    if (playbackCommand.type === "toggle") {
+      togglePlaying();
+    }
+  }, [playbackCommand, togglePlaying]);
 
   const handleSeek = (event) => {
     const nextTime = Number(event.target.value);
@@ -337,13 +362,13 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
 
   const handlePrevious = () => {
     if (!hasPrevious) return;
-    shouldResumePlaybackRef.current = isPlaying;
+    shouldResumePlaybackRef.current = true;
     playPrevious();
   };
 
   const handleNext = () => {
     if (!hasNext) return;
-    shouldResumePlaybackRef.current = isPlaying;
+    shouldResumePlaybackRef.current = true;
     playNext();
   };
 

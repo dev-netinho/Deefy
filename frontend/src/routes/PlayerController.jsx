@@ -6,6 +6,7 @@ const ROTAS_COM_PLAYER = [
   '/preferences',
   '/admin',
   '/playlists',
+  '/favorites',
   '/artists',
   '/system-playlists',
 ];
