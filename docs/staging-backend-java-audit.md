@@ -1,206 +1,437 @@
-# Auditoria das alteracoes Java na branch staging
+# Auditoria segura do backend na branch staging
 
-## Escopo
+Data da auditoria: 2026-05-23
 
-Este documento registra as alteracoes em codigo Java feitas para integrar a branch `staging` ao schema oficial atual e ao uso publico da API.
+## Objetivo
 
-Comparacao principal de autoria tecnica: `7d63466..origin/staging` em `backend/src/main/java`.
+Este documento registra o que foi alterado no backend Java da `staging`, separando:
 
-O objetivo deste documento e dar rastreabilidade para o time de backend: o que foi alterado, por que foi alterado e o que ainda precisa virar implementacao oficial do time.
+- integracoes necessarias para Supabase, Resend, Swagger e frontend;
+- adicoes feitas sem substituir codigo existente;
+- pontos de risco onde houve alteracao grande em codigo originalmente feito por outros membros;
+- itens que nao devem ser revertidos sem quebrar o sistema atual.
 
-## O que nao foi alterado por nos
+Comparacao usada: `ac9c779..HEAD` em `backend/src/main/java`, `backend/src/test/java` e `backend/src/main/resources/application.properties`, depois de sincronizar a branch local com `origin/staging`.
 
-Os arquivos de playlist vieram do trabalho do time/backend, incluindo Gustavo:
+## Estado atual da branch
 
-- `backend/src/main/java/br/com/deefy/exception/PlaylistException.java`
-- `backend/src/main/java/br/com/deefy/model/Playlist.java`
-- `backend/src/main/java/br/com/deefy/repository/PlaylistRepository.java`
-- `backend/src/main/java/br/com/deefy/service/PlaylistService.java`
-- `backend/src/main/java/br/com/deefy/service/impl/PlaylistServiceImpl.java`
+- A branch local foi sincronizada com `origin/staging` por fast-forward.
+- Os commits recentes do Lucas Henrique sobre historico de execucao estao presentes.
+- As alteracoes locais de frontend e o export de schema foram guardados em stash antes da auditoria para nao misturar com backend.
 
-Eles nao foram reescritos na branch `staging`. O que existe hoje nesses arquivos deve ser tratado como codigo recebido do time, ainda que tenha pontos incompletos.
+## Resumo executivo
 
-## Alteracoes Java feitas para a staging
+O maior risco real estava concentrado no modulo de musicas:
 
-### 1. `MusicNotFoundException.java`
+- `Music.java` foi fortemente adaptado para o schema atual do Supabase, trocando a dependencia antiga em `album_id/deezerId` por `artista_id/arquivourl/capaurl`.
+- `MusicMapper.java` tinha sido refeito manualmente; nesta auditoria ele foi reduzido de volta para o padrao declarativo do MapStruct, preservando apenas os mapeamentos obrigatorios do schema atual.
+- `MusicServiceImpl`, `MusicRepository` e `PlaylistMapper` tiveram alteracoes menores ligadas a essa mesma adaptacao de contrato.
 
-Arquivo criado:
+As alteracoes de usuario/perfil, Resend, Swagger e Supabase sao majoritariamente aditivas ou de configuracao. Elas devem ser mantidas, mas estao documentadas porque mexem em arquivos originalmente trabalhados por outros membros.
 
-```java
-package br.com.deefy.exception;
+## Auditoria por area
 
-public class MusicNotFoundException extends RuntimeException {
+### Musicas e catalogo
 
-    public MusicNotFoundException(Long musicId) {
-        super("Music not found with id: " + musicId);
-    }
-}
-```
+#### `backend/src/main/java/br/com/deefy/model/Music.java`
 
-Motivo:
+Autor/base original identificavel:
 
-O service de historico de execucao precisa buscar uma musica antes de gravar o historico. Quando o `musica_id` enviado nao existe, o backend precisava de uma excecao especifica para deixar claro que a falha e na referencia da musica.
+- Hanrry Santos e Igo tinham contribuicoes anteriores no modulo de musicas.
+- O arquivo atual ficou majoritariamente com linhas de `dev-netinho` porque o contrato de banco mudou.
 
-Impacto:
+Alteracao feita:
 
-- Nao muda o banco.
-- Nao muda controller.
-- Apenas permite que `ListeningHistoryServiceImpl` compile e trate musica inexistente com erro especifico.
-
-### 2. `ListeningHistory.java`
-
-Linha alterada:
-
-```diff
-- @Column(name = "data_hora_execucao", nullable = false)
-+ @Column(name = "datahoraexecucao", nullable = false)
-```
+- Removido o uso persistido de `deezerId`.
+- Removida a associacao antiga `album_id -> Album`.
+- Adicionada associacao `artista_id -> Artist`.
+- Adicionados campos persistidos `arquivourl` e `capaurl`.
+- `previewUrl` ficou transiente, porque o uso principal passou a ser tocar o arquivo completo por `arquivourl`.
+- Adicionados getters auxiliares `getAlbumTitle()` e `getDuration()` para manter compatibilidade com o formato esperado pelo frontend.
 
 Motivo:
 
-O schema oficial define `dataHoraExecucao` sem aspas:
+- O banco Supabase atual usa `musica.artista_id`, `musica.arquivourl` e `musica.capaurl`.
+- O player precisa receber `fileUrl`.
+- Se a entidade voltasse para `deezerId/album_id`, o backend quebraria contra o schema atual.
 
-```sql
-dataHoraExecucao TIMESTAMP NOT NULL
-```
+Classificacao:
 
-No PostgreSQL, nomes sem aspas sao normalizados para minusculo. Na pratica, a coluna criada vira `datahoraexecucao`. Por isso o mapeamento JPA precisou apontar para `datahoraexecucao`, e nao para `data_hora_execucao`.
+- `necessaria`, mas `risco medio`.
+- Nao deve ser revertida cegamente.
+- Ideal tecnico: o time de backend dono do modulo deve revisar e assumir a versao final da entidade.
 
-Impacto:
+#### `backend/src/main/java/br/com/deefy/mapper/MusicMapper.java`
 
-- Faz o JPA encontrar a coluna real criada pelo PostgreSQL.
-- Nao altera a estrutura do banco.
-- Recomenda-se que o time de banco padronize nomes em `snake_case` ou tudo minusculo para evitar esse tipo de confusao.
+Autor/base original identificavel:
 
-### 3. `User.java`
+- Mapper original era do Hanrry.
 
-Linhas alteradas:
+Alteracao feita:
 
-```diff
-- @Enumerated
-- @Column(name = "tipo_usuario")
-+ @Transient
-  private Tipo tipoUsuario;
-
-- @Column(name = "created_at")
-+ @Transient
-  private LocalDateTime createdAt;
-```
+- Antes da auditoria, o mapper estava manual.
+- Nesta auditoria, ele foi reduzido novamente para MapStruct declarativo.
+- Mantidos somente os mapeamentos necessarios:
+  - `album <- albumTitle`;
+  - `dataLancamento` ignorado;
+  - `artist` ignorado na criacao/edicao porque e resolvido no service;
+  - `fileUrl` recebe `defaultValue = ""` para respeitar o `NOT NULL` atual.
 
 Motivo:
 
-O schema oficial da tabela `USUARIO` possui apenas:
+- Reduzir reescrita desnecessaria.
+- Aproximar o arquivo do estilo original do modulo.
+- Manter compatibilidade com Supabase e player.
 
-```sql
-id
-nome
-email
-senha
-perfil_id
-```
+Classificacao:
 
-As colunas `tipo_usuario` e `created_at` nao existem no schema atual. Se esses campos continuassem persistidos por JPA, o backend poderia quebrar ao carregar/salvar usuario dependendo da validacao do Hibernate e das queries geradas.
+- `precisava reduzir/reconstruir`.
+- Correcao aplicada.
 
-Por isso os campos foram marcados como `@Transient`: continuam existindo no objeto Java para nao quebrar codigo que ainda chama getters/setters, mas deixam de ser persistidos no PostgreSQL.
+#### `backend/src/main/java/br/com/deefy/service/impl/MusicServiceImpl.java`
 
-Impacto:
+Autor/base original identificavel:
 
-- Evita mismatch entre entidade Java e schema oficial.
-- Nao adiciona coluna no banco.
-- `createdAt` pode aparecer no retorno logo apos cadastro porque o Java seta o valor em memoria, mas nao fica salvo no banco.
-- A regra definitiva de perfil/permissao deve vir de `PERFIL`/`ADMINISTRADOR` ou o time de banco deve oficializar outra coluna.
+- Hanrry.
 
-### 4. `MusicRepository.java`
+Alteracao feita:
 
-Arquivo criado:
-
-```java
-package br.com.deefy.repository;
-
-import br.com.deefy.model.Music;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface MusicRepository extends JpaRepository<Music, Long> {
-}
-```
+- Troca de `AlbumRepository` por `ArtistRepository`.
+- `createMusic` e `updateMusic` agora validam `artistId`.
+- Mantida a estrutura geral do service.
 
 Motivo:
 
-`ListeningHistoryServiceImpl` usa `MusicRepository` para validar se a musica existe antes de gravar historico. A classe de repository ainda nao existia na branch, entao o projeto nao ficava completo para esse fluxo.
+- O schema atual referencia artista direto na musica.
+- O frontend/catalogo precisa listar musica por artista.
 
-Impacto:
+Classificacao:
 
-- Nao cria endpoint novo.
-- Nao muda schema.
-- Apenas expoe o acesso JPA basico para a entidade `Music`.
+- `necessaria`.
+- Alteracao pequena em cima da estrutura original.
 
-### 5. `ListeningHistoryServiceImpl.java`
+#### `backend/src/main/java/br/com/deefy/repository/MusicRepository.java`
 
-Imports adicionados:
+Autor/base original identificavel:
 
-```diff
-+ import br.com.deefy.exception.MusicNotFoundException;
-+ import br.com.deefy.repository.MusicRepository;
-```
+- Hanrry.
 
-Motivo:
+Alteracao feita:
 
-O service ja precisava validar musica por id. Esses imports completam a dependencia com a exception e o repository criados.
-
-Impacto:
-
-- Completa a compilacao do modulo de historico.
-- O modulo ainda nao esta exposto por controller na `staging`.
-
-### 6. `SecurityConfig.java`
-
-Alteracao feita para liberar CORS de forma configuravel:
-
-```java
-@Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,https://deefy.olua.me}") String allowedOrigins
-```
-
-```java
-.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-```
-
-```java
-@Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(parseAllowedOrigins());
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
-    configuration.setExposedHeaders(List.of("Location"));
-    configuration.setMaxAge(3600L);
-
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/api/**", configuration);
-    return source;
-}
-```
+- Query de busca por artista passou de `m.album.artist.nome` para `m.artist.nome`.
 
 Motivo:
 
-A API publica respondia via cURL, mas o navegador bloqueava o frontend local em `localhost:5173` por CORS. Sem isso, o time de frontend nao conseguiria testar localmente contra `https://deefy.olua.me/api/v1`.
+- A musica agora aponta direto para artista.
 
-Impacto:
+Classificacao:
 
-- Permite testes locais do frontend em Vite.
-- Nao altera banco.
-- Nao altera regra de autenticacao JWT.
-- A lista de origens pode ser ajustada por variavel `APP_CORS_ALLOWED_ORIGINS`.
+- `necessaria`.
 
-## Pontos incompletos que precisam virar tarefa oficial
+#### `backend/src/main/java/br/com/deefy/mapper/PlaylistMapper.java`
 
-- `PlaylistServiceImpl` ainda tem comentarios indicando que faltam `UserRepository` e `MusicRepository` para associar entidades de verdade.
-- Nao existe `PlaylistController` oficial na `staging`, entao o frontend ainda nao tem API publica de playlist nessa branch.
-- Existem DTOs/services de historico, mas nao existe `ListeningHistoryController` oficial na `staging`.
-- Existem modelos `Artist`, `Album`, `Music` e `MusicRating`, mas nao existem controllers/services completos oficiais para catalogo musical.
-- O modelo `Music` ainda esta alinhado parcialmente ao modelo antigo: ele possui `deezerId` e nao possui `arquivoUrl`, mesmo que o `schema_atualizado.sql` tenha removido `deezerId` e tornado `MUSICA.arquivoUrl` obrigatorio.
-- `MusicRating` referencia a ideia de avaliacao, mas a tabela `AVALIACAO` nao existe no `schema_atualizado.sql`.
-- `ADMINISTRADOR` existe no schema, mas nao existe modulo Java oficial dedicado a admin na `staging`.
+Autor/base original identificavel:
 
-## Resumo para explicar ao time
+- Gustavo Coelho.
 
-As alteracoes feitas na `staging` nao foram para substituir o codigo dos criadores. Elas foram patches de alinhamento para o backend parar de esperar colunas que o banco oficial nao tem, completar dependencias que o proprio service ja exigia e liberar CORS para o frontend testar a API publica localmente. O CRUD de playlist recebido do time nao foi refeito; ele apenas precisa de uma proxima etapa oficial para controller, DTOs, associacao real com usuario/musica e regras de permissao.
+Alteracao feita:
+
+- Adicionados mapeamentos para `genero`, `duracaoSegundos`, `capaUrl`, `arquivoUrl` e `artista`.
+- `album` foi ignorado no DTO de musica dentro da playlist.
+
+Motivo:
+
+- O frontend precisa de URL tocavel e capa ao renderizar faixas de playlist.
+- O schema atual nao usa album como centro do catalogo.
+
+Classificacao:
+
+- `necessaria`, alteracao pequena.
+- Nao houve reescrita do CRUD de playlist.
+
+### Usuario, perfil e foto
+
+#### `backend/src/main/java/br/com/deefy/model/User.java`
+
+Autor/base original identificavel:
+
+- Arquivo base do projeto, depois integrado com trabalho do Saylon em perfil/autenticacao.
+
+Alteracao feita:
+
+- Adicionado `fotoPerfilUrl` mapeado para a coluna real `fotoperfilurl`.
+
+Motivo:
+
+- O Supabase atual possui essa coluna na tabela `usuario`.
+- A tela de perfil precisa mostrar e atualizar foto real.
+
+Classificacao:
+
+- `aditiva`.
+- Nao removeu campo existente.
+
+#### `backend/src/main/java/br/com/deefy/controller/UserController.java`
+
+Autor/base original identificavel:
+
+- Saylon trabalhou em perfil/usuario.
+
+Alteracao feita:
+
+- Adicionados endpoints:
+  - `PATCH /api/v1/users/me/password`;
+  - `PATCH /api/v1/users/me/photo`;
+  - `POST /api/v1/users/me/photo/upload`;
+  - `DELETE /api/v1/users/me/photo`.
+- Adicionadas anotacoes Swagger.
+
+Motivo:
+
+- Permitir troca de senha autenticada.
+- Permitir que o usuario envie/remova foto de perfil usando Storage.
+
+Classificacao:
+
+- `aditiva`, mas `risco medio` por volume de linhas no controller.
+- Recomenda-se revisao do Saylon para ele validar o fluxo.
+
+#### `backend/src/main/java/br/com/deefy/service/impl/UserServiceImpl.java`
+
+Autor/base original identificavel:
+
+- Saylon.
+
+Alteracao feita:
+
+- Adicionada troca de senha com validacao da senha atual.
+- Adicionado suporte a salvar URL de foto.
+- Adicionado upload de foto via `ProfilePhotoStorageService`.
+
+Motivo:
+
+- Completar telas de configuracao/perfil.
+- Usar a coluna real `fotoperfilurl`.
+
+Classificacao:
+
+- `aditiva`, mas `risco medio` por dividir bastante autoria com o codigo do Saylon.
+- Deve ser revisado por quem ficou responsavel por usuario/perfil.
+
+### Resend, JWT e autenticacao
+
+#### `backend/src/main/java/br/com/deefy/service/impl/EmailServiceImpl.java`
+
+Autor/base original identificavel:
+
+- Saylon.
+
+Alteracao feita:
+
+- `resend.api.key`, remetente e URL base do frontend passaram a ter fallback por propriedade.
+- Links de ativacao e reset passaram a usar `app.frontend.base-url`.
+- Token passou por `URLEncoder` ao montar link.
+
+Motivo:
+
+- Evitar segredo hardcoded.
+- Permitir local, VPS e deploy com URLs corretas.
+- Corrigir links de e-mail em producao.
+
+Classificacao:
+
+- `necessaria`.
+- Alteracao pequena e de integracao.
+
+#### `backend/src/main/java/br/com/deefy/security/JwtUtil.java`
+
+Autor/base original identificavel:
+
+- Saylon.
+
+Alteracao feita:
+
+- `jwt.password.reset.expiration` ganhou fallback.
+
+Motivo:
+
+- Evitar falha de boot quando a variavel nao estiver presente em ambiente local.
+
+Classificacao:
+
+- `necessaria`.
+
+#### `backend/src/main/java/br/com/deefy/controller/AuthController.java`
+
+Autor/base original identificavel:
+
+- Saylon.
+
+Alteracao feita:
+
+- Adicionadas anotacoes Swagger.
+- Nao houve mudanca relevante de regra de login/cadastro/reset/ativacao.
+
+Motivo:
+
+- Documentar API no Swagger.
+
+Classificacao:
+
+- `aditiva`.
+
+### Swagger e seguranca
+
+#### `backend/src/main/java/br/com/deefy/config/OpenApiConfig.java`
+
+Alteracao feita:
+
+- Arquivo novo de configuracao OpenAPI/Swagger com Bearer JWT.
+
+Motivo:
+
+- Card de documentacao da API.
+- Permitir que backend/frontend testem endpoints pelo Swagger usando token.
+
+Classificacao:
+
+- `aditiva`.
+
+#### `backend/src/main/java/br/com/deefy/config/SecurityConfig.java`
+
+Autor/base original identificavel:
+
+- Gustavo, Igo e Saylon tinham historico no arquivo.
+
+Alteracao feita:
+
+- Swagger liberado publicamente.
+- CORS passou a aceitar `PATCH`.
+
+Motivo:
+
+- Swagger precisa abrir sem JWT.
+- Perfil/foto/senha usam `PATCH`.
+
+Classificacao:
+
+- `necessaria`.
+
+### Favoritos
+
+Arquivos principais:
+
+- `FavoriteController.java`;
+- `FavoriteService.java`;
+- `FavoriteServiceImpl.java`;
+- entidades/repositories/DTOs de `Favorite`, `FavoriteArtist`, `FavoriteGenre` e `Genre`.
+
+Autor/base identificavel:
+
+- Commit atual esta assinado por Israel.
+
+Alteracao feita:
+
+- Novo modulo de favoritos para musicas, artistas e generos.
+
+Motivo:
+
+- Atender card de favoritos.
+
+Classificacao:
+
+- `aditiva`, sob responsabilidade do commit do Israel.
+- Observacao tecnica: deve ser validado contra as tabelas reais `favorito`, `favorito_artista`, `favorito_genero` e `genero` no Supabase.
+
+### Historico de execucao
+
+Arquivos principais:
+
+- `ListeningHistoryController.java`;
+- `ListeningHistoryRequest.java`;
+- `ListeningHistoryRepository.java`;
+- `ListeningHistoryService.java`;
+- `AuthenticatedUserService.java`;
+- `ListeningHistoryServiceImpl.java`.
+
+Autor/base identificavel:
+
+- Lucas Henrique.
+
+Alteracao feita:
+
+- Endpoints e service de historico foram incorporados de `origin/staging`.
+
+Motivo:
+
+- Manter a branch local alinhada com o GitHub e nao apagar trabalho recente.
+
+Classificacao:
+
+- `codigo do time`.
+- Nao foi alterado nesta auditoria.
+
+## Correcoes aplicadas nesta auditoria
+
+### Reducao do `MusicMapper`
+
+Antes:
+
+- Mapper manual com varios metodos `default`.
+- Isso aumentava a sensacao de reescrita do modulo do Hanrry.
+
+Depois:
+
+- Mapper voltou ao padrao MapStruct declarativo.
+- Foram mantidas apenas anotacoes de mapeamento necessarias para o schema atual.
+
+Impacto esperado:
+
+- Mesmo contrato de API.
+- Menos codigo nosso dentro do mapper.
+- Menor risco social e tecnico sobre autoria do modulo.
+
+## O que nao foi revertido e por que
+
+### `Music.java`
+
+Nao foi revertido porque o schema Supabase atual nao comporta a entidade antiga baseada em `deezerId` e `album_id`.
+
+Se voltasse ao modelo antigo:
+
+- o backend quebraria contra a tabela `musica`;
+- o player perderia `fileUrl`;
+- catalogo por artista deixaria de funcionar.
+
+Recomendacao:
+
+- O time dono de musicas deve revisar e assumir oficialmente a entidade alinhada ao schema atual.
+
+### Usuario/perfil
+
+Nao foi revertido porque:
+
+- `fotoperfilurl` existe no banco;
+- as adicoes nao removem os endpoints existentes;
+- as telas de perfil precisam desses endpoints.
+
+Recomendacao:
+
+- Saylon deve revisar o fluxo de senha/foto para confirmar que ficou consistente com o card dele.
+
+## Riscos restantes
+
+- `Music.java` continua sendo o arquivo mais sensivel por ter mudado o eixo do modelo de album para artista.
+- O schema atual ainda tem decisoes de produto em aberto: album foi substituido por genero, mas o frontend ainda pode esperar conceito de album em alguns lugares.
+- Favoritos de artista/genero dependem das tabelas reais e constraints do Supabase estarem exatamente como o backend espera.
+- Se alguem rodar banco local antigo, endpoints de musica podem falhar por falta de `arquivourl`, `artista_id` ou `fotoperfilurl`.
+
+## Resumo para o time
+
+As alteracoes do backend nao devem ser explicadas como reescrita do trabalho de alguem. O ponto correto e:
+
+- houve uma adaptacao tecnica para o schema Supabase atual;
+- o maior impacto foi no modulo de musicas, porque o banco mudou de `album/deezerId` para `artista/arquivoUrl`;
+- o mapper de musicas foi reduzido para ficar mais proximo do padrao original;
+- perfil/foto/senha, Resend, Swagger e CORS sao adicoes ou configuracoes necessarias;
+- historico e favoritos devem continuar sendo tratados como entregas dos respectivos responsaveis nos commits atuais.

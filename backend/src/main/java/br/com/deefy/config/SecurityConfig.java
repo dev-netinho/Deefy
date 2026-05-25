@@ -63,8 +63,10 @@ public class SecurityConfig {
                                 "/api/v1/genres/**",
                                 "/api/v1/albums/**",
                                 "/api/v1/musics/**",
-                                "/api/v1/storage/**"
+                                "/api/v1/storage/**",
+                                "/api/v1/admin/**"
                         ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,
                                 "/api/v1/artists/**",
                                 "/api/v1/genres/**",

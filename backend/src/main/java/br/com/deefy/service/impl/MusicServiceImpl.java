@@ -44,7 +44,7 @@ public class MusicServiceImpl implements MusicService {
 
     @Override
     public MusicDetailResponseDTO findMusicById(Long id) {
-        Music music = musicRepository.findById(id)
+        Music music = musicRepository.findWithArtistById(id)
                 .orElseThrow(() -> new MusicNotFoundException(id));
         return musicMapper.toDetailDTO(music);
     }
@@ -64,6 +64,19 @@ public class MusicServiceImpl implements MusicService {
     @Override
     public Page<MusicListResponseDTO> searchByArtist(String artistName, Pageable pageable) {
         Page<Music> musicPage = musicRepository.findByArtistName(artistName, pageable);
+        return musicPage.map(musicMapper::toListDTO);
+    }
+
+    @Override
+    public Page<MusicListResponseDTO> searchByGenre(String genre, Pageable pageable) {
+        Page<Music> musicPage = musicRepository.findByGenreContainingIgnoreCase(genre, pageable);
+        return musicPage.map(musicMapper::toListDTO);
+    }
+
+    @Override
+    public Page<MusicListResponseDTO> searchByAlbum(String album, Pageable pageable) {
+        // O schema atual nao tem album fisico; usamos musica.genero como album visual.
+        Page<Music> musicPage = musicRepository.findByGenreContainingIgnoreCase(album, pageable);
         return musicPage.map(musicMapper::toListDTO);
     }
 

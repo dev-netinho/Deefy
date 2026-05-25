@@ -54,20 +54,20 @@ public class MusicServiceTest {
                 null
         );
 
-        when(musicRepository.findById(1L)).thenReturn(Optional.of(music));
+        when(musicRepository.findWithArtistById(1L)).thenReturn(Optional.of(music));
         when(musicMapper.toDetailDTO(music)).thenReturn(dto);
 
         MusicDetailResponseDTO result = musicService.findMusicById(1L);
 
         assertNotNull(result);
         assertEquals("Hotel California", result.title());
-        verify(musicRepository).findById(1L);
+        verify(musicRepository).findWithArtistById(1L);
 
     }
 
     @Test
     void shouldThrowExceptionWhenMusicNotFound() {
-        when(musicRepository.findById(99L)).thenReturn(Optional.empty());
+        when(musicRepository.findWithArtistById(99L)).thenReturn(Optional.empty());
 
         MusicNotFoundException ex = assertThrows(
                 MusicNotFoundException.class,
@@ -75,7 +75,7 @@ public class MusicServiceTest {
         );
 
         assertTrue(ex.getMessage().contains("99"));
-        verify(musicRepository).findById(99L);
+        verify(musicRepository).findWithArtistById(99L);
     }
 
 }

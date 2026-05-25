@@ -1,0 +1,56 @@
+.shared-music-page {
+  min-height: 100vh;
+  display: flex;
+  background: #050505;
+  color: white;
+}
+
+.shared-music-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+  padding: 58px clamp(24px, 4vw, 56px) 150px;
+  background:
+    radial-gradient(circle at 45% 0%, rgba(57, 240, 208, 0.16), transparent 26%),
+    linear-gradient(180deg, #080808 0%, #050505 60%);
+}
+
+.shared-music-panel {
+  width: min(100%, 720px);
+  text-align: left;
+}
+
+.shared-music-panel span {
+  color: #39f0d0;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+
+.shared-music-panel h1 {
+  margin: 14px 0 24px;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.05;
+}
+
+.shared-music-panel a {
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #9fffe8;
+  color: #061512;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-weight: 900;
+}
+
+@media (max-width: 768px) {
+  .shared-music-page {
+    display: block;
+  }
+
+  .shared-music-main {
+    padding: 34px 18px 170px;
+  }
+}

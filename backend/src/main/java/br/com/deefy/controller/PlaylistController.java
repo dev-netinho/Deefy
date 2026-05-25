@@ -70,20 +70,7 @@ public class PlaylistController {
     @GetMapping
     @Operation(summary = "Listar playlists do usuario", description = "Retorna as playlists pertencentes ao usuario autenticado.")
     public ResponseEntity<List<PlaylistResponseDTO>> listAll(@AuthenticationPrincipal Object principal) {
-        String email;
-
-        // O log diz que o 'principal' é um User do Spring Security
-        if (principal instanceof org.springframework.security.core.userdetails.User springUser) {
-            email = springUser.getUsername();
-        } else if (principal instanceof String s) {
-            email = s;
-        } else {
-            throw new RuntimeException("Não foi possível identificar o usuário logado.");
-        }
-
-        // Agora buscamos o SEU usuário do banco pelo email para ter o ID real
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
+        User user = findAuthenticatedUser(principal);
 
         List<Playlist> playlists = playlistService.findAllByOwner(user.getId());
 
@@ -92,14 +79,25 @@ public class PlaylistController {
                 .toList());
     }
 
+    @GetMapping("/global")
+    @Operation(summary = "Listar playlists globais", description = "Retorna playlists publicas geradas pelo sistema/admin para descoberta.")
+    public ResponseEntity<List<PlaylistResponseDTO>> listGlobal() {
+        List<Playlist> playlists = playlistService.findGlobalPlaylists();
+
+        return ResponseEntity.ok(playlists.stream()
+                .map(playlistMapper::toResponseDTO)
+                .toList());
+    }
+
     // Visualizar uma playlist específica
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar playlist por ID", description = "Retorna uma playlist especifica do usuario autenticado.")
+    @Operation(summary = "Buscar playlist por ID", description = "Retorna uma playlist propria ou publica acessivel ao usuario autenticado.")
     public ResponseEntity<PlaylistResponseDTO> findById(
             @PathVariable Long id,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal Object principal) {
 
-        Playlist playlist = playlistService.findById(id, user.getId());
+        User user = findAuthenticatedUser(principal);
+        Playlist playlist = playlistService.findAccessibleById(id, user.getId());
         return ResponseEntity.ok(playlistMapper.toResponseDTO(playlist));
     }
 
@@ -141,6 +139,12 @@ public class PlaylistController {
             return userDetails.getUsername();
         }
         return principal.toString();
+    }
+
+    private User findAuthenticatedUser(Object principal) {
+        String email = extrairEmail(principal);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
     }
 
     @PutMapping("/{id}")

@@ -98,6 +98,28 @@ public class MusicController {
         return ResponseEntity.ok().body(musicPage);
     }
 
+    @GetMapping(value = "/search/genre")
+    @Operation(summary = "Buscar musicas por genero", description = "Pesquisa paginada pelo campo genero da musica.")
+    public ResponseEntity<Page<MusicListResponseDTO>> searchByGenre(
+            @RequestParam String genre,
+            @PageableDefault(size = 5, sort = "id")
+            Pageable pageable
+    ) {
+        Page<MusicListResponseDTO> musicPage = musicService.searchByGenre(genre, pageable);
+        return ResponseEntity.ok().body(musicPage);
+    }
+
+    @GetMapping(value = "/search/album")
+    @Operation(summary = "Buscar musicas por album visual", description = "Compatibilidade com o frontend: usa genero como album visual sem alterar schema.")
+    public ResponseEntity<Page<MusicListResponseDTO>> searchByAlbum(
+            @RequestParam String album,
+            @PageableDefault(size = 5, sort = "id")
+            Pageable pageable
+    ) {
+        Page<MusicListResponseDTO> musicPage = musicService.searchByAlbum(album, pageable);
+        return ResponseEntity.ok().body(musicPage);
+    }
+
     // isso é para o ADMIN
     @PutMapping(value = "/{id}")
     @Operation(summary = "Atualizar musica", description = "Atualiza metadados e URLs de uma musica existente.")

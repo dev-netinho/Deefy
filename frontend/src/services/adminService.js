@@ -5,7 +5,7 @@ export const adminService = {
   // ── Genres ────────────────────────────────────────────────
   async getGenres() {
     try {
-      const res = await api.get('/genres?size=100');
+      const res = await api.get('/genres?size=1000');
       return res.data?.content || res.data || [];
     } catch { return []; }
   },
@@ -21,7 +21,7 @@ export const adminService = {
   // ── Artists ──────────────────────────────────────────────
   async getArtists() {
     try {
-      const res = await api.get('/artists?size=100');
+      const res = await api.get('/artists?size=1000');
       return res.data?.content || res.data || [];
     } catch { return []; }
   },
@@ -67,6 +67,24 @@ export const adminService = {
   },
   async createPlaylist(data) {
     const res = await api.post('/playlists', data);
+    return res.data;
+  },
+
+  // ── Playlist Import (admin) ──────────────────────────────
+  async startYoutubePlaylistImport(data) {
+    const res = await api.post('/admin/playlist-imports/youtube', data);
+    return res.data;
+  },
+  async getPlaylistImportJob(id) {
+    const res = await api.get(`/admin/playlist-imports/${id}`);
+    return res.data;
+  },
+  async getYoutubeCookiesStatus() {
+    const res = await api.get('/admin/playlist-imports/youtube-cookies');
+    return res.data;
+  },
+  async saveYoutubeCookies(content) {
+    const res = await api.put('/admin/playlist-imports/youtube-cookies', { content });
     return res.data;
   },
 
@@ -160,4 +178,3 @@ export const adminService = {
     return res.data;
   },
 };
-

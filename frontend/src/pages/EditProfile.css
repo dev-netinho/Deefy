@@ -42,6 +42,14 @@
   background: rgba(47, 46, 46, 0.6) !important;
 }
 
+.edit-profile-card--disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+
+
 .edit-profile-card h1 {
   font-size: 1.5rem !important;
   font-weight: 700;
@@ -92,6 +100,26 @@
   animation: editProfileFadeUp 0.9s ease;
 }
 
+.edit-profile-back-btn {
+  align-self: flex-start !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: #a7a7a7 !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  margin-bottom: 24px !important;
+  transition: color 0.25s ease, transform 0.25s ease !important;
+  z-index: 5 !important;
+}
+
+.edit-profile-back-btn:hover {
+  color: #02FFD4 !important;
+  transform: translateX(-4px) !important;
+}
+
+
 .edit-profile-user {
   display: flex !important;
   flex-direction: column !important;
@@ -110,13 +138,14 @@
   line-height: 2.25rem;
   word-wrap: break-word
 }
-
-.edit-profile-user img {
+/* Generic img inside user section — does NOT apply to the avatar photo */
+.edit-profile-user img:not(.edit-profile-avatar-img) {
   width: 150px;
   max-width: 42vw;
   height: auto;
   display: block;
 }
+
 
 .edit-profile-avatar-wrapper {
   position: relative;
@@ -128,6 +157,52 @@
   border-radius: 50%;
   width: 256px;
   height: 256px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Avatar states */
+.edit-profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 50%;
+}
+
+.edit-profile-avatar-initials {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+  font-weight: 800;
+  color: #0a0a0a;
+  background: linear-gradient(135deg, #02FFD4 0%, #00C9A7 100%);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -2px;
+  user-select: none;
+}
+
+.edit-profile-avatar-spinner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-profile-avatar-uploading {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
 }
 
 .edit-profile-edit-photo-btn {

@@ -322,6 +322,27 @@
 .admin-publish-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .admin-publish-btn--success { background: linear-gradient(135deg, #4ade80, #16a34a); color: #fff; }
 
+.admin-secondary-btn {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  background: rgba(57, 240, 208, 0.1);
+  border: 1px solid rgba(57, 240, 208, 0.22);
+  color: var(--color-accent);
+  font-weight: 800; font-size: 0.82rem;
+  font-family: var(--font-primary);
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.admin-secondary-btn:hover:not(:disabled) {
+  background: rgba(57, 240, 208, 0.15);
+  border-color: rgba(57, 240, 208, 0.38);
+  transform: translateY(-1px);
+}
+.admin-secondary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
 /* ─── Music selector (Playlists tab) ─────────────────────── */
 .admin-music-list {
   max-height: 260px; overflow-y: auto;
@@ -415,6 +436,104 @@
 }
 .admin-preview-note strong { display: block; font-size: 0.78rem; color: var(--color-text-primary); margin-bottom: 6px; }
 .admin-preview-note p      { font-size: 0.76rem; color: var(--color-text-secondary); margin: 0; line-height: 1.5; }
+
+.admin-import-log {
+  max-height: 280px;
+  overflow: auto;
+  margin: 1rem 0 0;
+  padding: 0.85rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.admin-cookies-card {
+  margin-top: 1.2rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: rgba(57, 240, 208, 0.045);
+  border: 1px solid rgba(57, 240, 208, 0.14);
+}
+.admin-cookies-heading {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+.admin-cookies-heading h4 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-size: 0.92rem;
+}
+.admin-cookies-badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(240, 96, 96, 0.12);
+  border: 1px solid rgba(240, 96, 96, 0.22);
+  color: #f06060;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.admin-cookies-badge.ok {
+  background: rgba(74, 222, 128, 0.1);
+  border-color: rgba(74, 222, 128, 0.24);
+  color: #4ade80;
+}
+.admin-cookies-help,
+.admin-cookies-status {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+.admin-cookies-help code {
+  color: var(--color-accent);
+  font-family: var(--font-primary);
+}
+.admin-cookies-steps {
+  margin: 0.85rem 0;
+  padding-left: 1.1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+.admin-cookies-upload {
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-bottom: 0.75rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 10px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.admin-cookies-upload:hover {
+  border-color: rgba(57, 240, 208, 0.38);
+  color: var(--color-accent);
+}
+.admin-cookies-upload input { display: none; }
+.admin-cookies-textarea {
+  min-height: 130px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.74rem;
+}
+.admin-cookies-save {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+.admin-cookies-status {
+  margin-top: 0.65rem;
+  font-size: 0.7rem;
+}
 
 /* ─── Genre pills ─────────────────────────────────────────── */
 .admin-genre-list-title {

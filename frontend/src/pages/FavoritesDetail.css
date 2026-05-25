@@ -9,28 +9,43 @@
 .favorites-main {
   flex: 1;
   min-height: 100vh;
-  padding: 42px 28px 170px;
+  min-width: 0;
+  padding: 42px clamp(24px, 3vw, 40px) 170px;
   background:
     radial-gradient(circle at 50% 18%, rgba(57, 240, 208, 0.18), transparent 22%),
     linear-gradient(180deg, #080808 0%, #050505 55%);
   overflow-x: hidden;
 }
 
-.favorites-top-icons {
+.favorites-close-row {
+  width: 100%;
   display: flex;
   justify-content: flex-end;
-  gap: 14px;
-  margin-bottom: 60px;
+  margin: 0 0 24px;
 }
 
-.favorites-top-icons button {
-  width: 42px;
-  height: 42px;
-  border: none;
+.favorites-close-btn {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
-  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4f4f4;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.favorites-close-btn:hover,
+.favorites-close-btn:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(57, 240, 208, 0.35);
+  background: rgba(57, 240, 208, 0.08);
+  color: #39f0d0;
+  outline: none;
 }
 
 .favorites-hero {
@@ -38,25 +53,48 @@
   align-items: center;
   justify-content: flex-start;
   gap: 48px;
+  width: 100%;
   max-width: 1280px;
   margin: 0 0 42px;
 }
 
-.favorites-cover {
+.favorites-cover,
+.favorites-cover-grid {
   width: 240px;
   height: 240px;
   border-radius: 28px;
+  flex-shrink: 0;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+
+.favorites-cover {
   background: linear-gradient(135deg, rgba(57, 240, 208, 0.28), rgba(255, 255, 255, 0.06));
   color: #39f0d0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 5rem;
-  flex-shrink: 0;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+
+.favorites-cover-image {
+  object-fit: cover;
+}
+
+.favorites-cover-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  overflow: hidden;
+}
+
+.favorites-cover-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .favorites-info {
+  min-width: 0;
   max-width: 760px;
   display: flex;
   flex-direction: column;
@@ -77,28 +115,38 @@
   margin: 12px 0 16px;
   letter-spacing: -2px;
   max-width: 760px;
+  overflow-wrap: anywhere;
 }
 
 .favorites-info p {
   color: #b8b8b8;
   font-size: 1.05rem;
+  letter-spacing: 0.5px;
 }
 
 .favorites-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 18px;
+  flex-wrap: wrap;
+  gap: 10px;
   margin: 34px 0 0;
+  width: 100%;
+  max-width: 760px;
 }
 
-.favorites-actions button {
-  border-radius: 999px;
-  padding: 15px 28px;
-  font-weight: 800;
-  font-size: 1rem;
+.favorites-icon-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8fffd;
   cursor: pointer;
-  transition: 0.2s ease;
+  font-size: 1.55rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .favorites-play-btn {
@@ -107,10 +155,54 @@
   color: #061512;
 }
 
-.favorites-random-btn {
+.favorites-shuffle-btn {
   background: rgba(255, 255, 255, 0.06);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.favorites-icon-btn:hover:not(:disabled),
+.favorites-icon-btn:focus-visible,
+.favorites-shuffle-btn.is-active {
+  transform: translateY(-2px);
+  border-color: rgba(57, 240, 208, 0.3);
+  background: rgba(57, 240, 208, 0.08);
+  color: #39f0d0;
+  outline: none;
+}
+
+.favorites-play-btn:hover:not(:disabled),
+.favorites-play-btn:focus-visible {
+  background: #9fffe8;
+  color: #061512;
+  filter: brightness(1.03);
+}
+
+.favorites-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.favorites-empty {
+  margin: 20px 0;
+  color: #a9a9a9;
+  max-width: 620px;
+  line-height: 1.55;
+}
+
+@media (max-width: 1100px) {
+  .favorites-hero {
+    gap: 32px;
+  }
+
+  .favorites-cover,
+  .favorites-cover-grid {
+    width: 210px;
+    height: 210px;
+    border-radius: 24px;
+  }
+
+  .favorites-info h1 {
+    font-size: clamp(2.25rem, 5vw, 3.4rem);
+  }
 }
 
 @media (max-width: 768px) {
@@ -122,8 +214,8 @@
     padding: 28px 18px 190px;
   }
 
-  .favorites-top-icons {
-    margin-bottom: 36px;
+  .favorites-close-row {
+    margin-bottom: 18px;
   }
 
   .favorites-hero {
@@ -133,9 +225,14 @@
     gap: 28px;
   }
 
-  .favorites-cover {
+  .favorites-cover,
+  .favorites-cover-grid {
     width: 180px;
     height: 180px;
+    border-radius: 22px;
+  }
+
+  .favorites-cover {
     font-size: 4rem;
   }
 
@@ -153,14 +250,60 @@
 
   .favorites-actions {
     width: 100%;
-    flex-direction: column;
-    align-items: stretch;
+    max-width: 100%;
+    justify-content: center;
     gap: 14px;
     margin-top: 28px;
   }
 
-  .favorites-actions button {
-    width: 100%;
-    padding: 17px 24px;
+  .favorites-empty {
+    text-align: center;
+  }
+}
+
+@media (max-width: 520px) {
+  .favorites-main {
+    padding: 24px 14px 180px;
+  }
+
+  .favorites-hero {
+    gap: 22px;
+    margin-bottom: 30px;
+  }
+
+  .favorites-cover,
+  .favorites-cover-grid {
+    width: 156px;
+    height: 156px;
+    border-radius: 20px;
+  }
+
+  .favorites-cover {
+    font-size: 3.3rem;
+  }
+
+  .favorites-info span {
+    font-size: 0.68rem;
+    letter-spacing: 2px;
+  }
+
+  .favorites-info h1 {
+    font-size: 2rem;
+    line-height: 1.05;
+  }
+
+  .favorites-info p {
+    font-size: 0.92rem;
+  }
+
+  .favorites-close-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .favorites-icon-btn {
+    width: 48px;
+    height: 48px;
   }
 }

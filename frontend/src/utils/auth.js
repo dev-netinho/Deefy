@@ -3,17 +3,18 @@ const TOKEN_KEY = import.meta.env.VITE_STORAGE_TOKEN_KEY || "@deefy-token";
 const ROLE_KEY = "@deefy-role";
 
 /**
- * Salva o JWT retornado pelo backend e marca o usuário como autenticado.
+ * Marca o usuário como autenticado e salva o JWT
+ * @param {string} token
  */
 export const setToken = (token) => {
+  localStorage.setItem("@deefy-auth", "true");
   if (token) {
     localStorage.setItem(TOKEN_KEY, token);
   }
-  localStorage.setItem("@deefy-auth", "true");
 };
 
 /**
- * Busca o token JWT salvo.
+ * Busca o token JWT salvo
  * @returns {string | null}
  */
 export const getToken = () => {
@@ -24,10 +25,10 @@ export const getToken = () => {
  * Remove o token e dados de sessão (Logout)
  */
 export const removeToken = () => {
-  localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem("@deefy-auth");
   localStorage.removeItem("@deefy-user");
   localStorage.removeItem(ROLE_KEY);
+  localStorage.removeItem(TOKEN_KEY);
 };
 
 /**
@@ -35,7 +36,7 @@ export const removeToken = () => {
  * @returns {boolean}
  */
 export const isAuthenticated = () => {
-  return localStorage.getItem("@deefy-auth") === "true" && Boolean(getToken());
+  return localStorage.getItem("@deefy-auth") === "true";
 };
 
 /**

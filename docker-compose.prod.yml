@@ -23,7 +23,15 @@ services:
       SUPABASE_STORAGE_MUSIC_BUCKET: ${SUPABASE_STORAGE_MUSIC_BUCKET:-musicas}
       SUPABASE_STORAGE_IMAGE_BUCKET: ${SUPABASE_STORAGE_IMAGE_BUCKET:-imagens}
       SUPABASE_STORAGE_PROFILE_BUCKET: ${SUPABASE_STORAGE_PROFILE_BUCKET:-fotos de perfil}
+      DEEFY_IMPORT_OWNER_USER_ID: ${DEEFY_IMPORT_OWNER_USER_ID:-}
+      DEEFY_IMPORT_OWNER_EMAIL: ${DEEFY_IMPORT_OWNER_EMAIL:-deefy.admin@deefy.com}
+      DEEFY_IMPORT_APP_DIR: /app
+      YTDLP_COOKIES_FILE: ${YTDLP_COOKIES_FILE:-}
+      YTDLP_JS_RUNTIME: ${YTDLP_JS_RUNTIME:-deno:/usr/local/bin/deno}
+      YTDLP_SLEEP_REQUESTS: ${YTDLP_SLEEP_REQUESTS:-1}
       SERVER_PORT: 8080
+    volumes:
+      - ./secrets:/app/secrets
     networks:
       - traefik-public
     labels:

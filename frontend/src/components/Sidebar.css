@@ -4,10 +4,11 @@
 .sidebar {
   width: 240px;
   flex-shrink: 0;
-  height: 100vh;
-  position: sticky;
-  align-self: flex-start;
+  height: 100dvh;
+  position: fixed;
+  left: 0;
   top: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   background: rgba(10, 10, 12, 0.72);
@@ -16,7 +17,15 @@
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   padding: 28px 16px 24px;
   z-index: 100;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   animation: sidebarFadeIn 0.6s ease;
+}
+
+.sidebar ~ main,
+.sidebar ~ .home-main,
+.sidebar ~ .admin-main {
+  margin-left: 240px;
 }
 
 /* Brand / logo row */
@@ -120,6 +129,12 @@
   /* Hide the desktop sidebar */
   .sidebar {
     display: none;
+  }
+
+  .sidebar ~ main,
+  .sidebar ~ .home-main,
+  .sidebar ~ .admin-main {
+    margin-left: 0;
   }
 
   /* Show bottom bar */

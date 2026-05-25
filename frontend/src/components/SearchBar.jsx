@@ -5,9 +5,9 @@ import "./SearchBar.css";
 /**
  * Controlled search bar component.
  *
- * @param {{ value: string, onChange: (v: string) => void }} props
+ * @param {{ value: string, onChange: (v: string) => void, onFocus?: () => void }} props
  */
-function SearchBar({ value, onChange }) {
+function SearchBar({ value, onChange, onFocus }) {
   const inputRef = useRef(null);
 
   const handleClear = () => {
@@ -28,6 +28,7 @@ function SearchBar({ value, onChange }) {
         aria-label="Pesquisar músicas"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onFocus={onFocus}
         className="search-bar-input"
       />
       {value && (

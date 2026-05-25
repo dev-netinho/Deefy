@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getToken, removeToken } from '../utils/auth';
+import { removeToken, getToken } from '../utils/auth';
 
 const getBaseURL = () => {
   const envUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
@@ -18,19 +18,17 @@ const getBaseURL = () => {
 // Criação da instância do Axios com configurações padrão e de segurança
 const api = axios.create({
   baseURL: getBaseURL(),
-  timeout: 10000, // Timeout de 10 segundos para não travar a aplicação indefinidamente
-  withCredentials: true,
+  timeout: 30000, // Aumentado para 30s pois o backend gratuito pode demorar a acordar
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
 
-// Interceptor de requisição: anexa o JWT salvo após o login.
+// Interceptor de requisição (opcional, útil para enviar tokens futuramente)
 api.interceptors.request.use(
   (config) => {
     const token = getToken();
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

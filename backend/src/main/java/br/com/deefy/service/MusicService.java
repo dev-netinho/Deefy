@@ -17,6 +17,10 @@ public interface MusicService {
 
     Page<MusicListResponseDTO> searchByArtist(String artistName, Pageable pageable);
 
+    Page<MusicListResponseDTO> searchByGenre(String genre, Pageable pageable);
+
+    Page<MusicListResponseDTO> searchByAlbum(String album, Pageable pageable);
+
     MusicDetailResponseDTO updateMusic(Long id, MusicRequestDTO request);
 
     void deleteMusic(Long id);

@@ -1,31 +1,73 @@
 package br.com.deefy.mapper;
 
+import br.com.deefy.dto.response.AlbumResponseDTO;
+import br.com.deefy.dto.response.ArtistaResponseDTO;
 import br.com.deefy.dto.response.PlaylistResponseDTO;
 import br.com.deefy.dto.response.MusicDetailsResponseDTO;
+import br.com.deefy.model.Artist;
 import br.com.deefy.model.Playlist;
 import br.com.deefy.model.Music;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface PlaylistMapper {
 
-    // O MapStruct mapeia 'id', 'name' e 'publica' automaticamente.
-    // Ele também buscará um metodo para converter a lista de Music para MusicDetailsResponseDTO.
-    PlaylistResponseDTO toResponseDTO(Playlist playlist);
+    default PlaylistResponseDTO toResponseDTO(Playlist playlist) {
+        if (playlist == null) {
+            return null;
+        }
 
-    // Mapeamento específico para a música, ajustando os nomes dos campos
-    // Exemplo: se na sua Entity Music o campo for 'title', mas no DTO for 'titulo'
-    @Mapping(source = "title", target = "titulo")
-    @Mapping(source = "genre", target = "genero")
-    @Mapping(source = "durationSeconds", target = "duracaoSegundos")
-    @Mapping(source = "coverUrl", target = "capaUrl")
-    @Mapping(source = "fileUrl", target = "arquivoUrl")
-    @Mapping(source = "artistEntity", target = "artista")
-    @Mapping(target = "album", ignore = true)
-    MusicDetailsResponseDTO toMusicDTO(Music music);
+        return new PlaylistResponseDTO(
+                playlist.getId(),
+                playlist.getName(),
+                playlist.isPublica(),
+                playlist.getDataCriacao(),
+                toMusicDTOList(playlist.getTracks(), playlist.getName())
+        );
+    }
 
-    List<MusicDetailsResponseDTO> toMusicDTOList(List<Music> tracks);
+    default MusicDetailsResponseDTO toMusicDTO(Music music, String playlistName) {
+        if (music == null) {
+            return null;
+        }
+
+        Artist artist = music.getArtistEntity();
+
+        return new MusicDetailsResponseDTO(
+                music.getId(),
+                music.getTitle(),
+                music.getGenre(),
+                music.getDurationSeconds() == null ? 0 : music.getDurationSeconds(),
+                music.getPreviewUrl(),
+                music.getCoverUrl(),
+                music.getFileUrl(),
+                toArtistDTO(artist),
+                new AlbumResponseDTO(null, playlistName, music.getCoverUrl(), null)
+        );
+    }
+
+    default List<MusicDetailsResponseDTO> toMusicDTOList(List<Music> tracks, String playlistName) {
+        if (tracks == null) {
+            return List.of();
+        }
+
+        return tracks.stream()
+                .map(music -> toMusicDTO(music, playlistName))
+                .toList();
+    }
+
+    private ArtistaResponseDTO toArtistDTO(Artist artist) {
+        if (artist == null) {
+            return null;
+        }
+
+        return new ArtistaResponseDTO(
+                artist.getId(),
+                artist.getNome(),
+                artist.getBio(),
+                artist.getFotoUrl()
+        );
+    }
 }

@@ -121,7 +121,7 @@ class MusicServiceImplTest {
 
     @Test
     void findMusicById_Success() {
-        when(musicRepository.findById(1L)).thenReturn(Optional.of(music));
+        when(musicRepository.findWithArtistById(1L)).thenReturn(Optional.of(music));
         when(musicMapper.toDetailDTO(music)).thenReturn(musicDetailResponseDTO);
 
         MusicDetailResponseDTO result = musicService.findMusicById(1L);
@@ -133,7 +133,7 @@ class MusicServiceImplTest {
 
     @Test
     void findMusicById_NotFound_ThrowsException() {
-        when(musicRepository.findById(99L)).thenReturn(Optional.empty());
+        when(musicRepository.findWithArtistById(99L)).thenReturn(Optional.empty());
 
         assertThrows(MusicNotFoundException.class, () -> musicService.findMusicById(99L));
     }
@@ -178,6 +178,34 @@ class MusicServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals("Artist Test", result.getContent().get(0).artist());
+    }
+
+    @Test
+    void searchByGenre_Success() {
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Music> musicPage = new PageImpl<>(List.of(music), pageable, 1);
+        when(musicRepository.findByGenreContainingIgnoreCase("Rock", pageable)).thenReturn(musicPage);
+        when(musicMapper.toListDTO(music)).thenReturn(musicListResponseDTO);
+
+        Page<MusicListResponseDTO> result = musicService.searchByGenre("Rock", pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Rock", result.getContent().get(0).album());
+    }
+
+    @Test
+    void searchByAlbum_UsesGenreAsVisualAlbum() {
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Music> musicPage = new PageImpl<>(List.of(music), pageable, 1);
+        when(musicRepository.findByGenreContainingIgnoreCase("Rock", pageable)).thenReturn(musicPage);
+        when(musicMapper.toListDTO(music)).thenReturn(musicListResponseDTO);
+
+        Page<MusicListResponseDTO> result = musicService.searchByAlbum("Rock", pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Test Music", result.getContent().get(0).title());
     }
 
     @Test

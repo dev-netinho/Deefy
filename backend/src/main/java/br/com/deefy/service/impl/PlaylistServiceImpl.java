@@ -12,6 +12,7 @@ import br.com.deefy.repository.PlaylistRepository;
 import br.com.deefy.repository.UserRepository;
 import br.com.deefy.service.PlaylistService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,9 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Autowired
     private MusicRepository musicRepository;
 
+    @Value("${DEEFY_IMPORT_OWNER_EMAIL:deefy.admin@deefy.com}")
+    private String globalPlaylistOwnerEmail;
+
     @Override
     @Transactional
     public Playlist createPlaylist(Playlist playlist, Long ownerId) {
@@ -41,8 +45,12 @@ public class PlaylistServiceImpl implements PlaylistService {
 
     @Override
     public List<Playlist> findAllByOwner(Long ownerId) {
-        // No seu Repository, o metodo deve ser findByOwnerId
-        return playlistRepository.findByOwnerId(ownerId);
+        return playlistRepository.findPersonalByOwnerIdExcludingGlobalOwner(ownerId, globalPlaylistOwnerEmail);
+    }
+
+    @Override
+    public List<Playlist> findGlobalPlaylists() {
+        return playlistRepository.findGlobalPlaylists(globalPlaylistOwnerEmail);
     }
 
     @Override
@@ -55,6 +63,18 @@ public class PlaylistServiceImpl implements PlaylistService {
         }
 
         return playlist;
+    }
+
+    @Override
+    public Playlist findAccessibleById(Long id, Long ownerId) {
+        Playlist playlist = playlistRepository.findById(id)
+                .orElseThrow(() -> new PlaylistException("Playlist não encontrada com o ID: " + id));
+
+        if (playlist.belongsTo(ownerId) || playlist.isPublica()) {
+            return playlist;
+        }
+
+        throw new PlaylistException("Acesso negado: Você não tem permissão para visualizar esta playlist.");
     }
 
     @Override

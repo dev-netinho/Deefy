@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   MdOutlinePerson,
   MdOutlineMail,
@@ -17,6 +18,9 @@ import { useNavigate } from "react-router-dom";
 
 function Configuration() {
   const navigate = useNavigate();
+
+  const [songs, setSongs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   return (
     <div

@@ -25,6 +25,7 @@ const TABS = [
   { id: "albums",    label: "Álbuns",    Icon: FiDisc },
   { id: "musics",    label: "Músicas",   Icon: FiMusic },
   { id: "playlists", label: "Playlists", Icon: FiList },
+  { id: "playlistImport", label: "Importar", Icon: MdCloudUpload },
 ];
 
 export default function AdminPanel() {
@@ -89,6 +90,7 @@ export default function AdminPanel() {
               {tab === "albums"    && <><strong>Álbuns</strong><span>{stats.albums} registros ativos</span></>}
               {tab === "musics"    && <><strong>Músicas</strong><span>{stats.musics} registros ativos</span></>}
               {tab === "playlists" && <><strong>Playlists</strong><span>{stats.playlists} registros ativos</span></>}
+              {tab === "playlistImport" && <><strong>Importação</strong><span>playlist do YouTube para o catálogo</span></>}
             </div>
           </nav>
 
@@ -99,6 +101,7 @@ export default function AdminPanel() {
             {tab === "albums"    && <AlbumsTab   artists={artists} onSuccess={reload} />}
             {tab === "musics"    && <MusicsTab   artists={artists} albums={albums} genres={genres} onSuccess={reload} />}
             {tab === "playlists" && <PlaylistsTab musics={musics} musicsLoaded={musicsLoaded} onSuccess={reload} />}
+            {tab === "playlistImport" && <PlaylistImportTab genres={genres} artists={artists} onSuccess={reload} />}
           </div>
         </div>
       </div>
@@ -255,6 +258,7 @@ function AlbumsTab({ artists, onSuccess }) {
   const [form, setForm] = useState(EMPTY_ALBUM);
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(false);
+  const [artistSearch, setArtistSearch] = useState("");
   const set = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
   const selectedArtist = artists.find(a => String(a.id) === String(form.artistId));
 
@@ -283,16 +287,25 @@ function AlbumsTab({ artists, onSuccess }) {
                 <input id="al-title" name="title" className="admin-input" placeholder="Ex.: Noite em Fita" value={form.title} onChange={set} disabled={loading} autoComplete="off" />
               </div>
               <div className="admin-field">
-                <label className="admin-label" htmlFor="al-artist">Artista</label>
-                <select id="al-artist" name="artistId" className="admin-input admin-select" value={form.artistId} onChange={set} disabled={loading}>
-                  <option value="">Selecione o artista</option>
-                  {artists.map(a => <option key={a.id} value={a.id}>{a.nome || a.name || a.artisticName || "Artista Desconhecido"}</option>)}
-                </select>
+                <label className="admin-label" htmlFor="al-date">Data de lançamento</label>
+                <input id="al-date" name="releaseDate" className="admin-input" type="date" value={form.releaseDate} onChange={set} disabled={loading} />
               </div>
             </div>
+
             <div className="admin-field">
-              <label className="admin-label" htmlFor="al-date">Data de lançamento</label>
-              <input id="al-date" name="releaseDate" className="admin-input" type="date" value={form.releaseDate} onChange={set} disabled={loading} />
+              <label className="admin-label">Artista</label>
+              <input type="text" className="admin-input admin-search-sm" placeholder="Buscar artista..." value={artistSearch} onChange={e => setArtistSearch(e.target.value)} style={{ marginBottom: "8px" }} disabled={loading} />
+              <div className="admin-feat-grid">
+                {artists.filter(a => (a.nome || a.name || a.artisticName || "").toLowerCase().includes(artistSearch.toLowerCase())).map(a => {
+                  const active = form.artistId === a.id;
+                  return (
+                    <button key={a.id} type="button" className={`admin-feat-card${active ? " admin-feat-card--active" : ""}`} onClick={() => setForm(p => ({ ...p, artistId: active ? "" : a.id }))} disabled={loading}>
+                      <span className="admin-feat-name">{a.nome || a.name || a.artisticName || "Artista Desconhecido"}</span>
+                      <span className="admin-feat-action">{active ? "✓ selecionado" : "selecionar"}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="admin-field">
               <label className="admin-label" htmlFor="al-cover">Capa URL</label>
@@ -619,6 +632,263 @@ function PlaylistsTab({ musics, musicsLoaded, onSuccess }) {
           <div className="admin-preview-note">
             <strong>Lógica da branch</strong>
             <p>Playlists criadas aqui são públicas e aparecem na home para todos os usuários do Deefy.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PLAYLIST IMPORT TAB
+═══════════════════════════════════════════════════════════ */
+const EMPTY_PLAYLIST_IMPORT = { playlistUrl: "", genre: "", playlistTitle: "", artistName: "", limit: "" };
+
+function normalizeOption(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function uniqueNames(items, mapper) {
+  const seen = new Set();
+  return items
+    .map(mapper)
+    .filter(Boolean)
+    .filter(name => {
+      const key = normalizeOption(name);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+function PlaylistImportTab({ genres, artists, onSuccess }) {
+  const [form, setForm] = useState(EMPTY_PLAYLIST_IMPORT);
+  const [loading, setLoading] = useState(false);
+  const [job, setJob] = useState(null);
+  const [cookiesText, setCookiesText] = useState("");
+  const [cookiesStatus, setCookiesStatus] = useState(null);
+  const [cookiesLoading, setCookiesLoading] = useState(false);
+  const genreNames = uniqueNames(genres, g => g.name || g.titulo || g.title || g);
+  const artistNames = uniqueNames(artists, a => a.nome || a.name || a.artisticName || a);
+  const set = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+
+  const loadCookiesStatus = async () => {
+    try {
+      const status = await adminService.getYoutubeCookiesStatus();
+      setCookiesStatus(status);
+    } catch {
+      setCookiesStatus(null);
+    }
+  };
+
+  useEffect(() => { loadCookiesStatus(); }, []);
+
+  useEffect(() => {
+    if (!job?.id || job.status !== "RUNNING") return undefined;
+    const timer = setInterval(async () => {
+      try {
+        const updated = await adminService.getPlaylistImportJob(job.id);
+        setJob(updated);
+        if (updated.status === "COMPLETED") {
+          showMusicSuccess("Importação concluída.");
+          onSuccess?.();
+        }
+        if (updated.status === "FAILED") {
+          showMusicError(updated.message || "Importação falhou.");
+        }
+      } catch {
+        // Mantem o job visivel; a proxima consulta pode recuperar.
+      }
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [job?.id, job?.status, onSuccess]);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.playlistUrl.trim()) return showMusicError("Informe o link da playlist.");
+    if (!form.genre.trim()) return showMusicError("Informe o gênero aplicado às músicas.");
+    setLoading(true);
+    try {
+      const payload = {
+        playlistUrl: form.playlistUrl.trim(),
+        genre: form.genre.trim(),
+        playlistTitle: form.playlistTitle.trim() || undefined,
+        artistName: form.artistName.trim() || undefined,
+        limit: form.limit ? Number(form.limit) : undefined,
+      };
+      const started = await adminService.startYoutubePlaylistImport(payload);
+      setJob(started);
+      showMusicSuccess("Importação enviada para o backend.");
+    } catch (err) {
+      showMusicError(err?.response?.data?.message || "Erro ao iniciar importação.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCookiesFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      setCookiesText(text);
+      showMusicSuccess("Arquivo carregado. Confira e clique em salvar cookies.");
+    } catch {
+      showMusicError("Nao foi possivel ler o arquivo selecionado.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const saveCookies = async () => {
+    if (!cookiesText.trim()) return showMusicError("Cole ou selecione o conteudo do cookies.txt.");
+    setCookiesLoading(true);
+    try {
+      const status = await adminService.saveYoutubeCookies(cookiesText);
+      setCookiesStatus(status);
+      setCookiesText("");
+      showMusicSuccess("Cookies salvos com seguranca para as proximas importacoes.");
+    } catch (err) {
+      showMusicError(err?.response?.data?.message || "Erro ao salvar cookies do YouTube.");
+    } finally {
+      setCookiesLoading(false);
+    }
+  };
+
+  const statusLabel = {
+    RUNNING: "Rodando agora",
+    COMPLETED: "Concluída",
+    FAILED: "Falhou",
+  }[job?.status] || "Aguardando envio";
+
+  return (
+    <div className="admin-workspace">
+      <EditorHeader
+        title="Importar playlist do YouTube"
+        desc="Cole o link, defina o gênero e deixe o backend popular artista, músicas, arquivos e playlist global."
+        onNew={() => { setForm(EMPTY_PLAYLIST_IMPORT); setJob(null); }}
+      />
+      <div className="admin-editor-preview">
+        <div className="admin-editor-card">
+          <FormHeader onClear={() => { setForm(EMPTY_PLAYLIST_IMPORT); setJob(null); }} />
+          <form onSubmit={submit} noValidate>
+            <div className="admin-field">
+              <label className="admin-label" htmlFor="imp-url">Link da playlist <span className="admin-required">*</span></label>
+              <input id="imp-url" name="playlistUrl" className="admin-input" type="url" placeholder="https://youtube.com/playlist?list=..." value={form.playlistUrl} onChange={set} disabled={loading || job?.status === "RUNNING"} autoComplete="off" />
+            </div>
+
+            <div className="admin-form-row">
+              <div className="admin-field">
+                <label className="admin-label" htmlFor="imp-genre">Gênero <span className="admin-required">*</span></label>
+                <select id="imp-genre" name="genre" className="admin-input admin-select" value={form.genre} onChange={set} disabled={loading || job?.status === "RUNNING"}>
+                  <option value="">Selecione um gênero cadastrado</option>
+                  {genreNames.map(name => <option key={name} value={name}>{name}</option>)}
+                </select>
+              </div>
+              <div className="admin-field">
+                <label className="admin-label" htmlFor="imp-limit">Limite <span className="admin-optional">(teste)</span></label>
+                <input id="imp-limit" name="limit" className="admin-input" type="number" min="1" max="200" placeholder="Vazio importa tudo" value={form.limit} onChange={set} disabled={loading || job?.status === "RUNNING"} />
+              </div>
+            </div>
+
+            <div className="admin-form-row">
+              <div className="admin-field">
+                <label className="admin-label" htmlFor="imp-title">Nome da playlist <span className="admin-optional">(opcional)</span></label>
+                <input id="imp-title" name="playlistTitle" className="admin-input" placeholder="Usa o nome do YouTube se vazio" value={form.playlistTitle} onChange={set} disabled={loading || job?.status === "RUNNING"} autoComplete="off" />
+              </div>
+              <div className="admin-field">
+                <label className="admin-label" htmlFor="imp-artist">Artista/canal <span className="admin-optional">(opcional)</span></label>
+                <input
+                  id="imp-artist"
+                  name="artistName"
+                  className="admin-input"
+                  list="admin-import-artists"
+                  placeholder="Digite ou escolha. Vazio detecta pelo YouTube"
+                  value={form.artistName}
+                  onChange={set}
+                  disabled={loading || job?.status === "RUNNING"}
+                  autoComplete="off"
+                />
+                <datalist id="admin-import-artists">
+                  {artistNames.map(name => <option key={name} value={name} />)}
+                </datalist>
+              </div>
+            </div>
+
+            <button type="submit" className="admin-publish-btn" disabled={loading || job?.status === "RUNNING"}>
+              {loading || job?.status === "RUNNING" ? <><ButtonSpinner color="#0a0a0a" /> Importando...</> : "Iniciar importação"}
+            </button>
+          </form>
+        </div>
+
+        <div className="admin-preview-card">
+          <p className="admin-preview-kicker">STATUS</p>
+          <h3 className="admin-preview-title">IMPORTAÇÃO NO BACKEND</h3>
+          <div className="admin-preview-artist">
+            <div className="admin-preview-cover admin-preview-cover--sq"><MdCloudUpload /></div>
+            <div>
+              <p className="admin-preview-sublabel">PLAYLIST GLOBAL</p>
+              <p className="admin-preview-name">{form.playlistTitle || "Nome vindo do YouTube"}</p>
+              <p className="admin-preview-bio">{form.genre ? `Gênero aplicado: ${form.genre}` : "O gênero será gravado em cada música importada."}</p>
+            </div>
+          </div>
+          <div className="admin-preview-note">
+            <strong>{statusLabel}</strong>
+            <p>{job?.message || "Nada enviado ainda. A importação roda em background e não altera schema do banco."}</p>
+          </div>
+          {job?.output?.length > 0 && (
+            <>
+              <p className="admin-preview-sublabel">LOG DA IMPORTAÇÃO</p>
+              <pre className="admin-import-log">{job.output.slice(-180).join("\n")}</pre>
+            </>
+          )}
+          <div className="admin-cookies-card">
+            <div className="admin-cookies-heading">
+              <div>
+                <p className="admin-preview-sublabel">ANTI-BOT DO YOUTUBE</p>
+                <h4>Cookies para importação</h4>
+              </div>
+              <span className={cookiesStatus?.configured ? "admin-cookies-badge ok" : "admin-cookies-badge"}>
+                {cookiesStatus?.configured ? "Configurado" : "Ausente"}
+              </span>
+            </div>
+            <p className="admin-cookies-help">
+              Quando o YouTube pedir login/anti-bot, exporte cookies do navegador em formato Netscape
+              <code> cookies.txt </code>
+              e salve aqui. O conteúdo não volta para a tela depois de salvo.
+            </p>
+            <ol className="admin-cookies-steps">
+              <li>Abra o YouTube no navegador e entre na conta autorizada.</li>
+              <li>Use uma extensão/exportador de cookies no formato Netscape cookies.txt.</li>
+              <li>Baixe o arquivo, selecione abaixo ou cole o conteúdo completo.</li>
+              <li>Salve os cookies e rode a importação novamente.</li>
+            </ol>
+            <label className="admin-cookies-upload">
+              Selecionar cookies.txt
+              <input type="file" accept=".txt,text/plain" onChange={handleCookiesFile} disabled={cookiesLoading} />
+            </label>
+            <textarea
+              className="admin-input admin-textarea admin-cookies-textarea"
+              placeholder="# Netscape HTTP Cookie File..."
+              value={cookiesText}
+              onChange={(event) => setCookiesText(event.target.value)}
+              disabled={cookiesLoading}
+              rows={5}
+            />
+            <button type="button" className="admin-secondary-btn admin-cookies-save" onClick={saveCookies} disabled={cookiesLoading || !cookiesText.trim()}>
+              {cookiesLoading ? <><ButtonSpinner /> Salvando...</> : "Salvar cookies"}
+            </button>
+            {cookiesStatus?.updatedAt && (
+              <p className="admin-cookies-status">
+                Ultima atualização: {new Date(cookiesStatus.updatedAt).toLocaleString("pt-BR")}
+                {cookiesStatus.sizeBytes ? ` | ${cookiesStatus.sizeBytes} bytes` : ""}
+              </p>
+            )}
           </div>
         </div>
       </div>
