@@ -21,6 +21,12 @@ public class Playlist {
     @Column(name = "nome", nullable = false, length = 100)
     private String name;
 
+    @Column(name = "descricao", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "capaurl", columnDefinition = "TEXT")
+    private String coverUrl;
+
     @Column(name = "publica", nullable = false)
     private boolean publica;
 
@@ -70,6 +76,22 @@ public class Playlist {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 
     public boolean isPublica() {

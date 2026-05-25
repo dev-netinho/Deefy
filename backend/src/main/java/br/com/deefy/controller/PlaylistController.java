@@ -58,6 +58,8 @@ public class PlaylistController {
         Playlist newPlaylist = new Playlist();
         newPlaylist.setName(request.name());
         newPlaylist.setPublica(request.publica());
+        newPlaylist.setDescription(blankToNull(request.description()));
+        newPlaylist.setCoverUrl(blankToNull(request.coverUrl()));
 
         // Chamamos o service passando o ID do dono que acabamos de buscar
         Playlist saved = playlistService.createPlaylist(newPlaylist, owner.getId());
@@ -147,8 +149,15 @@ public class PlaylistController {
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
     }
 
+    private String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar playlist", description = "Atualiza nome e visibilidade da playlist.")
+    @Operation(summary = "Atualizar playlist", description = "Atualiza nome, visibilidade, descricao e capa da playlist.")
     public ResponseEntity<PlaylistResponseDTO> update(
             @PathVariable Long id,
             @RequestBody PlaylistRequestDTO request,

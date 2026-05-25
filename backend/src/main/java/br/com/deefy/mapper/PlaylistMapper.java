@@ -22,6 +22,10 @@ public interface PlaylistMapper {
         return new PlaylistResponseDTO(
                 playlist.getId(),
                 playlist.getName(),
+                playlist.getDescription(),
+                playlist.getDescription(),
+                playlist.getCoverUrl(),
+                playlist.getCoverUrl(),
                 playlist.isPublica(),
                 playlist.getDataCriacao(),
                 toMusicDTOList(playlist.getTracks(), playlist.getName())

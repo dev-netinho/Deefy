@@ -88,9 +88,11 @@ public class PlaylistServiceImpl implements PlaylistService {
             throw new PlaylistException("Você não tem permissão para editar esta playlist");
         }
 
-        // Atualiza apenas os campos permitidos
+        // Atualiza apenas os campos editaveis pelo usuario.
         playlist.setName(request.name());
         playlist.setPublica(request.publica());
+        playlist.setDescription(blankToNull(request.description()));
+        playlist.setCoverUrl(blankToNull(request.coverUrl()));
 
         return playlistRepository.save(playlist);
     }
@@ -145,5 +147,12 @@ public class PlaylistServiceImpl implements PlaylistService {
         }
 
         return playlistRepository.save(playlist);
+    }
+
+    private String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

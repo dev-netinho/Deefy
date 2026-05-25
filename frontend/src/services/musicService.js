@@ -76,6 +76,10 @@ function savePlaylistMetadata(playlistId, data = {}) {
   writePlaylistMetadataStore(metadataStore);
 }
 
+function firstNonEmpty(...values) {
+  return values.find((value) => value !== undefined && value !== null && value !== '');
+}
+
 function removePlaylistMetadata(playlistId) {
   if (playlistId === undefined || playlistId === null || playlistId === '') return;
 
@@ -93,10 +97,24 @@ function withPlaylistMetadata(playlist) {
 
   return {
     ...normalizedPlaylist,
-    description: metadata.description ?? normalizedPlaylist.description ?? '',
-    descricao: metadata.descricao ?? metadata.description ?? normalizedPlaylist.descricao ?? '',
-    coverUrl: metadata.coverUrl ?? normalizedPlaylist.coverUrl ?? '',
-    capaUrl: metadata.capaUrl ?? metadata.coverUrl ?? normalizedPlaylist.capaUrl ?? '',
+    description: firstNonEmpty(normalizedPlaylist.description, normalizedPlaylist.descricao, metadata.description, metadata.descricao, ''),
+    descricao: firstNonEmpty(normalizedPlaylist.descricao, normalizedPlaylist.description, metadata.descricao, metadata.description, ''),
+    coverUrl: firstNonEmpty(normalizedPlaylist.coverUrl, normalizedPlaylist.capaUrl, metadata.coverUrl, metadata.capaUrl, ''),
+    capaUrl: firstNonEmpty(normalizedPlaylist.capaUrl, normalizedPlaylist.coverUrl, metadata.capaUrl, metadata.coverUrl, ''),
+  };
+}
+
+function toPlaylistPayload(data = {}) {
+  const description = data.description ?? data.descricao ?? '';
+  const coverUrl = data.coverUrl ?? data.capaUrl ?? '';
+
+  return {
+    name: data.name,
+    publica: data.publica,
+    description,
+    descricao: description,
+    coverUrl,
+    capaUrl: coverUrl,
   };
 }
 
@@ -413,10 +431,7 @@ export const musicService = {
    */
   async createPlaylist(data) {
     try {
-      const response = await api.post('/playlists', {
-        name: data.name,
-        publica: data.publica,
-      });
+      const response = await api.post('/playlists', toPlaylistPayload(data));
       const playlist = normalizePlaylist(response.data) || response.data;
 
       if (playlist?.id) {
@@ -438,10 +453,7 @@ export const musicService = {
    */
   async updatePlaylist(id, data) {
     try {
-      const response = await api.put(`/playlists/${id}`, {
-        name: data.name,
-        publica: data.publica,
-      });
+      const response = await api.put(`/playlists/${id}`, toPlaylistPayload(data));
 
       savePlaylistMetadata(id, data);
       return withPlaylistMetadata(response.data);

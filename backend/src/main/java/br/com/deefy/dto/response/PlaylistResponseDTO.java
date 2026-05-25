@@ -8,6 +8,10 @@ import java.util.List;
 public record PlaylistResponseDTO(
         Long id,
         String name,
+        String description,
+        String descricao,
+        String coverUrl,
+        String capaUrl,
         boolean publica,
         @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
         LocalDateTime dataCriacao,
