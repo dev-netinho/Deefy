@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FaHeart, FaPlus } from 'react-icons/fa'
+import { FaHeart, FaMusic, FaPlus } from 'react-icons/fa'
 
 import './Playlists.css'
 import Sidebar from '../components/Sidebar.jsx'
@@ -226,19 +226,21 @@ function Playlists() {
             ) : globalPlaylistsApi.length > 0 || genresApi.length > 0 ? (
               <>
                 {globalPlaylistsApi.map(renderPlaylistCard)}
-                {genresApi.map((genre, idx) => {
-                  const colorClasses = ['sertanejo', 'gospel', 'kpop', 'samba', 'pagode', 'pop', 'rock', 'mpb']
-                  const presetClass = `playlist-card--${colorClasses[idx % colorClasses.length]}`
+                {genresApi.map((genre) => {
                   const genreName = genre.name || genre.nome || genre.titulo
+                  if (!genreName) return null
 
                   return (
                     <button
                       type="button"
-                      className={`playlist-card ${presetClass}`}
+                      className="playlist-card playlist-card--genre-simple"
                       key={genre.id || genreName}
                       onClick={() => handlePlayGenre(genreName)}
                       aria-label={`Tocar músicas do gênero ${genreName}`}
                     >
+                      <span className="playlist-genre-icon" aria-hidden="true">
+                        <FaMusic />
+                      </span>
                       <h3>{genreName}</h3>
                     </button>
                   )
