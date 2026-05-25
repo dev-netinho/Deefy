@@ -24,7 +24,6 @@ function CustomProfile() {
       try {
         const res = await api.get("/users/me");
         setProfile(res.data);
-        // Pre-fill the input with the current name
         setFullName(res.data?.nome || "");
       } catch (err) {
         console.error("Erro ao carregar perfil:", err);
@@ -86,41 +85,36 @@ function CustomProfile() {
       <section className="custom-profile-wrapper">
 
         {/* Back button */}
-        <div className="custom-profile-back-login" onClick={() => navigate(-1)} style={{ alignSelf: "flex-start", marginBottom: "24px" }}>
+        <div className="custom-profile-back-login custom-profile-back-top" onClick={() => navigate(-1)}>
           <IoChevronBack />
           <span>Voltar</span>
         </div>
 
-        {/* Avatar circle */}
-        <div className="custom-profile-icon-circle" style={{ position: "relative", overflow: "hidden" }}>
-          {loadingProfile ? (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
-              <ButtonSpinner color="#02FFD4" />
-            </div>
-          ) : profile?.fotoPerfilUrl ? (
-            <img
-              src={profile.fotoPerfilUrl}
-              alt="Foto de perfil"
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: "50%" }}
-            />
-          ) : (
-            <div style={{
-              width: "100%", height: "100%", borderRadius: "50%",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "3.5rem", fontWeight: "800", color: "#0a0a0a",
-              background: "linear-gradient(135deg, #02FFD4 0%, #00C9A7 100%)",
-              fontFamily: "'Inter', sans-serif", userSelect: "none"
-            }}>
-              {getInitials(profile?.nome)}
-            </div>
-          )}
+        <div className="custom-profile-avatar-area">
 
-          {/* Edit photo button */}
           <div className="custom-profile-edit-photo-btn" onClick={() => navigate("/edit-profile")}>
             <div className="custom-profile-edit-photo-icon-wrapper">
               <IoCameraOutline />
             </div>
             <div className="custom-profile-edit-photo-text">Editar<br />Foto</div>
+          </div>
+
+          <div className="custom-profile-icon-circle">
+            {loadingProfile ? (
+              <div className="custom-profile-avatar-spinner">
+                <ButtonSpinner color="#02FFD4" />
+              </div>
+            ) : profile?.fotoPerfilUrl ? (
+              <img
+                src={profile.fotoPerfilUrl}
+                alt="Foto de perfil"
+                className="custom-profile-avatar-img"
+              />
+            ) : (
+              <div className="custom-profile-avatar-initials">
+                {getInitials(profile?.nome)}
+              </div>
+            )}
           </div>
         </div>
 
@@ -135,27 +129,22 @@ function CustomProfile() {
           <div className="registration-input-group">
             <h3>NOME DO USUÁRIO</h3>
             <div className="registration-input-box registration-input-box-name">
-              <FaUser className="registration-input-icon" style={{ left: "16px", position: "absolute" }} />
+              <FaUser className="registration-input-icon custom-profile-input-icon-pos" />
               <input
                 type="text"
                 placeholder={loadingProfile ? "Carregando…" : "Insira seu nome"}
                 value={fullName}
                 onChange={(e) => { setFullName(e.target.value); setSent(false); }}
-                style={{ paddingLeft: "50px" }}
+                className="custom-profile-name-input"
                 disabled={isLoading || loadingProfile}
               />
             </div>
           </div>
 
           <button
-            className="custom-profile-button-primary"
+            className={`custom-profile-button-primary${isLoading || loadingProfile || sent ? " custom-profile-button--disabled" : ""}`}
             onClick={handleSubmit}
             disabled={isLoading || loadingProfile || sent}
-            style={{
-              opacity: isLoading || loadingProfile || sent ? 0.7 : 1,
-              cursor: isLoading || loadingProfile || sent ? "not-allowed" : "pointer",
-              marginTop: "15px"
-            }}
           >
             {isLoading
               ? <ButtonSpinner />

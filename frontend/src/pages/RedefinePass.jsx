@@ -1,6 +1,6 @@
 import { IoIosInformationCircleOutline } from "react-icons/io";
 import { IoChevronBack } from "react-icons/io5";
-import { MdOutlineLockReset, MdOutlineEmail, MdOutlineLock, MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
+import { MdOutlineLockReset, MdOutlineLock, MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
 import { useState } from "react";
 import background from "../assets/background2.jpg";
 import "./ForgotPass.css";
@@ -14,6 +14,8 @@ function RedefinePass() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,15 +39,16 @@ function RedefinePass() {
   const strength = calculatePasswordStrength(password);
 
   const validate = () => {
+    if (!token && !currentPassword) return "Para alterar, precisamos da sua senha atual.";
     if (!password) return "A senha é a chave do estúdio. Não pode ficar vazia!";
     if (password.length < 8) return "Senha curta! O solo precisa de pelo menos 8 notas (caracteres).";
     if (!/[A-Z]/.test(password)) return "Adicione uma letra maiúscula para dar mais volume à senha.";
     if (!/[a-z]/.test(password)) return "Uma letra minúscula é essencial para a harmonia da senha.";
     if (!/\d/.test(password)) return "Coloque um número para marcar o ritmo da senha.";
     if (!/[^A-Za-z0-9]/.test(password)) return "Falta um símbolo especial para o toque final na senha!";
-    
+
     if (password !== confirmPassword) return "As senhas estão fora de sincronia! Tente novamente.";
-    
+
     return null;
   };
 
@@ -58,17 +61,19 @@ function RedefinePass() {
     }
 
     setIsLoading(true);
-    if (!token) {
-      showMusicError("Link inválido: Token de recuperação ausente. Por favor, use o link enviado para o seu e-mail.");
-      setIsLoading(false);
-      return;
-    }
 
     try {
-      await api.post("/auth/reset-password", { token, novaSenha: password });
+      if (token) {
+        await api.post("/auth/reset-password", { token, novaSenha: password });
+        showMusicSuccess("Senha alterada com sucesso! Você já pode fazer login.");
+        setTimeout(() => navigate("/login"), 3000);
+      } else {
+        await api.patch("/users/me/password", { senhaAtual: currentPassword, novaSenha: password });
+        showMusicSuccess("Sua senha foi atualizada com sucesso!");
+        setTimeout(() => navigate(-1), 3000);
+      }
+
       setSent(true);
-      showMusicSuccess("Senha alterada com sucesso! Você já pode fazer login.");
-      setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
       const message =
         err.response?.data?.message ||
@@ -87,6 +92,11 @@ function RedefinePass() {
       <div className="forgot-overlay"></div>
 
       <section className="forgot-wrapper">
+        <div className="forgot-back-login forgot-back-top" onClick={() => navigate(-1)}>
+          <IoChevronBack />
+          <span>Voltar</span>
+        </div>
+
         <div className="forgot-icon-circle">
           <MdOutlineLockReset className="forgot-main-icon" />
         </div>
@@ -99,10 +109,38 @@ function RedefinePass() {
         </div>
 
         <div className="forgot-form-area">
-          <div className="registration-input-group">
-            <h3>SENHA</h3>
-            <div className="registration-input-box">
-              <MdOutlineLock className="registration-input-icon" />
+          {!token && (
+            <div className="forgot-input-group">
+              <h3>SENHA ATUAL</h3>
+              <div className="forgot-input-box">
+                <MdOutlineLock className="forgot-input-icon" />
+                <input
+                  type={showCurrentPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  disabled={isLoading}
+                />
+                {showCurrentPassword ? (
+                  <MdOutlineRemoveRedEye
+                    className="forgot-input-eye"
+                    onClick={() => setShowCurrentPassword(false)}
+                  />
+                ) : (
+                  <MdOutlineVisibilityOff
+                    className="forgot-input-eye"
+                    onClick={() => setShowCurrentPassword(true)}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="forgot-input-group">
+            <h3>{token ? "SENHA" : "NOVA SENHA"}</h3>
+            <div className="forgot-input-box">
+              <MdOutlineLock className="forgot-input-icon" />
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
@@ -113,30 +151,30 @@ function RedefinePass() {
               />
               {showPassword ? (
                 <MdOutlineRemoveRedEye
-                  className="registration-input-eye"
+                  className="forgot-input-eye"
                   onClick={() => setShowPassword(false)}
                 />
               ) : (
                 <MdOutlineVisibilityOff
-                  className="registration-input-eye"
+                  className="forgot-input-eye"
                   onClick={() => setShowPassword(true)}
                 />
               )}
             </div>
             {password && (
               <div className="password-strength-container">
-                <div 
-                  className="password-strength-bar" 
+                <div
+                  className="password-strength-bar"
                   style={{ width: strength.width, backgroundColor: strength.color }}
                 ></div>
               </div>
             )}
           </div>
 
-          <div className="registration-input-group">
+          <div className="forgot-input-group">
             <h3>CONFIRMAR SENHA</h3>
-            <div className="registration-input-box">
-              <MdOutlineLock className="registration-input-icon" />
+            <div className="forgot-input-box">
+              <MdOutlineLock className="forgot-input-icon" />
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="••••••••"
@@ -148,12 +186,12 @@ function RedefinePass() {
               />
               {showConfirmPassword ? (
                 <MdOutlineRemoveRedEye
-                  className="registration-input-eye"
+                  className="forgot-input-eye"
                   onClick={() => setShowConfirmPassword(false)}
                 />
               ) : (
                 <MdOutlineVisibilityOff
-                  className="registration-input-eye"
+                  className="forgot-input-eye"
                   onClick={() => setShowConfirmPassword(true)}
                 />
               )}

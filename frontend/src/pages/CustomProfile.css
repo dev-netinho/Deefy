@@ -34,7 +34,16 @@
   animation: forgotFadeUp 0.9s ease !important;
 }
 
+.custom-profile-avatar-area {
+  position: relative !important;
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  margin-bottom: 28px !important;
+}
+
 .custom-profile-icon-circle {
+  position: relative !important;
   width: 200px !important;
   height: 200px !important;
   border-radius: 50% !important;
@@ -44,9 +53,40 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin: 0 0 28px 0 !important;
+  overflow: hidden !important;
   box-shadow: 0 0 40px rgba(57, 240, 208, 0.12) !important;
   animation: forgotFloat 3.4s ease-in-out infinite !important;
+}
+
+.custom-profile-avatar-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  border-radius: 50% !important;
+}
+
+.custom-profile-avatar-initials {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 3.5rem !important;
+  font-weight: 800 !important;
+  color: #0a0a0a !important;
+  background: linear-gradient(135deg, #02FFD4 0%, #00C9A7 100%) !important;
+  font-family: Inter, sans-serif !important;
+  user-select: none !important;
+}
+
+.custom-profile-avatar-spinner {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .custom-profile-main-icon {
@@ -55,26 +95,26 @@
 }
 
 .custom-profile-edit-photo-btn {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #02FFD4;
-  border-radius: 9999px;
-  padding: 6px 16px;
-  display: inline-flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.10), 0px 10px 15px -3px rgba(0, 0, 0, 0.10);
-  transition: transform 0.2s ease, filter 0.2s ease;
-  z-index: 10;
+  position: absolute !important;
+  bottom: -14px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: #02FFD4 !important;
+  border-radius: 9999px !important;
+  padding: 6px 16px !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.10), 0px 10px 15px -3px rgba(0, 0, 0, 0.10) !important;
+  transition: filter 0.2s ease !important;
+  z-index: 10 !important;
 }
 
 .custom-profile-edit-photo-btn:hover {
-  transform: translateX(-50%) scale(1.05);
-  filter: brightness(1.05);
+  filter: brightness(1.08) !important;
 }
 
 .custom-profile-edit-photo-icon-wrapper {
@@ -301,6 +341,26 @@
 .custom-profile-back-login span {
   font-size: 1rem !important;
   font-weight: 500 !important;
+}
+
+.custom-profile-back-top {
+  align-self: flex-start !important;
+  justify-content: flex-start !important;
+  margin-bottom: 24px !important;
+}
+
+.custom-profile-input-icon-pos {
+  left: 16px !important;
+  position: absolute !important;
+}
+
+.custom-profile-name-input {
+  padding-left: 50px !important;
+}
+
+.custom-profile-button--disabled {
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
 }
 
 @keyframes forgotFadeUp {

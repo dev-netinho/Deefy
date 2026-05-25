@@ -541,7 +541,7 @@
     padding: 18px;
   }
 
-  .edit-profile-user img {
+  .edit-profile-user img:not(.edit-profile-avatar-img) {
     width: 120px;
   }
 

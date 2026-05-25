@@ -157,6 +157,16 @@
   color: #7f7f7f !important;
 }
 
+.forgot-input-box input:-webkit-autofill,
+.forgot-input-box input:-webkit-autofill:hover,
+.forgot-input-box input:-webkit-autofill:focus,
+.forgot-input-box input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+  background-color: transparent !important;
+  border-radius: inherit !important;
+}
+
 .forgot-button-primary {
   width: 100% !important;
   min-height: 64px !important;
@@ -251,6 +261,12 @@
 .forgot-back-login span {
   font-size: 1rem !important;
   font-weight: 500 !important;
+}
+
+.forgot-back-top {
+  align-self: flex-start !important;
+  justify-content: flex-start !important;
+  margin-bottom: 24px !important;
 }
 
 @keyframes forgotFadeUp {
