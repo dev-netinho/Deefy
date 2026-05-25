@@ -12,6 +12,7 @@ import {
 export { normalizeMusic, normalizePlaylist };
 
 export const FAVORITE_MUSIC_CHANGED_EVENT = 'deefy:favorite-music-changed';
+const PLAYLIST_METADATA_KEY = '@deefy-playlist-metadata-v1';
 
 function notifyFavoriteMusicChanged(musicId, isFavorite) {
   if (typeof window === 'undefined' || musicId === undefined || musicId === null || musicId === '') {
@@ -24,6 +25,79 @@ function notifyFavoriteMusicChanged(musicId, isFavorite) {
       isFavorite: Boolean(isFavorite),
     },
   }));
+}
+
+function readPlaylistMetadataStore() {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const rawValue = window.localStorage.getItem(PLAYLIST_METADATA_KEY);
+    if (!rawValue) return {};
+
+    const parsedValue = JSON.parse(rawValue);
+    return parsedValue && typeof parsedValue === 'object' ? parsedValue : {};
+  } catch (error) {
+    console.warn('Failed to read playlist metadata store:', error);
+    return {};
+  }
+}
+
+function writePlaylistMetadataStore(metadataStore) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.setItem(PLAYLIST_METADATA_KEY, JSON.stringify(metadataStore));
+  } catch (error) {
+    console.warn('Failed to save playlist metadata store:', error);
+  }
+}
+
+function getPlaylistMetadata(playlistId) {
+  if (playlistId === undefined || playlistId === null || playlistId === '') return null;
+  const metadataStore = readPlaylistMetadataStore();
+  return metadataStore[String(playlistId)] || null;
+}
+
+function savePlaylistMetadata(playlistId, data = {}) {
+  if (playlistId === undefined || playlistId === null || playlistId === '') return;
+
+  const metadataStore = readPlaylistMetadataStore();
+  const description = data.description ?? data.descricao ?? '';
+  const coverUrl = data.coverUrl ?? data.capaUrl ?? '';
+
+  metadataStore[String(playlistId)] = {
+    description,
+    descricao: description,
+    coverUrl,
+    capaUrl: coverUrl,
+    updatedAt: new Date().toISOString(),
+  };
+
+  writePlaylistMetadataStore(metadataStore);
+}
+
+function removePlaylistMetadata(playlistId) {
+  if (playlistId === undefined || playlistId === null || playlistId === '') return;
+
+  const metadataStore = readPlaylistMetadataStore();
+  delete metadataStore[String(playlistId)];
+  writePlaylistMetadataStore(metadataStore);
+}
+
+function withPlaylistMetadata(playlist) {
+  const normalizedPlaylist = normalizePlaylist(playlist) || playlist;
+  if (!normalizedPlaylist?.id) return normalizedPlaylist;
+
+  const metadata = getPlaylistMetadata(normalizedPlaylist.id);
+  if (!metadata) return normalizedPlaylist;
+
+  return {
+    ...normalizedPlaylist,
+    description: metadata.description ?? normalizedPlaylist.description ?? '',
+    descricao: metadata.descricao ?? metadata.description ?? normalizedPlaylist.descricao ?? '',
+    coverUrl: metadata.coverUrl ?? normalizedPlaylist.coverUrl ?? '',
+    capaUrl: metadata.capaUrl ?? metadata.coverUrl ?? normalizedPlaylist.capaUrl ?? '',
+  };
 }
 
 function getListFromResponse(data) {
@@ -64,7 +138,7 @@ async function hydrateMusicItems(items) {
 async function hydratePlaylistTracks(playlist) {
   const rawTracks = getPlaylistTrackItems(playlist);
   const tracks = await hydrateMusicItems(rawTracks);
-  const normalizedPlaylist = normalizePlaylist(playlist) || playlist;
+  const normalizedPlaylist = withPlaylistMetadata(playlist) || playlist;
 
   return {
     ...playlist,
@@ -281,7 +355,7 @@ export const musicService = {
   async getUserPlaylists() {
     try {
       const response = await api.get('/playlists');
-      return normalizePlaylistList(getListFromResponse(response.data));
+      return normalizePlaylistList(getListFromResponse(response.data)).map(withPlaylistMetadata);
     } catch (error) {
       console.error('Failed to get user playlists:', error);
       throw error;
@@ -295,7 +369,7 @@ export const musicService = {
   async getGlobalPlaylists() {
     try {
       const response = await api.get('/playlists/global');
-      return normalizePlaylistList(getListFromResponse(response.data));
+      return normalizePlaylistList(getListFromResponse(response.data)).map(withPlaylistMetadata);
     } catch (error) {
       console.error('Failed to get global playlists:', error);
       throw error;
@@ -339,8 +413,17 @@ export const musicService = {
    */
   async createPlaylist(data) {
     try {
-      const response = await api.post('/playlists', data);
-      return normalizePlaylist(response.data) || response.data;
+      const response = await api.post('/playlists', {
+        name: data.name,
+        publica: data.publica,
+      });
+      const playlist = normalizePlaylist(response.data) || response.data;
+
+      if (playlist?.id) {
+        savePlaylistMetadata(playlist.id, data);
+      }
+
+      return withPlaylistMetadata(playlist);
     } catch (error) {
       console.error('Failed to create playlist:', error);
       throw error;
@@ -355,8 +438,13 @@ export const musicService = {
    */
   async updatePlaylist(id, data) {
     try {
-      const response = await api.put(`/playlists/${id}`, data);
-      return normalizePlaylist(response.data) || response.data;
+      const response = await api.put(`/playlists/${id}`, {
+        name: data.name,
+        publica: data.publica,
+      });
+
+      savePlaylistMetadata(id, data);
+      return withPlaylistMetadata(response.data);
     } catch (error) {
       console.error(`Failed to update playlist ${id}:`, error);
       throw error;
@@ -398,6 +486,7 @@ export const musicService = {
   async deletePlaylist(id) {
     try {
       await api.delete(`/playlists/${id}`);
+      removePlaylistMetadata(id);
     } catch (error) {
       console.error(`Failed to delete playlist ${id}:`, error);
       throw error;
@@ -418,7 +507,7 @@ export const musicService = {
       }
 
       const response = await api.post(`/playlists/${playlistId}/tracks/${resolvedMusicId}`);
-      return normalizePlaylist(response.data) || response.data;
+      return withPlaylistMetadata(response.data);
     } catch (error) {
       console.error(`Failed to add music ${musicId} to playlist ${playlistId}:`, error);
       throw error;
