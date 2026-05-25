@@ -1,6 +1,7 @@
 package br.com.deefy.controller;
 
 import br.com.deefy.config.OpenApiConfig;
+import br.com.deefy.controller.docs.ArtistControllerDocs;
 import br.com.deefy.dto.request.ArtistRequestDTO;
 import br.com.deefy.dto.response.AdminArtistResponseDTO;
 import br.com.deefy.exception.ArtistNotFoundException;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/artists")
 @Tag(name = "Artists", description = "Cadastro e consulta de artistas do catalogo")
 @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
-public class ArtistController {
+public class ArtistController implements ArtistControllerDocs {
 
     private final ArtistRepository artistRepository;
 

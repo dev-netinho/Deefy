@@ -1,6 +1,7 @@
 package br.com.deefy.controller;
 
 import br.com.deefy.config.OpenApiConfig;
+import br.com.deefy.controller.docs.StorageControllerDocs;
 import br.com.deefy.dto.response.StorageUploadResponseDTO;
 import br.com.deefy.service.CatalogStorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/v1/storage")
 @Tag(name = "Storage", description = "Uploads autenticados para imagens e uploads administrativos para audios")
 @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
-public class StorageController {
+public class StorageController implements StorageControllerDocs {
 
     private final CatalogStorageService catalogStorageService;
 

@@ -1,6 +1,7 @@
 package br.com.deefy.controller;
 
 import br.com.deefy.config.OpenApiConfig;
+import br.com.deefy.controller.docs.FavoriteControllerDocs;
 import br.com.deefy.dto.response.*;
 import br.com.deefy.exception.UsuarioNaoEncontradoException;
 import br.com.deefy.model.User;
@@ -20,7 +21,7 @@ import java.util.List;
 @RequestMapping("/api/v1/favorites")
 @Tag(name = "Favorites", description = "Favoritos de musicas, artistas e generos do usuario autenticado")
 @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
-public class FavoriteController {
+public class FavoriteController implements FavoriteControllerDocs {
 
     private final FavoriteService favoriteService;
     private final UserRepository userRepository;

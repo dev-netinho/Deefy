@@ -1,6 +1,7 @@
 package br.com.deefy.controller;
 
 import br.com.deefy.config.OpenApiConfig;
+import br.com.deefy.controller.docs.UserControllerDocs;
 import br.com.deefy.dto.request.AdminUserBanRequestDTO;
 import br.com.deefy.dto.request.AdminUserRoleRequestDTO;
 import br.com.deefy.dto.request.AdminUserUpdateRequestDTO;
@@ -38,7 +39,7 @@ import java.util.Locale;
 @RequestMapping(value = "/api/v1/users")
 @Tag(name = "User/Profile", description = "Usuarios e perfil do usuario autenticado")
 @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
-public class UserController {
+public class UserController implements UserControllerDocs {
 
     private final UserService userService;
     private final UserRepository userRepository;

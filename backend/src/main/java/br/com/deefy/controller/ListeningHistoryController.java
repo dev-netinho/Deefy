@@ -1,6 +1,7 @@
 package br.com.deefy.controller;
 
 import br.com.deefy.config.OpenApiConfig;
+import br.com.deefy.controller.docs.ListeningHistoryControllerDocs;
 import br.com.deefy.dto.request.ListeningHistoryRequest;
 import br.com.deefy.dto.request.ListeningHistoryResponse;
 import br.com.deefy.service.ListeningHistoryService;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/history")
 @Tag(name = "History", description = "Historico de musicas do usuario autenticado")
 @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
-public class ListeningHistoryController {
+public class ListeningHistoryController implements ListeningHistoryControllerDocs {
 
     private final ListeningHistoryService listeningHistoryService;
 

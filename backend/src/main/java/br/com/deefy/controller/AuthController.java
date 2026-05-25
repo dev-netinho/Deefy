@@ -1,5 +1,6 @@
 package br.com.deefy.controller;
 
+import br.com.deefy.controller.docs.AuthControllerDocs;
 import br.com.deefy.dto.request.*;
 import br.com.deefy.dto.response.AuthResponseDTO;
 import br.com.deefy.dto.response.UserResponseDTO;
@@ -27,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/auth")
 @Tag(name = "Auth", description = "Cadastro, login, ativacao de conta e recuperacao de senha")
-public class AuthController {
+public class AuthController implements AuthControllerDocs {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;

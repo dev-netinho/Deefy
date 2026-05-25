@@ -1,6 +1,7 @@
 package br.com.deefy.controller;
 
 import br.com.deefy.config.OpenApiConfig;
+import br.com.deefy.controller.docs.PlaylistControllerDocs;
 import br.com.deefy.dto.request.PlaylistRequestDTO;
 import br.com.deefy.dto.response.PlaylistResponseDTO;
 import br.com.deefy.exception.UsuarioNaoEncontradoException;
@@ -24,7 +25,7 @@ import java.util.List;
 @RequestMapping("/api/v1/playlists")
 @Tag(name = "Playlist", description = "Playlists do usuario autenticado e suas faixas")
 @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
-public class PlaylistController {
+public class PlaylistController implements PlaylistControllerDocs {
 
     @Autowired
     private PlaylistService playlistService;

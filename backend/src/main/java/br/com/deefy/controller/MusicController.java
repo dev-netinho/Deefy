@@ -4,6 +4,7 @@ import br.com.deefy.dto.request.MusicRequestDTO;
 import br.com.deefy.dto.response.MusicDetailResponseDTO;
 import br.com.deefy.dto.response.MusicListResponseDTO;
 import br.com.deefy.config.OpenApiConfig;
+import br.com.deefy.controller.docs.MusicControllerDocs;
 import br.com.deefy.service.MusicService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,7 +25,7 @@ import java.util.List;
 @RequestMapping(value = "/api/v1/musics")
 @Tag(name = "Music", description = "Catalogo de musicas e URLs de audio/imagem")
 @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
-public class MusicController {
+public class MusicController implements MusicControllerDocs {
 
     private final MusicService musicService;
 

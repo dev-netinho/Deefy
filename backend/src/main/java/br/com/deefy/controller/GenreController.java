@@ -1,6 +1,7 @@
 package br.com.deefy.controller;
 
 import br.com.deefy.config.OpenApiConfig;
+import br.com.deefy.controller.docs.GenreControllerDocs;
 import br.com.deefy.dto.request.GenreRequestDTO;
 import br.com.deefy.dto.response.AdminGenreResponseDTO;
 import br.com.deefy.exception.ArtistNotFoundException;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/genres")
 @Tag(name = "Genres", description = "Catalogo de generos/lancamentos conforme contrato atual do banco")
 @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
-public class GenreController {
+public class GenreController implements GenreControllerDocs {
 
     private final GenreRepository genreRepository;
     private final ArtistRepository artistRepository;
