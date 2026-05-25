@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { MdFavorite, MdPlayArrow } from "react-icons/md";
 import { usePlayer } from "../contexts/PlayerContext";
-import { musicService } from "../services/musicService";
+import { FAVORITE_MUSIC_CHANGED_EVENT, musicService } from "../services/musicService";
 import { getMusicIdFromTrack, normalizeMusic } from "../utils/musicNormalizer";
 import { recordListeningSignal } from "../utils/recommendationEngine";
 import "./SongList.css";
@@ -58,6 +58,34 @@ function SongList({
       isMounted = false;
     };
   }, [isFavoriteContext, normalizedSongs]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const handleFavoriteChanged = (event) => {
+      const musicId = event.detail?.musicId;
+      const isNowFavorite = Boolean(event.detail?.isFavorite);
+
+      if (!musicId) return;
+
+      setFavoriteSongIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+
+        if (isNowFavorite) {
+          nextIds.add(String(musicId));
+        } else {
+          nextIds.delete(String(musicId));
+        }
+
+        return nextIds;
+      });
+    };
+
+    window.addEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
+    return () => window.removeEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
+  }, []);
 
   const handleFavoriteChanged = (song, isFavorite) => {
     const songId = getSongId(song);

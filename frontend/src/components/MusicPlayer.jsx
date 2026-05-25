@@ -14,7 +14,7 @@ import { FiChevronDown, FiMaximize2, FiRepeat } from "react-icons/fi";
 import { MdPlaylistAdd } from "react-icons/md";
 import { toast } from "sonner";
 import { usePlayer } from "../contexts/PlayerContext";
-import { musicService } from "../services/musicService";
+import { FAVORITE_MUSIC_CHANGED_EVENT, musicService } from "../services/musicService";
 import "./MusicPlayer.css";
 
 const EMPTY_TRACK = {
@@ -142,15 +142,18 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   const contextIsPlayingRef = useRef(false);
   const shouldResumePlaybackRef = useRef(false);
   const lastPlaybackCommandIdRef = useRef(null);
+  const favoriteStatusRequestRef = useRef(0);
 
   const {
     currentTrack: contextTrack,
     isPlaying: contextIsPlaying,
+    isShuffle,
     queue,
     playbackCommand,
     playNext,
     playPrevious,
     setPlaying: setContextPlaying,
+    setShuffleMode,
   } = usePlayer();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -158,9 +161,9 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(72);
   const [isMuted, setIsMuted] = useState(false);
-  const [isShuffle, setIsShuffle] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavoriteBusy, setIsFavoriteBusy] = useState(false);
   const [playlistMenuContext, setPlaylistMenuContext] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isExpandedClosing, setIsExpandedClosing] = useState(false);
@@ -228,6 +231,45 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   useEffect(() => {
     setIsFavorite(currentTrack.isFavorite);
   }, [currentTrack.id, currentTrack.isFavorite]);
+
+  useEffect(() => {
+    if (!currentTrack.id) {
+      setIsFavorite(false);
+      return undefined;
+    }
+
+    const requestId = favoriteStatusRequestRef.current + 1;
+    favoriteStatusRequestRef.current = requestId;
+
+    musicService.getFavoriteStatus(currentTrack.id)
+      .then((isCurrentFavorite) => {
+        if (favoriteStatusRequestRef.current === requestId) {
+          setIsFavorite(isCurrentFavorite);
+        }
+      })
+      .catch((error) => {
+        console.warn("Deefy player: nao foi possivel consultar favorito.", error);
+      });
+
+    return undefined;
+  }, [currentTrack.id]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const handleFavoriteChanged = (event) => {
+      if (!currentTrack.id || String(event.detail?.musicId) !== String(currentTrack.id)) {
+        return;
+      }
+
+      setIsFavorite(Boolean(event.detail?.isFavorite));
+    };
+
+    window.addEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
+    return () => window.removeEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
+  }, [currentTrack.id]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -360,6 +402,10 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
     setIsMuted((current) => !current);
   };
 
+  const toggleShuffle = () => {
+    setShuffleMode((current) => !current);
+  };
+
   const handlePrevious = () => {
     if (!hasPrevious) return;
     shouldResumePlaybackRef.current = true;
@@ -397,13 +443,18 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
     if (!currentTrack.id) return;
 
     const nextFavorite = !isFavorite;
+    favoriteStatusRequestRef.current += 1;
+    setIsFavoriteBusy(true);
     setIsFavorite(nextFavorite);
 
     try {
-      await musicService.toggleFavorite(currentTrack.id, isFavorite);
+      const savedFavoriteState = await musicService.toggleFavorite(currentTrack.id, isFavorite);
+      setIsFavorite(savedFavoriteState);
     } catch (error) {
       setIsFavorite(!nextFavorite);
       console.warn("Deefy player: nao foi possivel atualizar favorito.", error);
+    } finally {
+      setIsFavoriteBusy(false);
     }
   };
 
@@ -771,7 +822,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
               stopCompactControlClick(event);
               toggleFavorite();
             }}
-            disabled={!currentTrack.id}
+            disabled={!currentTrack.id || isFavoriteBusy}
             aria-label="Favoritar"
             aria-pressed={isFavorite}
           >
@@ -790,7 +841,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
               }`}
               onClick={(event) => {
                 stopCompactControlClick(event);
-                setIsShuffle((current) => !current);
+                toggleShuffle();
               }}
               aria-label="Aleatorio"
               aria-pressed={isShuffle}
@@ -984,7 +1035,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
                         isFavorite ? "is-favorite" : ""
                       }`}
                       onClick={toggleFavorite}
-                      disabled={!currentTrack.id}
+                      disabled={!currentTrack.id || isFavoriteBusy}
                       aria-label="Favoritar"
                       aria-pressed={isFavorite}
                     >
@@ -1028,7 +1079,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
                     className={`deefy-player-control-action deefy-player-expanded-control ${
                       isShuffle ? "is-active" : ""
                     }`}
-                    onClick={() => setIsShuffle((current) => !current)}
+                    onClick={toggleShuffle}
                     aria-label="Aleatorio"
                     aria-pressed={isShuffle}
                   >

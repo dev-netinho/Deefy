@@ -11,6 +11,21 @@ import {
 
 export { normalizeMusic, normalizePlaylist };
 
+export const FAVORITE_MUSIC_CHANGED_EVENT = 'deefy:favorite-music-changed';
+
+function notifyFavoriteMusicChanged(musicId, isFavorite) {
+  if (typeof window === 'undefined' || musicId === undefined || musicId === null || musicId === '') {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent(FAVORITE_MUSIC_CHANGED_EVENT, {
+    detail: {
+      musicId: String(musicId),
+      isFavorite: Boolean(isFavorite),
+    },
+  }));
+}
+
 function getListFromResponse(data) {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.content)) return data.content;
@@ -202,13 +217,45 @@ export const musicService = {
     try {
       if (isCurrentlyFavorite) {
         await api.delete(`/favorites/musics/${musicId}`);
+        notifyFavoriteMusicChanged(musicId, false);
+        return false;
       } else {
         await api.post(`/favorites/musics/${musicId}`);
+        notifyFavoriteMusicChanged(musicId, true);
+        return true;
       }
     } catch (error) {
+      const status = error?.response?.status || error?.status;
+
+      if (!isCurrentlyFavorite && status === 409) {
+        notifyFavoriteMusicChanged(musicId, true);
+        return true;
+      }
+
+      if (isCurrentlyFavorite && status === 404) {
+        notifyFavoriteMusicChanged(musicId, false);
+        return false;
+      }
+
       console.error('Failed to toggle favorite:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get favorite status for one music.
+   * @param {string|number} musicId
+   * @returns {Promise<boolean>}
+   */
+  async getFavoriteStatus(musicId) {
+    const response = await api.get(`/favorites/musics/${musicId}/status`);
+    return Boolean(
+      response.data?.favoritado ??
+      response.data?.favorite ??
+      response.data?.isFavorite ??
+      response.data?.favorited ??
+      false
+    );
   },
 
   /**

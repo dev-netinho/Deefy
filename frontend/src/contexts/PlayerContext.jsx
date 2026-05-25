@@ -11,19 +11,61 @@ function sameTrack(left, right) {
   return String(left.id) === String(right.id);
 }
 
+function normalizeQueue(track, newQueue) {
+  if (Array.isArray(newQueue) && newQueue.length) {
+    return [...newQueue];
+  }
+
+  return track ? [track] : [];
+}
+
+function shuffleItems(items) {
+  const shuffled = [...items];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    const currentItem = shuffled[index];
+    shuffled[index] = shuffled[randomIndex];
+    shuffled[randomIndex] = currentItem;
+  }
+
+  return shuffled;
+}
+
+function buildShuffledQueue(sourceQueue, currentTrack) {
+  if (!Array.isArray(sourceQueue) || sourceQueue.length <= 1) {
+    return Array.isArray(sourceQueue) ? [...sourceQueue] : [];
+  }
+
+  const activeIndex = currentTrack
+    ? sourceQueue.findIndex((track) => sameTrack(track, currentTrack))
+    : -1;
+
+  if (activeIndex < 0) {
+    return shuffleItems(sourceQueue);
+  }
+
+  const activeTrack = sourceQueue[activeIndex];
+  const remainingTracks = sourceQueue.filter((_, index) => index !== activeIndex);
+  return [activeTrack, ...shuffleItems(remainingTracks)];
+}
+
 export function PlayerProvider({ children }) {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [queue, setQueue] = useState([]);
+  const [sourceQueue, setSourceQueue] = useState([]);
+  const [isShuffle, setIsShuffle] = useState(false);
   const [playbackCommand, setPlaybackCommand] = useState(null);
 
   const playTrack = useCallback((track, newQueue) => {
+    const nextSourceQueue = normalizeQueue(track, newQueue);
+
     setCurrentTrack(track);
     setIsPlaying(true);
-    if (newQueue) {
-      setQueue(newQueue);
-    }
-  }, []);
+    setSourceQueue(nextSourceQueue);
+    setQueue(isShuffle ? buildShuffledQueue(nextSourceQueue, track) : nextSourceQueue);
+  }, [isShuffle]);
 
   const playNext = useCallback(() => {
     if (!queue.length || !currentTrack) return;
@@ -51,26 +93,44 @@ export function PlayerProvider({ children }) {
     setIsPlaying(Boolean(nextPlaying));
   }, []);
 
+  const setShuffleMode = useCallback((nextShuffle) => {
+    const enabled = typeof nextShuffle === 'function'
+      ? Boolean(nextShuffle(isShuffle))
+      : Boolean(nextShuffle);
+
+    setIsShuffle(enabled);
+    setQueue((currentQueue) => {
+      const baseQueue = sourceQueue.length ? sourceQueue : currentQueue;
+      return enabled ? buildShuffledQueue(baseQueue, currentTrack) : [...baseQueue];
+    });
+  }, [currentTrack, isShuffle, sourceQueue]);
+
   const value = useMemo(() => ({
     currentTrack,
     isPlaying,
     queue,
+    sourceQueue,
+    isShuffle,
     playbackCommand,
     playTrack,
     playNext,
     playPrevious,
     togglePlay,
     setPlaying,
+    setShuffleMode,
   }), [
     currentTrack,
     isPlaying,
     queue,
+    sourceQueue,
+    isShuffle,
     playbackCommand,
     playTrack,
     playNext,
     playPrevious,
     togglePlay,
     setPlaying,
+    setShuffleMode,
   ]);
 
   return (
