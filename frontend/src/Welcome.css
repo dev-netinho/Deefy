@@ -1,0 +1,250 @@
+:root {
+  --accent: #39f0d0;
+  --accent-soft: #8ff3df;
+  --text: #ffffff;
+  --text-muted: #b9b9b9;
+  --panel: rgba(15, 15, 18, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #050505;
+  color: var(--text);
+}
+
+.welcome-page {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.welcome-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(57, 240, 208, 0.12), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(57, 240, 208, 0.08), transparent 35%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.85));
+  z-index: 1;
+}
+
+.welcome-center {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 760px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeUp 0.9s ease;
+}
+
+.welcome-logo {
+  margin-bottom: 22px;
+}
+
+.welcome-logo img {
+  width: 150px;
+  max-width: 42vw;
+  height: auto;
+  animation: fadeIn 1.2s ease;
+}
+
+.welcome-text h1 {
+  margin: 0;
+  font-size: 4.2rem;
+  line-height: 0.95;
+  font-weight: 900;
+  letter-spacing: -2px;
+  color: var(--text);
+  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+.welcome-text p {
+  margin: 26px auto 0;
+  max-width: 680px;
+  font-size: 1.28rem;
+  line-height: 1.6;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-actions {
+  width: 100%;
+  max-width: 448px;
+  margin: auto 0;
+  padding: 35px;
+  border-radius: 48px;
+  background: rgba(255, 255, 255, 0.00);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.button {
+  width: 100%;
+  min-height: 64px;
+  border-radius: 999px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, background 0.28s ease, color 0.28s ease;
+}
+
+.button:hover {
+  transform: translateY(-3px) scale(1.01);
+}
+
+.button:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.button-primary {
+  background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+  color: #045547;
+  box-shadow: 0 0 40px rgba(57, 240, 208, 0.35);
+}
+
+.button-primary:hover {
+  box-shadow: 0 0 34px rgba(57, 240, 208, 0.38);
+}
+
+.button-primary span {
+  margin-left: 8px;
+  display: inline-block;
+  transition: transform 0.25s ease;
+}
+
+.button-primary:hover span {
+  transform: translateX(4px);
+}
+
+.button-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.button-secondary:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* animações */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* tablet */
+@media (max-width: 900px) {
+  .welcome-center {
+    max-width: 680px;
+    padding: 0;
+  }
+
+  .welcome-text h1 {
+    font-size: 3.3rem;
+  }
+
+  .welcome-text p {
+    font-size: 1.08rem;
+  }
+}
+
+/* celular */
+@media (max-width: 600px) {
+  .welcome-page {
+    padding: 16px;
+  }
+
+  .welcome-center {
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .welcome-logo img {
+    width: 120px;
+  }
+
+  .welcome-text h1 {
+    font-size: 2.5rem;
+    line-height: 1.02;
+    letter-spacing: -1px;
+  }
+
+  .welcome-text p {
+    margin-top: 18px;
+    font-size: 0.98rem;
+    line-height: 1.5;
+  }
+
+  .welcome-actions {
+    margin-top: 28px;
+    padding: 0;
+    gap: 12px;
+  }
+
+  .button {
+    min-height: 56px;
+    font-size: 1.08rem;
+  }
+}
+
+/* celular pequeno */
+@media (max-width: 400px) {
+  .welcome-text h1 {
+    font-size: 2.1rem;
+  }
+
+  .welcome-text p {
+    font-size: 0.92rem;
+  }
+}

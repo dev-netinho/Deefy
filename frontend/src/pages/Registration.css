@@ -1,0 +1,551 @@
+.registration-page {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.registration-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(57, 240, 208, 0.12), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(57, 240, 208, 0.10), transparent 28%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.92));
+  z-index: 1;
+}
+
+.registration-wrapper {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 460px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center;
+  animation: registrationFadeUp 0.9s ease;
+}
+
+.registration-logo {
+  margin-bottom: 28px;
+  animation: registrationFadeIn 1.1s ease;
+}
+
+.registration-logo img {
+  width: 150px;
+  max-width: 42vw;
+  height: auto;
+  display: block;
+}
+
+.registration-card {
+  width: 100%;
+  padding: 34px 34px 28px;
+  border-radius: 28px;
+  background: rgba(20, 20, 22, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  display: block !important;
+}
+
+.registration-input-group {
+  width: 100%;
+  margin-bottom: 18px;
+  display: block !important;
+}
+
+.registration-input-group h3 {
+  margin: 0 0 10px !important;
+  color: #a7a7a7 !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 2px !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+}
+
+.registration-input-box {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  border-radius: 18px !important;
+  background: rgba(0, 0, 0, 0.68) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  overflow: hidden;
+}
+
+.registration-input-box-name input {
+  padding-left: 16px !important;
+}
+
+.registration-input-box:hover {
+  transform: translateY(-1px);
+}
+
+.registration-input-box:focus-within {
+  border-color: rgba(57, 240, 208, 0.5) !important;
+  box-shadow: 0 0 0 4px rgba(57, 240, 208, 0.08) !important;
+}
+
+.registration-input-icon {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 1.35rem !important;
+  color: #9a9a9a !important;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.registration-input-eye {
+  position: absolute !important;
+  right: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 1.4rem !important;
+  color: #9a9a9a !important;
+  cursor: pointer !important;
+  transition: color 0.25s ease, transform 0.25s ease;
+  z-index: 2;
+}
+
+.registration-input-eye:hover {
+  color: #ffffff !important;
+}
+
+.registration-input-box input {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 52px 0 50px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: #ffffff !important;
+  font-size: 1.05rem !important;
+  display: block !important;
+  text-align: left !important;
+  box-shadow: none !important;
+}
+
+.registration-input-box input::placeholder {
+  color: #7f7f7f !important;
+}
+
+.registration-error {
+  margin: 8px 0 16px !important;
+  color: #ff5d5d !important;
+  font-size: 0.92rem !important;
+  text-align: center !important;
+  animation: registrationFadeIn 0.3s ease;
+}
+
+.registration-button-primary {
+  margin-top: 8px !important;
+  width: 100% !important;
+  min-height: 62px !important;
+  height: 62px !important;
+  border: none !important;
+  border-radius: 18px !important;
+  background: linear-gradient(90deg, #8ff3df, #39f0d0) !important;
+  color: #045547 !important;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  box-shadow: 0 0 30px rgba(57, 240, 208, 0.24) !important;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, filter 0.28s ease;
+}
+
+.registration-button-primary:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 0 40px rgba(57, 240, 208, 0.34) !important;
+  filter: brightness(1.03);
+}
+
+.registration-button-primary:active {
+  transform: scale(0.99);
+}
+
+.registration-divider {
+  width: 100%;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px;
+  margin: 30px 0 24px;
+  animation: registrationFadeIn 1.2s ease;
+}
+
+.registration-divider div {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.registration-divider span {
+  color: #9f9f9f;
+  font-size: 0.82rem;
+  letter-spacing: 3px;
+  white-space: nowrap;
+}
+
+.registration-google-button {
+  width: 190px !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background: rgba(20, 20, 22, 0.72) !important;
+  color: #ffffff !important;
+  font-size: 2rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  transition: transform 0.28s ease, background 0.28s ease, border-color 0.28s ease;
+}
+
+.registration-google-button:hover {
+  transform: translateY(-3px);
+  background: rgba(32, 32, 36, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.registration-login-text {
+  margin-top: 26px !important;
+  text-align: center !important;
+  color: #d6d6d6 !important;
+  font-size: 1rem !important;
+  animation: registrationFadeIn 1.4s ease;
+}
+
+.registration-login-text span {
+  color: #39f0d0 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: opacity 0.25s ease;
+}
+
+.registration-login-text span:hover {
+  opacity: 0.85;
+}
+
+@keyframes registrationFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes registrationFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .registration-page {
+    padding: 18px;
+  }
+
+  .registration-logo img {
+    width: 120px;
+  }
+
+  .registration-card {
+    padding: 26px 20px 22px;
+    border-radius: 22px;
+  }
+
+  .registration-input-box {
+    min-height: 54px !important;
+    height: 54px !important;
+    border-radius: 16px !important;
+  }
+
+  .registration-input-box input {
+    font-size: 1rem !important;
+  }
+
+  .registration-button-primary {
+    min-height: 56px !important;
+    height: 56px !important;
+    font-size: 1.12rem !important;
+    border-radius: 16px !important;
+  }
+
+  .registration-google-button {
+    width: 160px !important;
+    min-height: 54px !important;
+    height: 54px !important;
+    font-size: 1.8rem !important;
+  }
+
+  .registration-login-text {
+    font-size: 0.95rem !important;
+  }
+}
+
+.password-strength-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.password-strength-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* ─── Email Confirmation Modal ─────────────────────────────────────────────── */
+
+.email-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
+  animation: modalBackdropIn 0.3s ease;
+}
+
+@keyframes modalBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.email-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: rgba(18, 18, 21, 0.92);
+  border: 1px solid rgba(57, 240, 208, 0.18);
+  border-radius: 28px;
+  padding: 44px 36px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px rgba(57, 240, 208, 0.06),
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 80px rgba(57, 240, 208, 0.06);
+  animation: modalCardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalCardIn {
+  from { opacity: 0; transform: scale(0.88) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.email-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: #9a9a9a;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.email-modal-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.email-modal-icon-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(57, 240, 208, 0.1);
+  border: 1.5px solid rgba(57, 240, 208, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.email-modal-main-icon {
+  font-size: 2.4rem;
+  color: #39f0d0;
+}
+
+.email-modal-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(57, 240, 208, 0.25);
+  animation: modalPulse 2s ease-in-out infinite;
+}
+
+@keyframes modalPulse {
+  0%   { transform: scale(1);    opacity: 0.8; }
+  50%  { transform: scale(1.12); opacity: 0.2; }
+  100% { transform: scale(1);    opacity: 0.8; }
+}
+
+.email-modal-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 10px;
+  letter-spacing: -0.3px;
+}
+
+.email-modal-subtitle {
+  font-size: 0.95rem;
+  color: #a7a7a7;
+  margin: 0 0 10px;
+}
+
+.email-modal-address {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(57, 240, 208, 0.07);
+  border: 1px solid rgba(57, 240, 208, 0.15);
+  border-radius: 12px;
+  padding: 10px 18px;
+  margin-bottom: 20px;
+  font-size: 0.97rem;
+  font-weight: 600;
+  color: #39f0d0;
+  word-break: break-all;
+}
+
+.email-modal-address svg {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.email-modal-instructions {
+  font-size: 0.9rem;
+  color: #8a8a8a;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+.email-modal-button-primary {
+  width: 100%;
+  min-height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #8ff3df, #39f0d0);
+  color: #045547;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+  box-shadow: 0 0 28px rgba(57, 240, 208, 0.22);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  margin-bottom: 12px;
+}
+
+.email-modal-button-primary:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0 40px rgba(57, 240, 208, 0.32);
+  filter: brightness(1.04);
+}
+
+.email-modal-button-secondary {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 14px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #c4c4c4;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  margin-bottom: 20px;
+}
+
+.email-modal-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.email-modal-footer {
+  font-size: 0.88rem;
+  color: #6a6a6a;
+  margin: 0;
+}
+
+.email-modal-footer span {
+  color: #39f0d0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.email-modal-footer span:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+  .email-modal-card {
+    padding: 36px 22px 28px;
+    border-radius: 22px;
+  }
+  .email-modal-title {
+    font-size: 1.3rem;
+  }
+}

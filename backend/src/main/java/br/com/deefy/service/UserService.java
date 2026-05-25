@@ -1,0 +1,37 @@
+package br.com.deefy.service;
+
+import br.com.deefy.dto.request.*;
+import br.com.deefy.dto.response.UserResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
+
+public interface UserService {
+    UserResponseDTO createUser(UserRequestDTO request);
+
+    UserResponseDTO findUserById(Long id);
+
+    Page<UserResponseDTO> findAllUsers(Pageable pageable);
+
+    //UserResponseDTO updateUser(Long id, UpdateUserRequestDTO updateUserRequestDTO);
+
+    //void deleteUser(Long id);
+
+    UserResponseDTO findProfileByEmail(String email);
+
+    UserResponseDTO updateMyName(String email, UpdateNameRequestDTO request);
+
+    UserResponseDTO updateMyProfilePhoto(String email, UpdateProfilePhotoRequestDTO request);
+
+    UserResponseDTO uploadMyProfilePhoto(String email, MultipartFile file);
+
+    UserResponseDTO removeMyProfilePhoto(String email);
+
+    void changeMyPassword(String email, ChangePasswordRequestDTO request);
+
+    void generatePasswordResetLink(ForgotPasswordRequestDTO request);
+
+    void resetPassword(ResetPasswordRequestDTO request);
+
+    void activateAccount(ActivateAccountRequestDTO request);
+}

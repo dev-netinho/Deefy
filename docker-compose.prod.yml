@@ -1,0 +1,70 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: deefy-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      JWT_RESET_EXPIRATION: ${JWT_RESET_EXPIRATION:-900000}
+      JWT_ACCOUNT_ACTIVATION_EXPIRATION: ${JWT_ACCOUNT_ACTIVATION_EXPIRATION:-900000}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS}
+      APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM: ${RESEND_FROM}
+      SUPABASE_PROJECT_URL: ${SUPABASE_PROJECT_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_STORAGE_PUBLIC_BASE_URL: ${SUPABASE_STORAGE_PUBLIC_BASE_URL}
+      SUPABASE_STORAGE_MUSIC_BUCKET: ${SUPABASE_STORAGE_MUSIC_BUCKET:-musicas}
+      SUPABASE_STORAGE_IMAGE_BUCKET: ${SUPABASE_STORAGE_IMAGE_BUCKET:-imagens}
+      SUPABASE_STORAGE_PROFILE_BUCKET: ${SUPABASE_STORAGE_PROFILE_BUCKET:-fotos de perfil}
+      DEEFY_IMPORT_OWNER_USER_ID: ${DEEFY_IMPORT_OWNER_USER_ID:-}
+      DEEFY_IMPORT_OWNER_EMAIL: ${DEEFY_IMPORT_OWNER_EMAIL:-deefy.admin@deefy.com}
+      DEEFY_IMPORT_APP_DIR: /app
+      YTDLP_COOKIES_FILE: ${YTDLP_COOKIES_FILE:-}
+      YTDLP_JS_RUNTIME: ${YTDLP_JS_RUNTIME:-deno:/usr/local/bin/deno}
+      YTDLP_SLEEP_REQUESTS: ${YTDLP_SLEEP_REQUESTS:-1}
+      SERVER_PORT: 8080
+    volumes:
+      - ./secrets:/app/secrets
+    networks:
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.http.routers.deefy-api.rule=Host(`${APP_HOST}`) && (PathPrefix(`/api`) || PathPrefix(`/swagger-ui`) || Path(`/swagger-ui.html`) || PathPrefix(`/v3/api-docs`))
+      - traefik.http.routers.deefy-api.entrypoints=websecure
+      - traefik.http.routers.deefy-api.tls=true
+      - traefik.http.routers.deefy-api.tls.certresolver=let-enc
+      - traefik.http.routers.deefy-api.priority=100
+      - traefik.http.services.deefy-api.loadbalancer.server.port=8080
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${APP_FRONTEND_BASE_URL}
+    container_name: deefy-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.http.routers.deefy-frontend.rule=Host(`${APP_HOST}`)
+      - traefik.http.routers.deefy-frontend.entrypoints=websecure
+      - traefik.http.routers.deefy-frontend.tls=true
+      - traefik.http.routers.deefy-frontend.tls.certresolver=let-enc
+      - traefik.http.services.deefy-frontend.loadbalancer.server.port=80
+
+networks:
+  traefik-public:
+    external: true

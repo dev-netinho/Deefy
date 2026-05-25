@@ -1,0 +1,347 @@
+.forgot-page {
+  min-height: 100vh !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px !important;
+  overflow: hidden !important;
+}
+
+.forgot-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  background:
+    radial-gradient(circle at top center, rgba(57, 240, 208, 0.16), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(57, 240, 208, 0.10), transparent 28%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.93)) !important;
+  z-index: 1 !important;
+}
+
+.forgot-wrapper {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  max-width: 520px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  animation: forgotFadeUp 0.9s ease !important;
+}
+
+.forgot-icon-circle {
+  width: 96px !important;
+  height: 96px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(10px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 0 28px 0 !important;
+  box-shadow: 0 0 40px rgba(57, 240, 208, 0.12) !important;
+  animation: forgotFloat 3.4s ease-in-out infinite !important;
+}
+
+.forgot-main-icon {
+  font-size: 48px !important;
+  color: #1dd3b0 !important;
+}
+
+.forgot-text {
+  width: 100% !important;
+  text-align: center !important;
+  margin-bottom: 28px !important;
+  animation: forgotFadeIn 1.1s ease !important;
+}
+
+.forgot-text h1 {
+  margin: 0 0 16px 0 !important;
+  font-size: 3rem !important;
+  line-height: 1.05 !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
+}
+
+.forgot-text p {
+  margin: 0 auto !important;
+  max-width: 430px !important;
+  color: #adaaaa !important;
+  font-size: 1.2rem !important;
+  line-height: 1.6 !important;
+  text-align: center !important;
+}
+
+.forgot-form-area {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 18px !important;
+  margin-bottom: 24px !important;
+}
+
+.forgot-input-group {
+  width: 100% !important;
+  display: block !important;
+}
+
+.forgot-input-group h3 {
+  margin: 0 0 10px 0 !important;
+  color: #a7a7a7 !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 2px !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+}
+
+.forgot-input-box {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  border-radius: 18px !important;
+  background: rgba(0, 0, 0, 0.68) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important;
+}
+
+.forgot-input-box:hover {
+  transform: translateY(-1px) !important;
+}
+
+.forgot-input-box:focus-within {
+  border-color: rgba(57, 240, 208, 0.5) !important;
+  box-shadow: 0 0 0 4px rgba(57, 240, 208, 0.08) !important;
+}
+
+.forgot-input-icon {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 1.35rem !important;
+  color: #9a9a9a !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+
+.forgot-input-box input {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 16px 0 50px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: #ffffff !important;
+  font-size: 1.05rem !important;
+  text-align: left !important;
+  box-shadow: none !important;
+  display: block !important;
+}
+
+.forgot-input-box input::placeholder {
+  color: #7f7f7f !important;
+}
+
+.forgot-button-primary {
+  width: 100% !important;
+  min-height: 64px !important;
+  height: 64px !important;
+  border: none !important;
+  border-radius: 18px !important;
+  background: linear-gradient(90deg, #8ff3df, #39f0d0) !important;
+  color: #045547 !important;
+  font-size: 1.2rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  box-shadow: 0 0 30px rgba(57, 240, 208, 0.24) !important;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, filter 0.28s ease !important;
+}
+
+.forgot-button-primary:hover {
+  transform: translateY(-3px) scale(1.01) !important;
+  box-shadow: 0 0 40px rgba(57, 240, 208, 0.34) !important;
+  filter: brightness(1.03) !important;
+}
+
+.forgot-button-primary:active {
+  transform: scale(0.99) !important;
+}
+
+.forgot-info-card {
+  width: 100% !important;
+  padding: 24px 24px 22px !important;
+  border-radius: 32px !important;
+  background: rgba(32, 31, 31, 0.6) !important;
+  border: 1px solid rgba(73, 72, 71, 0.1) !important;
+  backdrop-filter: blur(15px) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 14px !important;
+  margin-bottom: 34px !important;
+  animation: forgotFadeIn 1.2s ease !important;
+  text-align: left !important;
+}
+
+.forgot-info-icon {
+  color: #01cbff !important;
+  font-size: 24px !important;
+  min-width: 24px !important;
+  margin-top: 2px !important;
+}
+
+.forgot-info-text {
+  display: block !important;
+  text-align: left !important;
+}
+
+.forgot-info-text h2 {
+  margin: 0 0 8px 0 !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+}
+
+.forgot-info-text p {
+  margin: 0 !important;
+  color: #adaaaa !important;
+  font-size: 0.95rem !important;
+  line-height: 1.65 !important;
+  text-align: left !important;
+}
+
+.forgot-back-login {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  color: #d6d6d6 !important;
+  cursor: pointer !important;
+  font-size: 1.2rem !important;
+  transition: color 0.25s ease, transform 0.25s ease !important;
+  animation: forgotFadeIn 1.4s ease !important;
+}
+
+.forgot-back-login:hover {
+  color: #39f0d0 !important;
+  transform: translateX(-3px) !important;
+}
+
+.forgot-back-login span {
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+@keyframes forgotFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes forgotFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes forgotFloat {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 0 40px rgba(57, 240, 208, 0.12);
+  }
+  50% {
+    transform: translateY(-6px);
+    box-shadow: 0 0 55px rgba(57, 240, 208, 0.18);
+  }
+}
+
+.forgot-input-eye {
+  position: absolute !important;
+  right: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 1.4rem !important;
+  color: #9a9a9a !important;
+  cursor: pointer !important;
+  transition: color 0.25s ease, transform 0.25s ease;
+  z-index: 2;
+}
+
+.forgot-input-eye:hover {
+  color: #ffffff !important;
+}
+
+@media (max-width: 600px) {
+  .forgot-page {
+    padding: 18px !important;
+  }
+
+  .forgot-icon-circle {
+    width: 84px !important;
+    height: 84px !important;
+    margin-bottom: 22px !important;
+  }
+
+  .forgot-main-icon {
+    font-size: 40px !important;
+  }
+
+  .forgot-text h1 {
+    font-size: 2.2rem !important;
+  }
+
+  .forgot-text p {
+    font-size: 1rem !important;
+  }
+
+  .forgot-input-box {
+    min-height: 54px !important;
+    height: 54px !important;
+    border-radius: 16px !important;
+  }
+
+  .forgot-button-primary {
+    min-height: 56px !important;
+    height: 56px !important;
+    font-size: 1rem !important;
+    border-radius: 16px !important;
+  }
+
+  .forgot-info-card {
+    padding: 20px !important;
+    border-radius: 24px !important;
+  }
+
+  .forgot-info-text p {
+    font-size: 0.9rem !important;
+  }
+}
