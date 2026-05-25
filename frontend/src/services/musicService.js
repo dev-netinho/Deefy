@@ -109,12 +109,10 @@ function toPlaylistPayload(data = {}) {
   const coverUrl = data.coverUrl ?? data.capaUrl ?? '';
 
   return {
-    name: data.name,
+    name: data.name ?? data.nome,
     publica: data.publica,
     description,
-    descricao: description,
     coverUrl,
-    capaUrl: coverUrl,
   };
 }
 

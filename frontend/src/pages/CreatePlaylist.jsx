@@ -126,9 +126,7 @@ function CreatePlaylist() {
         name: name.trim(),
         publica: isPublic,
         description: trimmedDescription,
-        descricao: trimmedDescription,
         coverUrl: normalizedCoverUrl,
-        capaUrl: normalizedCoverUrl,
       }
 
       if (isEditing) {
