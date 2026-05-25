@@ -7,6 +7,17 @@ import { showMusicError, showMusicSuccess } from '../utils/musicToast'
 import { useNavigate, useParams } from 'react-router-dom'
 import { MdAddPhotoAlternate, MdClose } from 'react-icons/md'
 
+function getErrorMessage(error, fallbackMessage) {
+  return (
+    error?.response?.data?.message ||
+    error?.data?.message ||
+    error?.response?.data?.messages?.[0] ||
+    error?.data?.messages?.[0] ||
+    error?.message ||
+    fallbackMessage
+  )
+}
+
 function CreatePlaylist() {
   const { id } = useParams()
   const isEditing = Boolean(id)
@@ -96,9 +107,18 @@ function CreatePlaylist() {
 
     try {
       setIsSubmitting(true)
-      const uploadedCoverUrl = coverFile
-        ? await musicService.uploadPlaylistCoverImage(coverFile)
-        : coverUrl.trim()
+      let uploadedCoverUrl = coverUrl.trim()
+
+      if (coverFile) {
+        try {
+          uploadedCoverUrl = await musicService.uploadPlaylistCoverImage(coverFile)
+        } catch (uploadError) {
+          console.warn('Erro ao enviar capa da playlist. Salvando sem atualizar a capa.', uploadError)
+          showMusicError("Não consegui enviar a capa agora, mas vou salvar a playlist mesmo assim.")
+          uploadedCoverUrl = coverUrl.trim()
+        }
+      }
+
       const trimmedDescription = description.trim()
       const normalizedCoverUrl = uploadedCoverUrl.trim()
 
@@ -123,7 +143,7 @@ function CreatePlaylist() {
       navigate(`/playlist/${created.id}/add-music`)
     } catch (err) {
       const fallbackMessage = isEditing ? "Erro ao editar playlist." : "Erro ao criar playlist."
-      showMusicError(err?.response?.data?.message || fallbackMessage)
+      showMusicError(getErrorMessage(err, fallbackMessage))
     } finally {
       setIsSubmitting(false)
     }

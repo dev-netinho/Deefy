@@ -13,6 +13,7 @@ import br.com.deefy.service.PlaylistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ public class PlaylistController implements PlaylistControllerDocs {
     @PostMapping
     @Operation(summary = "Criar playlist", description = "Cria uma playlist para o usuario autenticado pelo JWT.")
     public ResponseEntity<PlaylistResponseDTO> create(
-            @RequestBody PlaylistRequestDTO request,
+            @Valid @RequestBody PlaylistRequestDTO request,
             @AuthenticationPrincipal Object principal) { // Usamos Object para evitar o erro de Cast
 
         String email;
@@ -161,7 +162,7 @@ public class PlaylistController implements PlaylistControllerDocs {
     @Operation(summary = "Atualizar playlist", description = "Atualiza nome, visibilidade, descricao e capa da playlist.")
     public ResponseEntity<PlaylistResponseDTO> update(
             @PathVariable Long id,
-            @RequestBody PlaylistRequestDTO request,
+            @Valid @RequestBody PlaylistRequestDTO request,
             @AuthenticationPrincipal Object principal) {
 
         String email = extrairEmail(principal);
