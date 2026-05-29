@@ -157,6 +157,13 @@ algumas integracoes dependem de servicos externos:
 Essas limitacoes sao intencionais para manter o projeto seguro, reproduzivel e
 adequado para publicacao open source.
 
+## Contribuidores
+
+- [Jose G. C. Neto](https://github.com/dev-netinho)
+
+Se voce tambem participou do projeto, adicione seu nome e perfil GitHub nesta
+secao.
+
 ## Licenca
 
 Distribuido sob a licenca MIT. Veja `LICENSE`.
