@@ -169,46 +169,54 @@ function EditProfile() {
           </div>
         </div>
 
-        {/* Gallery upload card */}
-        <div
-          className={`edit-profile-card${busy ? ' edit-profile-card--disabled' : ''}`}
-          onClick={() => !busy && galleryInputRef.current.click()}
-        >
-          <div className="edit-profile-input-icon-box">
-            <MdOutlineUploadFile className="edit-profile-input-icon" />
-          </div>
-          <div className="edit-profile-text-content">
-            <h1>Upload da galeria</h1>
-            <p>Selecione uma imagem da sua galeria.</p>
-          </div>
-        </div>
+        <div className="edit-profile-actions">
+          {/* Gallery upload card */}
+          <button
+            type="button"
+            className={`edit-profile-card${busy ? ' edit-profile-card--disabled' : ''}`}
+            onClick={() => !busy && galleryInputRef.current.click()}
+            disabled={busy}
+          >
+            <div className="edit-profile-input-icon-box">
+              <MdOutlineUploadFile className="edit-profile-input-icon" />
+            </div>
+            <div className="edit-profile-text-content">
+              <h1>Upload da galeria</h1>
+              <p>Selecione uma imagem da sua galeria.</p>
+            </div>
+          </button>
 
-        {/* Camera capture card */}
-        <div
-          className={`edit-profile-card${busy ? ' edit-profile-card--disabled' : ''}`}
-          onClick={() => !busy && cameraInputRef.current.click()}
-        >
-          <div className="edit-profile-input-icon-box">
-            <IoCameraOutline className="edit-profile-input-icon" />
-          </div>
-          <div className="edit-profile-text-content">
-            <h1>Tirar foto</h1>
-            <p>Tire uma foto com a sua câmera.</p>
-          </div>
-        </div>
+          {/* Camera capture card */}
+          <button
+            type="button"
+            className={`edit-profile-card${busy ? ' edit-profile-card--disabled' : ''}`}
+            onClick={() => !busy && cameraInputRef.current.click()}
+            disabled={busy}
+          >
+            <div className="edit-profile-input-icon-box">
+              <IoCameraOutline className="edit-profile-input-icon" />
+            </div>
+            <div className="edit-profile-text-content">
+              <h1>Tirar foto</h1>
+              <p>Tire uma foto com a sua câmera.</p>
+            </div>
+          </button>
 
-        {/* Remove photo card */}
-        <div
-          className={`edit-profile-card trash-card${(busy || !hasPhoto) ? ' edit-profile-card--disabled' : ''}`}
-          onClick={() => !busy && hasPhoto && handleRemovePhoto()}
-        >
-          <div className="edit-profile-input-icon-box">
-            <IoTrashOutline className="edit-profile-input-icon" />
-          </div>
-          <div className="edit-profile-text-content">
-            <h1>Remover foto do perfil</h1>
-            <p>Redefina a sua foto de perfil para o padrão.</p>
-          </div>
+          {/* Remove photo card */}
+          <button
+            type="button"
+            className={`edit-profile-card trash-card${(busy || !hasPhoto) ? ' edit-profile-card--disabled' : ''}`}
+            onClick={() => !busy && hasPhoto && handleRemovePhoto()}
+            disabled={busy || !hasPhoto}
+          >
+            <div className="edit-profile-input-icon-box">
+              <IoTrashOutline className="edit-profile-input-icon" />
+            </div>
+            <div className="edit-profile-text-content">
+              <h1>Remover foto do perfil</h1>
+              <p>Redefina a sua foto de perfil para o padrão.</p>
+            </div>
+          </button>
         </div>
 
       </section>

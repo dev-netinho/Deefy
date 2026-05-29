@@ -1,75 +1,92 @@
 /* eslint-disable react-refresh/only-export-components */
 // Exporting both PlayerProvider and usePlayer from the same file is intentional:
 // this is standard React context pattern. The Fast Refresh warning is suppressed here.
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useEffect, useState, useContext } from 'react';
 
 
 const PlayerContext = createContext();
+const PLAYER_STATE_STORAGE_KEY = '@deefy-player-state';
 
-function sameTrack(left, right) {
-  if (!left || !right) return false;
-  return String(left.id) === String(right.id);
+function getTrackId(track) {
+  const id = track?.id ?? track?.musicId ?? track?.musicaId ?? track?.uuid ?? track?.slug ?? '';
+  return id === undefined || id === null ? '' : String(id);
 }
 
-function normalizeQueue(track, newQueue) {
-  if (Array.isArray(newQueue) && newQueue.length) {
-    return [...newQueue];
-  }
-
-  return track ? [track] : [];
+function normalizeQueue(items) {
+  return Array.isArray(items) ? items.filter(Boolean) : [];
 }
 
-function shuffleItems(items) {
-  const shuffled = [...items];
+function shuffleQueue(items, currentTrack) {
+  const currentId = getTrackId(currentTrack);
+  const copy = normalizeQueue(items);
+  const currentItem = copy.find((track) => getTrackId(track) === currentId);
+  const rest = copy.filter((track) => getTrackId(track) !== currentId);
 
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+  for (let index = rest.length - 1; index > 0; index -= 1) {
     const randomIndex = Math.floor(Math.random() * (index + 1));
-    const currentItem = shuffled[index];
-    shuffled[index] = shuffled[randomIndex];
-    shuffled[randomIndex] = currentItem;
+    [rest[index], rest[randomIndex]] = [rest[randomIndex], rest[index]];
   }
 
-  return shuffled;
+  return currentItem ? [currentItem, ...rest] : rest;
 }
 
-function buildShuffledQueue(sourceQueue, currentTrack) {
-  if (!Array.isArray(sourceQueue) || sourceQueue.length <= 1) {
-    return Array.isArray(sourceQueue) ? [...sourceQueue] : [];
+function readStoredPlayerState() {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const storedState = window.localStorage.getItem(PLAYER_STATE_STORAGE_KEY);
+    return storedState ? JSON.parse(storedState) : {};
+  } catch (error) {
+    console.warn('Deefy player: nao foi possivel restaurar o estado salvo.', error);
+    return {};
   }
-
-  const activeIndex = currentTrack
-    ? sourceQueue.findIndex((track) => sameTrack(track, currentTrack))
-    : -1;
-
-  if (activeIndex < 0) {
-    return shuffleItems(sourceQueue);
-  }
-
-  const activeTrack = sourceQueue[activeIndex];
-  const remainingTracks = sourceQueue.filter((_, index) => index !== activeIndex);
-  return [activeTrack, ...shuffleItems(remainingTracks)];
 }
 
 export function PlayerProvider({ children }) {
-  const [currentTrack, setCurrentTrack] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [queue, setQueue] = useState([]);
-  const [sourceQueue, setSourceQueue] = useState([]);
-  const [isShuffle, setIsShuffle] = useState(false);
+  const [currentTrack, setCurrentTrack] = useState(() => readStoredPlayerState().currentTrack || null);
+  const [isPlaying, setIsPlaying] = useState(() => Boolean(readStoredPlayerState().isPlaying));
+  const [queue, setQueue] = useState(() => {
+    const storedQueue = readStoredPlayerState().queue;
+    return Array.isArray(storedQueue) ? storedQueue : [];
+  });
+  const [sourceQueue, setSourceQueue] = useState(() => {
+    const storedSourceQueue = readStoredPlayerState().sourceQueue;
+    return Array.isArray(storedSourceQueue) ? storedSourceQueue : [];
+  });
+  const [isShuffle, setIsShuffle] = useState(() => Boolean(readStoredPlayerState().isShuffle));
   const [playbackCommand, setPlaybackCommand] = useState(null);
+  const [expandedRequestId, setExpandedRequestId] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(
+        PLAYER_STATE_STORAGE_KEY,
+        JSON.stringify({ currentTrack, isPlaying, queue, sourceQueue, isShuffle })
+      );
+    } catch (error) {
+      console.warn('Deefy player: nao foi possivel salvar o estado atual.', error);
+    }
+  }, [currentTrack, isPlaying, queue, sourceQueue, isShuffle]);
 
   const playTrack = useCallback((track, newQueue) => {
-    const nextSourceQueue = normalizeQueue(track, newQueue);
-
+    const nextSourceQueue = newQueue ? normalizeQueue(newQueue) : sourceQueue;
     setCurrentTrack(track);
     setIsPlaying(true);
-    setSourceQueue(nextSourceQueue);
-    setQueue(isShuffle ? buildShuffledQueue(nextSourceQueue, track) : nextSourceQueue);
-  }, [isShuffle]);
+
+    if (newQueue) {
+      setSourceQueue(nextSourceQueue);
+      setQueue(isShuffle ? shuffleQueue(nextSourceQueue, track) : nextSourceQueue);
+    } else if (!queue.length && track) {
+      setSourceQueue([track]);
+      setQueue([track]);
+    }
+  }, [isShuffle, queue.length, sourceQueue]);
 
   const playNext = useCallback(() => {
     if (!queue.length || !currentTrack) return;
-    const currentIndex = queue.findIndex(t => sameTrack(t, currentTrack));
+    const currentIndex = queue.findIndex(t => getTrackId(t) === getTrackId(currentTrack));
     if (currentIndex !== -1 && currentIndex < queue.length - 1) {
       setCurrentTrack(queue[currentIndex + 1]);
       setIsPlaying(true);
@@ -78,7 +95,7 @@ export function PlayerProvider({ children }) {
 
   const playPrevious = useCallback(() => {
     if (!queue.length || !currentTrack) return;
-    const currentIndex = queue.findIndex(t => sameTrack(t, currentTrack));
+    const currentIndex = queue.findIndex(t => getTrackId(t) === getTrackId(currentTrack));
     if (currentIndex > 0) {
       setCurrentTrack(queue[currentIndex - 1]);
       setIsPlaying(true);
@@ -86,55 +103,54 @@ export function PlayerProvider({ children }) {
   }, [currentTrack, queue]);
 
   const togglePlay = useCallback(() => {
-    setPlaybackCommand((current) => ({ type: 'toggle', id: (current?.id ?? 0) + 1 }));
+    setPlaybackCommand((current) => ({
+      id: (current?.id || 0) + 1,
+      type: 'toggle',
+    }));
   }, []);
 
   const setPlaying = useCallback((nextPlaying) => {
     setIsPlaying(Boolean(nextPlaying));
   }, []);
 
-  const setShuffleMode = useCallback((nextShuffle) => {
-    const enabled = typeof nextShuffle === 'function'
-      ? Boolean(nextShuffle(isShuffle))
-      : Boolean(nextShuffle);
+  const setShuffleMode = useCallback((updater) => {
+    setIsShuffle((currentShuffle) => {
+      const nextShuffle = typeof updater === 'function' ? updater(currentShuffle) : Boolean(updater);
+      const baseQueue = sourceQueue.length ? sourceQueue : queue;
 
-    setIsShuffle(enabled);
-    setQueue((currentQueue) => {
-      const baseQueue = sourceQueue.length ? sourceQueue : currentQueue;
-      return enabled ? buildShuffledQueue(baseQueue, currentTrack) : [...baseQueue];
+      if (nextShuffle) {
+        setQueue(shuffleQueue(baseQueue, currentTrack));
+      } else {
+        setQueue(baseQueue);
+      }
+
+      return nextShuffle;
     });
-  }, [currentTrack, isShuffle, sourceQueue]);
+  }, [currentTrack, queue, sourceQueue]);
 
-  const value = useMemo(() => ({
-    currentTrack,
-    isPlaying,
-    queue,
-    sourceQueue,
-    isShuffle,
-    playbackCommand,
-    playTrack,
-    playNext,
-    playPrevious,
-    togglePlay,
-    setPlaying,
-    setShuffleMode,
-  }), [
-    currentTrack,
-    isPlaying,
-    queue,
-    sourceQueue,
-    isShuffle,
-    playbackCommand,
-    playTrack,
-    playNext,
-    playPrevious,
-    togglePlay,
-    setPlaying,
-    setShuffleMode,
-  ]);
+  const requestExpandedPlayer = useCallback(() => {
+    setExpandedRequestId((current) => current + 1);
+  }, []);
 
   return (
-    <PlayerContext.Provider value={value}>
+    <PlayerContext.Provider
+      value={{
+        currentTrack,
+        isPlaying,
+        queue,
+        sourceQueue,
+        isShuffle,
+        playbackCommand,
+        playTrack,
+        playNext,
+        playPrevious,
+        togglePlay,
+        setPlaying,
+        setShuffleMode,
+        requestExpandedPlayer,
+        expandedRequestId,
+      }}
+    >
       {children}
     </PlayerContext.Provider>
   );

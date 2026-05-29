@@ -514,6 +514,76 @@
   opacity: 0.85;
 }
 
+.edit-profile-actions {
+  width: 100%;
+  display: grid;
+  gap: 14px;
+}
+
+.edit-profile-actions .edit-profile-card {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 92px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  display: grid !important;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center !important;
+  justify-content: initial !important;
+  gap: 18px;
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(57, 240, 208, 0.055), rgba(255, 255, 255, 0.025)),
+    rgba(20, 20, 22, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.edit-profile-actions .edit-profile-card:hover:not(:disabled),
+.edit-profile-actions .edit-profile-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(57, 240, 208, 0.34);
+  background:
+    linear-gradient(135deg, rgba(57, 240, 208, 0.09), rgba(255, 255, 255, 0.035)),
+    rgba(26, 26, 30, 0.86) !important;
+  outline: none;
+}
+
+.edit-profile-actions .edit-profile-card h1 {
+  font-size: 1.12rem !important;
+  line-height: 1.15;
+}
+
+.edit-profile-actions .edit-profile-card p {
+  font-size: 0.9rem !important;
+  line-height: 1.35;
+}
+
+.edit-profile-actions .edit-profile-input-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(57, 240, 208, 0.1);
+}
+
+.edit-profile-actions .trash-card {
+  border-color: rgba(255, 113, 108, 0.18);
+}
+
+.edit-profile-actions .trash-card:hover:not(:disabled),
+.edit-profile-actions .trash-card:focus-visible {
+  border-color: rgba(255, 113, 108, 0.42);
+  background:
+    linear-gradient(135deg, rgba(255, 113, 108, 0.09), rgba(255, 255, 255, 0.025)),
+    rgba(26, 22, 24, 0.86) !important;
+}
+
 @keyframes editProfileFadeUp {
   from {
     opacity: 0;

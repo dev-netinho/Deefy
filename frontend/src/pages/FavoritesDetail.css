@@ -87,10 +87,25 @@
   overflow: hidden;
 }
 
-.favorites-cover-grid img {
+.favorites-cover-grid img,
+.favorites-cover-grid-placeholder {
   width: 100%;
   height: 100%;
+}
+
+.favorites-cover-grid img {
   object-fit: cover;
+}
+
+.favorites-cover-grid-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #39f0d0;
+  background:
+    radial-gradient(circle at 35% 20%, rgba(57, 240, 208, 0.18), transparent 42%),
+    rgba(255, 255, 255, 0.045);
+  font-size: 2rem;
 }
 
 .favorites-info {

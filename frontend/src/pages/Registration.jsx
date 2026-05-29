@@ -108,7 +108,7 @@ function Registration() {
       const response = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
       const data = await response.json();
       return data.Answer && data.Answer.length > 0;
-    } catch (e) {
+    } catch {
       return false; // Fallback in case of network issues
     }
   };
@@ -142,7 +142,6 @@ function Registration() {
       // Exibe o modal instruindo o usuário a confirmar o e-mail
       setShowEmailModal(true);
     } catch (err) {
-      const status = err.status || err.response?.status;
       const apiMessage = err.response?.data?.message || "";
 
       // O back-end agora retorna 400 com o código estruturado "EMAIL_ALREADY_EXISTS"

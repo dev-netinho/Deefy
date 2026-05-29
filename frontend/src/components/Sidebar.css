@@ -24,7 +24,8 @@
 
 .sidebar ~ main,
 .sidebar ~ .home-main,
-.sidebar ~ .admin-main {
+.sidebar ~ .admin-main,
+.sidebar ~ .um-main {
   margin-left: 240px;
 }
 
@@ -133,7 +134,8 @@
 
   .sidebar ~ main,
   .sidebar ~ .home-main,
-  .sidebar ~ .admin-main {
+  .sidebar ~ .admin-main,
+  .sidebar ~ .um-main {
     margin-left: 0;
   }
 

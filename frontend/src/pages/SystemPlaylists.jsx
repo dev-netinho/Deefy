@@ -5,32 +5,11 @@ import { MdClose, MdSearch } from 'react-icons/md'
 import Sidebar from '../components/Sidebar.jsx'
 import { musicService } from '../services/musicService.js'
 import { pickWeightedRecommendations } from '../utils/recommendationEngine.js'
+import { filterBySearch, getSearchableText } from '../utils/search.js'
 import './Catalog.css'
-
-const fallbackCovers = [
-  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=900',
-  'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=900',
-  'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=900',
-  'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=900',
-  'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=900',
-]
 
 function firstText(...values) {
   return values.find((value) => typeof value === 'string' && value.trim())?.trim() || ''
-}
-
-function hashText(value) {
-  return String(value || '')
-    .split('')
-    .reduce((hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0, 0)
-}
-
-function normalizeSearch(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
 }
 
 function getPlaylistId(playlist) {
@@ -43,7 +22,7 @@ function getPlaylistTitle(playlist) {
     playlist?.nome,
     playlist?.title,
     playlist?.titulo,
-    'Playlist Deefy'
+    'Playlist Deefy',
   )
 }
 
@@ -54,14 +33,8 @@ function getTrackCover(track) {
     track?.imageUrl,
     track?.imagemUrl,
     track?.thumbnailUrl,
-    track?.albumCover
+    track?.albumCover,
   )
-}
-
-function getPlaylistFallbackCover(playlist) {
-  const seed = getPlaylistId(playlist) || getPlaylistTitle(playlist)
-  const index = Math.abs(hashText(seed)) % fallbackCovers.length
-  return fallbackCovers[index]
 }
 
 function getPlaylistCover(playlist) {
@@ -72,7 +45,6 @@ function getPlaylistCover(playlist) {
     playlist?.imagemUrl,
     playlist?.thumbnailUrl,
     playlist?.tracks?.map(getTrackCover).find(Boolean),
-    getPlaylistFallbackCover(playlist)
   )
 }
 
@@ -83,7 +55,6 @@ function getPlaylistDescription(playlist) {
     playlist?.description,
     playlist?.descricao,
     trackCount ? `${trackCount} músicas no catálogo.` : '',
-    'Seleção recomendada para o seu momento.'
   )
 }
 
@@ -95,11 +66,6 @@ function sortHighlightedFirst(items, highlightedId) {
     const rightMatch = String(getPlaylistId(right)) === String(highlightedId)
     return Number(rightMatch) - Number(leftMatch)
   })
-}
-
-function getPlaylistHref(playlist) {
-  const playlistId = getPlaylistId(playlist)
-  return playlistId ? `/user-playlist-detail/${playlistId}` : '/playlists'
 }
 
 function SystemPlaylists() {
@@ -130,10 +96,15 @@ function SystemPlaylists() {
     }
   }, [highlightedId])
 
-  const normalizedSearch = normalizeSearch(catalogSearch)
-  const visiblePlaylists = normalizedSearch
-    ? playlists.filter((playlist) => normalizeSearch(getPlaylistTitle(playlist)).includes(normalizedSearch))
-    : playlists
+  const visiblePlaylists = filterBySearch(playlists, catalogSearch, (playlist) => (
+    getSearchableText(
+      getPlaylistTitle(playlist),
+      playlist?.description,
+      playlist?.descricao,
+      playlist?.genre,
+      playlist?.genero,
+    )
+  ))
   const featuredPlaylists = visiblePlaylists.slice(0, 3)
   const remainingPlaylists = visiblePlaylists.slice(3)
   const mainPlaylist = featuredPlaylists[0]
@@ -172,7 +143,7 @@ function SystemPlaylists() {
         </div>
 
         {isLoading ? (
-          <div className="catalog-featured-grid" aria-hidden="true">
+          <div className="catalog-featured-grid catalog-featured-grid--loading" aria-hidden="true">
             {Array.from({ length: 3 }).map((_, index) => (
               <div className="catalog-skeleton catalog-skeleton--featured" key={index} />
             ))}
@@ -190,15 +161,21 @@ function SystemPlaylists() {
                   {mainPlaylist && (
                     <Link
                       className="catalog-playlist-hero"
-                      to={getPlaylistHref(mainPlaylist)}
+                      to={`/playlist-detail/${getPlaylistId(mainPlaylist)}`}
                     >
                       <div className="catalog-playlist-hero-cover-wrap">
-                        <img
-                          className="catalog-playlist-hero-cover"
-                          src={getPlaylistCover(mainPlaylist)}
-                          alt={`Capa de ${getPlaylistTitle(mainPlaylist)}`}
-                          loading="lazy"
-                        />
+                        {getPlaylistCover(mainPlaylist) ? (
+                          <img
+                            className="catalog-playlist-hero-cover"
+                            src={getPlaylistCover(mainPlaylist)}
+                            alt={`Capa de ${getPlaylistTitle(mainPlaylist)}`}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="catalog-playlist-hero-cover catalog-playlist-cover-placeholder" aria-hidden="true">
+                            <FaCompactDisc />
+                          </div>
+                        )}
                       </div>
 
                       <div className="catalog-playlist-hero-copy">
@@ -217,25 +194,35 @@ function SystemPlaylists() {
 
                   {secondaryPlaylists.length > 0 && (
                     <div className="catalog-playlist-side">
-                      {secondaryPlaylists.map((playlist) => (
-                        <Link
-                          className="catalog-playlist-side-card"
-                          to={getPlaylistHref(playlist)}
-                          key={getPlaylistId(playlist) || getPlaylistTitle(playlist)}
-                        >
-                          <img
-                            src={getPlaylistCover(playlist)}
-                            alt={`Capa de ${getPlaylistTitle(playlist)}`}
-                            loading="lazy"
-                          />
+                      {secondaryPlaylists.map((playlist) => {
+                        const cover = getPlaylistCover(playlist)
 
-                          <div>
-                            <span>Recomendada</span>
-                            <h3>{getPlaylistTitle(playlist)}</h3>
-                            <p>{getPlaylistDescription(playlist)}</p>
-                          </div>
-                        </Link>
-                      ))}
+                        return (
+                          <Link
+                            className="catalog-playlist-side-card"
+                            to={`/playlist-detail/${getPlaylistId(playlist)}`}
+                            key={getPlaylistId(playlist) || getPlaylistTitle(playlist)}
+                          >
+                            {cover ? (
+                              <img
+                                src={cover}
+                                alt={`Capa de ${getPlaylistTitle(playlist)}`}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="catalog-playlist-side-cover catalog-playlist-cover-placeholder" aria-hidden="true">
+                                <FaCompactDisc />
+                              </div>
+                            )}
+
+                            <div>
+                              <span>Recomendada</span>
+                              <h3>{getPlaylistTitle(playlist)}</h3>
+                              <p>{getPlaylistDescription(playlist)}</p>
+                            </div>
+                          </Link>
+                        )
+                      })}
                     </div>
                   )}
                 </div>
@@ -250,22 +237,26 @@ function SystemPlaylists() {
                 </div>
 
                 <div className="catalog-grid">
-                  {remainingPlaylists.map((playlist) => (
-                    <Link
-                      className="catalog-playlist-card"
-                      to={getPlaylistHref(playlist)}
-                      key={getPlaylistId(playlist) || getPlaylistTitle(playlist)}
-                      style={{ backgroundImage: `url(${getPlaylistCover(playlist)})` }}
-                    >
-                      <span className="catalog-card-icon">
-                        <FaCompactDisc />
-                      </span>
-                      <div>
-                        <h2>{getPlaylistTitle(playlist)}</h2>
-                        <p>{getPlaylistDescription(playlist)}</p>
-                      </div>
-                    </Link>
-                  ))}
+                  {remainingPlaylists.map((playlist) => {
+                    const cover = getPlaylistCover(playlist)
+
+                    return (
+                      <Link
+                        className="catalog-playlist-card"
+                        to={`/playlist-detail/${getPlaylistId(playlist)}`}
+                        key={getPlaylistId(playlist) || getPlaylistTitle(playlist)}
+                        style={cover ? { backgroundImage: `url(${cover})` } : undefined}
+                      >
+                        <span className="catalog-card-icon">
+                          <FaCompactDisc />
+                        </span>
+                        <div>
+                          <h2>{getPlaylistTitle(playlist)}</h2>
+                          <p>{getPlaylistDescription(playlist)}</p>
+                        </div>
+                      </Link>
+                    )
+                  })}
                 </div>
               </section>
             )}

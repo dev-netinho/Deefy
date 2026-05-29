@@ -18,6 +18,14 @@ import { musicService } from '../services/musicService.js'
 import { showMusicError, showMusicSuccess } from '../utils/musicToast'
 import { getMusicIdFromTrack } from '../utils/musicNormalizer.js'
 
+function getPlaylistId(playlist) {
+  return playlist?.id || playlist?.uuid || playlist?.playlistId || ''
+}
+
+function getPlaylistTitle(playlist) {
+  return playlist?.name || playlist?.nome || playlist?.title || playlist?.titulo || 'Playlist sem nome'
+}
+
 function SongOptionsMenu({
   song,
   playlistId,
@@ -27,18 +35,20 @@ function SongOptionsMenu({
   onFavoriteRemoved,
   onFavoriteChanged,
   allowAddToPlaylist = true,
+  allowRemoveFromPlaylist = true,
 }) {
   const optionsRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
   const [showPlaylists, setShowPlaylists] = useState(false)
   const [isShareOpen, setIsShareOpen] = useState(false)
   const [copiedShareLink, setCopiedShareLink] = useState(false)
+  const [isRemoving, setIsRemoving] = useState(false)
+  const [isFavoriteBusy, setIsFavoriteBusy] = useState(false)
   const [userPlaylists, setUserPlaylists] = useState([])
   const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(false)
   const [addingPlaylistId, setAddingPlaylistId] = useState(null)
-  const [isRemoving, setIsRemoving] = useState(false)
-  const [isFavoriteBusy, setIsFavoriteBusy] = useState(false)
   const isPlaylistSong = playlistId !== undefined && playlistId !== null
+  const canRemoveFromPlaylist = isPlaylistSong && allowRemoveFromPlaylist
   const musicId = getMusicIdFromTrack(song)
   const shareUrl = musicId && typeof window !== 'undefined'
     ? `${window.location.origin}/music/${musicId}`
@@ -72,18 +82,22 @@ function SongOptionsMenu({
   }, [isOpen])
 
   useEffect(() => {
-    if (!showPlaylists || !allowAddToPlaylist || userPlaylists.length > 0) return undefined
+    if (!showPlaylists || userPlaylists.length > 0 || isLoadingPlaylists) {
+      return undefined
+    }
 
     let isMounted = true
-    setIsLoadingPlaylists(true)
 
+    setIsLoadingPlaylists(true)
     musicService.getUserPlaylists()
       .then((playlists) => {
-        if (!isMounted) return
-        setUserPlaylists((playlists || []).filter((playlist) => playlist?.id))
+        if (isMounted) setUserPlaylists(Array.isArray(playlists) ? playlists : [])
       })
       .catch(() => {
-        if (isMounted) showMusicError('Não foi possível carregar suas playlists.')
+        if (isMounted) {
+          setUserPlaylists([])
+          showMusicError('Não foi possível carregar suas playlists.')
+        }
       })
       .finally(() => {
         if (isMounted) setIsLoadingPlaylists(false)
@@ -92,44 +106,42 @@ function SongOptionsMenu({
     return () => {
       isMounted = false
     }
-  }, [allowAddToPlaylist, showPlaylists, userPlaylists.length])
+  }, [isLoadingPlaylists, showPlaylists, userPlaylists.length])
 
   const searchOnGoogle = () => {
     const query = encodeURIComponent(`${song?.title || ''} ${song?.artist || ''}`)
-    window.open(`https://www.google.com/search?q=${query}`, '_blank')
+    window.open(`https://www.google.com/search?q=${query}`, '_blank', 'noopener,noreferrer')
     setIsOpen(false)
   }
 
   const handleAddToPlaylist = async (playlist) => {
-    const resolvedMusicId = getMusicIdFromTrack(song)
+    const selectedPlaylistId = getPlaylistId(playlist)
 
-    if (!playlist?.id || !resolvedMusicId) {
-      showMusicError('Não foi possível adicionar esta música.')
+    if (!selectedPlaylistId) {
+      showMusicError('Não foi possível identificar a playlist.')
       return
     }
 
     try {
-      setAddingPlaylistId(playlist.id)
-      await musicService.addMusicToPlaylist(playlist.id, resolvedMusicId)
-      showMusicSuccess(`Música adicionada em ${playlist.name || playlist.nome || 'playlist'}.`)
+      setAddingPlaylistId(selectedPlaylistId)
+      await musicService.addMusicToPlaylist(selectedPlaylistId, song)
+      showMusicSuccess(`Música adicionada em "${getPlaylistTitle(playlist)}".`)
       setIsOpen(false)
       setShowPlaylists(false)
     } catch (err) {
-      const status = err?.response?.status || err?.status
-      if (status === 409) {
-        showMusicSuccess('Essa música já está nessa playlist.')
-        setIsOpen(false)
-        setShowPlaylists(false)
-        return
-      }
-      showMusicError(err?.response?.data?.message || err?.message || 'Erro ao adicionar música à playlist.')
+      const status = err?.status || err?.response?.status
+      showMusicError(
+        status === 409
+          ? 'Essa música já está nesta playlist.'
+          : err?.response?.data?.message || err?.message || 'Erro ao adicionar música à playlist.',
+      )
     } finally {
       setAddingPlaylistId(null)
     }
   }
 
   const handleRemoveFromPlaylist = async () => {
-    if (!isPlaylistSong || !song?.id) {
+    if (!canRemoveFromPlaylist || !song?.id) {
       showMusicError("Não foi possível remover esta música.")
       return
     }
@@ -227,7 +239,7 @@ function SongOptionsMenu({
           className="song-options-menu"
           onClick={(event) => event.stopPropagation()}
         >
-          {isPlaylistSong ? (
+          {canRemoveFromPlaylist ? (
             <button
               type="button"
               className="song-options-danger"
@@ -260,20 +272,29 @@ function SongOptionsMenu({
 
               {showPlaylists && (
                 <div className="song-options-submenu">
-                  {isLoadingPlaylists && <span className="song-options-submenu-note">Carregando playlists...</span>}
-                  {!isLoadingPlaylists && userPlaylists.length === 0 && (
-                    <span className="song-options-submenu-note">Crie uma playlist para adicionar músicas.</span>
+                  {isLoadingPlaylists && (
+                    <span className="song-options-empty">Carregando playlists...</span>
                   )}
-                  {!isLoadingPlaylists && userPlaylists.map((playlist) => (
-                    <button
-                      type="button"
-                      key={playlist.id}
-                      onClick={() => handleAddToPlaylist(playlist)}
-                      disabled={addingPlaylistId === playlist.id}
-                    >
-                      {addingPlaylistId === playlist.id ? 'Adicionando...' : (playlist.name || playlist.nome || 'Playlist')}
-                    </button>
-                  ))}
+
+                  {!isLoadingPlaylists && userPlaylists.length === 0 && (
+                    <span className="song-options-empty">Nenhuma playlist criada.</span>
+                  )}
+
+                  {!isLoadingPlaylists && userPlaylists.map((playlist) => {
+                    const selectedPlaylistId = getPlaylistId(playlist)
+                    const isAdding = String(addingPlaylistId) === String(selectedPlaylistId)
+
+                    return (
+                      <button
+                        type="button"
+                        key={selectedPlaylistId || getPlaylistTitle(playlist)}
+                        onClick={() => handleAddToPlaylist(playlist)}
+                        disabled={isAdding}
+                      >
+                        {isAdding ? 'Adicionando...' : getPlaylistTitle(playlist)}
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </>

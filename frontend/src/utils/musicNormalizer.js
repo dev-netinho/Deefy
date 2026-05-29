@@ -95,9 +95,7 @@ export function hasMusicDisplayData(value) {
       music.capaUrl,
       music.imageUrl,
       music.audioUrl,
-      music.fileUrl,
-      music.arquivoUrl,
-      music.arquivourl
+      music.fileUrl
     )
   )
 }
@@ -196,11 +194,19 @@ export function normalizeMusic(value) {
       music.nome,
       music.musicTitle,
       music.nomeMusica,
-      music.tituloMusica,
-      'Música sem título'
+      music.tituloMusica
     ),
     artist,
     album,
+    genre: getObjectName(firstValue(
+      music.genreName,
+      music.generoNome,
+      music.genre,
+      music.genero,
+      music.style,
+      music.estilo,
+      album
+    )),
     coverUrl: resolveMediaUrl(firstValue(
       music.coverUrl,
       music.capaUrl,

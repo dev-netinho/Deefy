@@ -16,19 +16,12 @@ const mainPlaylists = [
 import { musicService } from '../services/musicService'
 import api from '../services/api' // To fetch genres directly if needed
 import { normalizeMusic } from '../utils/musicNormalizer'
-import { usePlayer } from '../contexts/PlayerContext.jsx'
-import { showMusicError } from '../utils/musicToast'
-
-const fallbackPlaylistCover = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800'
 
 function Playlists() {
-  const { playTrack } = usePlayer()
   const [userPlaylistsApi, setUserPlaylistsApi] = useState([])
   const [isLoadingUser, setIsLoadingUser] = useState(true)
   const [genresApi, setGenresApi] = useState([])
   const [isLoadingGenres, setIsLoadingGenres] = useState(true)
-  const [globalPlaylistsApi, setGlobalPlaylistsApi] = useState([])
-  const [isLoadingGlobalPlaylists, setIsLoadingGlobalPlaylists] = useState(true)
 
   useEffect(() => {
     musicService.getUserPlaylists()
@@ -51,68 +44,7 @@ function Playlists() {
         console.error("Erro ao buscar gêneros", err)
         setIsLoadingGenres(false)
       })
-
-    musicService.getGlobalPlaylists()
-      .then(data => {
-        setGlobalPlaylistsApi(data)
-        setIsLoadingGlobalPlaylists(false)
-      })
-      .catch(err => {
-        console.error("Erro ao buscar playlists globais", err)
-        setIsLoadingGlobalPlaylists(false)
-      })
   }, [])
-
-  const renderPlaylistCard = (playlist) => {
-    const songs = (playlist.tracks || []).map(normalizeMusic).filter(Boolean)
-    const manualCover = playlist.coverUrl || playlist.capaUrl || ''
-    const description = playlist.description || playlist.descricao || ''
-    const hasGrid = !manualCover && songs.length >= 4
-    const singleCover = manualCover || songs[0]?.coverUrl || fallbackPlaylistCover
-
-    return (
-      <Link
-        to={`/user-playlist-detail/${playlist.id}`}
-        className={`playlist-card ${hasGrid ? 'playlist-has-grid' : ''}`}
-        key={`global-${playlist.id}`}
-        style={!hasGrid ? { backgroundImage: `url(${singleCover})` } : {}}
-      >
-        {hasGrid && (
-          <div className="playlist-grid-bg">
-            <img src={songs[0].coverUrl || fallbackPlaylistCover} alt="" />
-            <img src={songs[1].coverUrl || fallbackPlaylistCover} alt="" />
-            <img src={songs[2].coverUrl || fallbackPlaylistCover} alt="" />
-            <img src={songs[3].coverUrl || fallbackPlaylistCover} alt="" />
-          </div>
-        )}
-        <div className="playlist-user-card-content">
-          <h3>{playlist.name}</h3>
-          {description && <p>{description}</p>}
-        </div>
-      </Link>
-    )
-  }
-
-  const handlePlayGenre = async (genreName) => {
-    if (!genreName) return
-
-    try {
-      const songs = await musicService.searchMusicsByGenre(genreName)
-
-      if (!songs.length) {
-        showMusicError(`Nenhuma música encontrada em ${genreName}.`)
-        return
-      }
-
-      playTrack(songs[0], songs)
-    } catch (error) {
-      console.error(`Erro ao tocar músicas do gênero ${genreName}`, error)
-      showMusicError(`Não foi possível tocar ${genreName} agora.`)
-    }
-  }
-
-  const isLoadingExplore = isLoadingGenres || isLoadingGlobalPlaylists
-
   return (
     <div className="playlists-page">
       <Sidebar />
@@ -181,21 +113,31 @@ function Playlists() {
                 const manualCover = playlist.coverUrl || playlist.capaUrl || ''
                 const description = playlist.description || playlist.descricao || 'Sem descrição adicionada.'
                 const hasGrid = !manualCover && songs.length >= 4
-                const singleCover = manualCover || songs[0]?.coverUrl || fallbackPlaylistCover
+                const singleCover = manualCover || songs[0]?.coverUrl || ''
 
                 return (
                   <Link
                     to={`/user-playlist-detail/${playlist.id}`}
                     className={`playlist-user-card ${hasGrid ? 'playlist-has-grid' : ''}`}
                     key={playlist.id}
-                    style={!hasGrid ? { backgroundImage: `url(${singleCover})` } : {}}
+                    style={!hasGrid && singleCover ? { backgroundImage: `url(${singleCover})` } : {}}
                   >
                     {hasGrid && (
                       <div className="playlist-grid-bg">
-                        <img src={songs[0].coverUrl || fallbackPlaylistCover} alt="" />
-                        <img src={songs[1].coverUrl || fallbackPlaylistCover} alt="" />
-                        <img src={songs[2].coverUrl || fallbackPlaylistCover} alt="" />
-                        <img src={songs[3].coverUrl || fallbackPlaylistCover} alt="" />
+                        {songs.slice(0, 4).map((song, index) => (
+                          song.coverUrl ? (
+                            <img key={song.id || `${song.title}-${index}`} src={song.coverUrl} alt="" />
+                          ) : (
+                            <div key={song.id || `${song.title}-${index}`} className="playlist-grid-bg-placeholder" aria-hidden="true">
+                              <FaMusic />
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    )}
+                    {!hasGrid && !singleCover && (
+                      <div className="playlist-user-card-placeholder" aria-hidden="true">
+                        <FaMusic />
                       </div>
                     )}
                     <div className="playlist-user-card-content">
@@ -219,33 +161,26 @@ function Playlists() {
           </div>
 
           <div className="playlists-grid">
-            {isLoadingExplore ? (
+            {isLoadingGenres ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <div key={`g-skel-${i}`} style={{ width: '100%', height: '140px', borderRadius: '16px', background: '#222', animation: 'loading-shimmer 1.5s infinite linear', backgroundSize: '200% 100%', backgroundImage: 'linear-gradient(90deg, #1f1f22 25%, #2a2a2e 50%, #1f1f22 75%)' }}></div>
               ))
-            ) : globalPlaylistsApi.length > 0 || genresApi.length > 0 ? (
-              <>
-                {globalPlaylistsApi.map(renderPlaylistCard)}
-                {genresApi.map((genre) => {
-                  const genreName = genre.name || genre.nome || genre.titulo
-                  if (!genreName) return null
+            ) : genresApi.length > 0 ? (
+              genresApi.map((genre, idx) => {
+                // Pick a random preset class for colors just for style
+                const colorClasses = ['sertanejo', 'gospel', 'kpop', 'samba', 'pagode', 'pop', 'rock', 'mpb']
+                const presetClass = `playlist-card--${colorClasses[idx % colorClasses.length]}`
 
-                  return (
-                    <button
-                      type="button"
-                      className="playlist-card playlist-card--genre-simple"
-                      key={genre.id || genreName}
-                      onClick={() => handlePlayGenre(genreName)}
-                      aria-label={`Tocar músicas do gênero ${genreName}`}
-                    >
-                      <span className="playlist-genre-icon" aria-hidden="true">
-                        <FaMusic />
-                      </span>
-                      <h3>{genreName}</h3>
-                    </button>
-                  )
-                })}
-              </>
+                return (
+                  <Link
+                    className={`playlist-card ${presetClass}`}
+                    key={genre.id || genre.name}
+                    to={`/home?genre=${encodeURIComponent(genre.name)}`}
+                  >
+                    <h3>{genre.name}</h3>
+                  </Link>
+                )
+              })
             ) : (
               <p>Nenhum estilo encontrado.</p>
             )}

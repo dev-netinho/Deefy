@@ -21,6 +21,7 @@ function Configuration() {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
+  // ── Load current profile ──────────────────────────────────────────
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -32,10 +33,10 @@ function Configuration() {
         setLoadingProfile(false);
       }
     };
-
     fetchProfile();
   }, []);
 
+  // ── Helpers ───────────────────────────────────────────────────────
   const getInitials = (name) => {
     if (!name) return "?";
     const parts = name.trim().split(" ");
@@ -53,11 +54,11 @@ function Configuration() {
       <div className="configuration-overlay"></div>
 
       <section className="configuration-wrapper">
+        {/* Back button */}
         <div className="custom-profile-back-login custom-profile-back-top" onClick={() => navigate(-1)}>
           <IoChevronBack />
           <span>Voltar</span>
         </div>
-
         <div className="configuration-user">
           <div className="configuration-avatar-wrapper">
             <div className="configuration-user-img">
@@ -86,9 +87,10 @@ function Configuration() {
             </div>
           </div>
 
-          <h2>{loadingProfile ? "Carregando..." : (profile?.nome || "Usuário")}</h2>
+          <h2>{loadingProfile ? "Carregando…" : (profile?.nome || "Usuário")}</h2>
         </div>
 
+        {/* Perfil */}
         <div className="configuration-input-group">
           <h3>PERFIL</h3>
           <div className="configuration-input-box" onClick={() => navigate("/custom-profile")}>

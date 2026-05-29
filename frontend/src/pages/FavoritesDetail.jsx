@@ -12,8 +12,6 @@ import { musicService } from '../services/musicService.js'
 import { getMusicIdFromTrack, normalizeMusic } from '../utils/musicNormalizer.js'
 import { showMusicError } from '../utils/musicToast'
 
-const FALLBACK_COVER = 'https://picsum.photos/seed/favorites/500/500'
-
 function shuffleSongs(songs) {
   const shuffled = [...songs]
 
@@ -94,10 +92,15 @@ function FavoritesDetail() {
     if (songs.length >= 4) {
       return (
         <div className="favorites-cover-grid">
-          <img src={songs[0].coverUrl || FALLBACK_COVER} alt={`Capa de ${songs[0].title || 'música'}`} />
-          <img src={songs[1].coverUrl || FALLBACK_COVER} alt={`Capa de ${songs[1].title || 'música'}`} />
-          <img src={songs[2].coverUrl || FALLBACK_COVER} alt={`Capa de ${songs[2].title || 'música'}`} />
-          <img src={songs[3].coverUrl || FALLBACK_COVER} alt={`Capa de ${songs[3].title || 'música'}`} />
+          {songs.slice(0, 4).map((song, index) => (
+            song.coverUrl ? (
+              <img key={song.id || `${song.title}-${index}`} src={song.coverUrl} alt={`Capa de ${song.title || 'música'}`} />
+            ) : (
+              <div key={song.id || `${song.title}-${index}`} className="favorites-cover-grid-placeholder" aria-hidden="true">
+                <FaHeart />
+              </div>
+            )
+          ))}
         </div>
       )
     }
@@ -191,7 +194,6 @@ function FavoritesDetail() {
           </p>
         )}
       </main>
-
     </div>
   )
 }

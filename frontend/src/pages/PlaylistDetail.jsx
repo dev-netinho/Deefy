@@ -4,7 +4,7 @@ import SongList from '../components/SongList.jsx'
 import SongListSkeleton from '../components/SongListSkeleton.jsx'
 import { Link, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { MdClose } from 'react-icons/md'
+import { MdClose, MdLibraryMusic } from 'react-icons/md'
 import { musicService } from '../services/musicService.js'
 import { normalizeMusic } from '../utils/musicNormalizer.js'
 
@@ -80,7 +80,7 @@ function PlaylistDetail() {
               <MdClose />
             </Link>
           </div>
-          Playlist não encontrada ou em construção.
+          Playlist não encontrada.
         </main>
       </div>
     )
@@ -88,7 +88,7 @@ function PlaylistDetail() {
 
   const tracks = (playlist.tracks || []).map(normalizeMusic).filter(Boolean)
   const description = playlist.description || playlist.descricao || ''
-  const cover = playlist.coverUrl || playlist.capaUrl || tracks[0]?.coverUrl || 'https://picsum.photos/seed/cyberpunk/300/300'
+  const cover = playlist.coverUrl || playlist.capaUrl || tracks[0]?.coverUrl || ''
 
   const handleSongRemoved = (removedSong) => {
     const removedMusicId = removedSong?.id !== undefined && removedSong?.id !== null
@@ -134,11 +134,17 @@ function PlaylistDetail() {
         </div>
 
         <section className="playlist-detail-hero">
-          <img
-            className="playlist-detail-cover"
-            src={cover}
-            alt="Capa da playlist"
-          />
+          {cover ? (
+            <img
+              className="playlist-detail-cover"
+              src={cover}
+              alt="Capa da playlist"
+            />
+          ) : (
+            <div className="playlist-detail-cover playlist-detail-cover-placeholder" aria-hidden="true">
+              <MdLibraryMusic />
+            </div>
+          )}
 
 <div className="playlist-detail-info">
   <span>PLAYLIST</span>
@@ -158,9 +164,9 @@ function PlaylistDetail() {
           title=""
           playlistId={playlist.id}
           onSongRemoved={handleSongRemoved}
+          allowRemoveFromPlaylist={false}
         />
       </main>
-
     </div>
   )
 }

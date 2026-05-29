@@ -9,7 +9,7 @@ import logo from "../assets/logo.svg";
 import background from "../assets/background.jpg";
 import "./Login.css";
 import api from "../services/api";
-import { setToken, setUserRole } from "../utils/auth";
+import { consumeIntendedRoute, setToken, setUserRole } from "../utils/auth";
 import { getRoleFromToken } from "../utils/jwt";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -53,7 +53,7 @@ function Login() {
         const role = getRoleFromToken(token);
         setUserRole(role);
         showMusicSuccess("Acesso liberado aos bastidores!");
-        navigate("/home");
+        navigate(consumeIntendedRoute() || "/home");
       } else {
         showMusicError("Música pausada: O servidor não retornou um token de acesso.");
       }

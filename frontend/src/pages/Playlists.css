@@ -172,48 +172,13 @@
   overflow: hidden;
   display: flex;
   align-items: flex-end;
+  background:
+    radial-gradient(circle at 22% 0%, rgba(57, 240, 208, 0.16), transparent 34%),
+    rgba(255, 255, 255, 0.045);
   background-size: cover;
   background-position: center;
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: 0.22s ease;
-}
-
-button.playlist-card {
-  width: 100%;
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-}
-
-.playlist-card--genre-simple {
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  gap: 14px;
-  text-align: center;
-  background:
-    radial-gradient(circle at 50% 28%, rgba(57, 240, 208, 0.24), transparent 34%),
-    linear-gradient(145deg, #1f2022, #111214);
-}
-
-.playlist-card--genre-simple::before {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.42));
-}
-
-.playlist-genre-icon {
-  position: relative;
-  z-index: 2;
-  width: 76px;
-  height: 76px;
-  border-radius: 24px;
-  display: grid;
-  place-items: center;
-  color: #ffffff;
-  font-size: 2.25rem;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
 .playlists-user-grid .playlist-user-card,
@@ -250,10 +215,32 @@ button.playlist-card {
   z-index: 1;
 }
 
-.playlist-grid-bg img {
+.playlist-grid-bg img,
+.playlist-grid-bg-placeholder {
   width: 100%;
   height: 100%;
+}
+
+.playlist-grid-bg img {
   object-fit: cover;
+}
+
+.playlist-grid-bg-placeholder,
+.playlist-user-card-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #39f0d0;
+  background:
+    radial-gradient(circle at 35% 20%, rgba(57, 240, 208, 0.18), transparent 42%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.playlist-user-card-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  font-size: 3rem;
 }
 
 .playlist-has-grid::after {
@@ -312,43 +299,35 @@ button.playlist-card {
 }
 
 .playlist-card--sertanejo {
-  background-image: linear-gradient(rgba(0, 140, 110, 0.55), rgba(0, 140, 110, 0.55)),
-    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800");
+  background-image: linear-gradient(135deg, rgba(0, 140, 110, 0.8), rgba(0, 48, 42, 0.86));
 }
 
 .playlist-card--gospel {
-  background-image: linear-gradient(rgba(45, 38, 160, 0.55), rgba(45, 38, 160, 0.55)),
-    url("https://images.unsplash.com/photo-1507692049790-de58290a4334?w=800");
+  background-image: linear-gradient(135deg, rgba(45, 38, 160, 0.82), rgba(12, 14, 42, 0.9));
 }
 
 .playlist-card--kpop {
-  background-image: linear-gradient(rgba(190, 55, 150, 0.55), rgba(190, 55, 150, 0.55)),
-    url("https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800");
+  background-image: linear-gradient(135deg, rgba(190, 55, 150, 0.78), rgba(52, 18, 48, 0.9));
 }
 
 .playlist-card--samba {
-  background-image: linear-gradient(rgba(218, 92, 20, 0.55), rgba(218, 92, 20, 0.55)),
-    url("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800");
+  background-image: linear-gradient(135deg, rgba(218, 92, 20, 0.78), rgba(64, 28, 16, 0.9));
 }
 
 .playlist-card--pagode {
-  background-image: linear-gradient(rgba(57, 240, 208, 0.35), rgba(0, 0, 0, 0.45)),
-    url("https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800");
+  background-image: linear-gradient(135deg, rgba(57, 240, 208, 0.52), rgba(0, 0, 0, 0.76));
 }
 
 .playlist-card--pop {
-  background-image: linear-gradient(rgba(231, 30, 92, 0.55), rgba(231, 30, 92, 0.55)),
-    url("https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800");
+  background-image: linear-gradient(135deg, rgba(231, 30, 92, 0.78), rgba(58, 14, 34, 0.9));
 }
 
 .playlist-card--rock {
-  background-image: linear-gradient(rgba(180, 45, 35, 0.55), rgba(180, 45, 35, 0.55)),
-    url("https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=800");
+  background-image: linear-gradient(135deg, rgba(180, 45, 35, 0.8), rgba(44, 16, 14, 0.92));
 }
 
 .playlist-card--mpb {
-  background-image: linear-gradient(rgba(20, 100, 190, 0.55), rgba(20, 100, 190, 0.55)),
-    url("https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=800");
+  background-image: linear-gradient(135deg, rgba(20, 100, 190, 0.78), rgba(12, 30, 60, 0.9));
 }
 
 @media (max-width: 1280px) {

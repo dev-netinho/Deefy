@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
 import { musicService } from "../services/musicService";
+import {
+  filterBySearch,
+  getSearchableText,
+  sanitizeSearchQuery,
+} from "../utils/search";
 
 const SEARCH_SCOPES = {
   all: ["songs", "genres", "albums", "artists", "playlists"],
@@ -10,31 +15,6 @@ const SEARCH_SCOPES = {
   playlists: ["playlists"],
 };
 
-/**
- * Sanitizes a raw user input string to prevent XSS injection.
- * Strips HTML-significant characters so the query can never introduce
- * script tags or event handlers if rendered via dangerouslySetInnerHTML
- * elsewhere in the tree.
- *
- * @param {string} raw
- * @returns {string}
- */
-function sanitizeQuery(raw) {
-  if (!raw) return "";
-  return String(raw)
-    .replace(/[<>"'`]/g, "")   // strip HTML-significant chars
-    .replace(/javascript:/gi, "") // strip protocol handlers
-    .trim();
-}
-
-function normalizeText(value) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
 function firstText(...values) {
   const value = values.find((item) => (
     (typeof item === "string" && item.trim()) ||
@@ -44,7 +24,7 @@ function firstText(...values) {
 }
 
 function getPlaylistSearchText(playlist) {
-  return [
+  return getSearchableText(
     playlist?.name,
     playlist?.nome,
     playlist?.title,
@@ -53,11 +33,11 @@ function getPlaylistSearchText(playlist) {
     playlist?.descricao,
     playlist?.genre,
     playlist?.genero,
-  ].filter(Boolean).join(" ");
+  );
 }
 
 function getArtistSearchText(artist) {
-  return [
+  return getSearchableText(
     artist?.name,
     artist?.nome,
     artist?.artistName,
@@ -69,7 +49,7 @@ function getArtistSearchText(artist) {
     artist?.estilo,
     artist?.bio,
     artist?.description,
-  ].filter(Boolean).join(" ");
+  );
 }
 
 function dedupeByIdentity(items, fallbackPrefix) {
@@ -99,7 +79,7 @@ export function useMusicSearch(rawQuery, scope = "all") {
   const [isLoading, setIsLoading] = useState(false);
   const [isEmpty, setIsEmpty] = useState(false);
 
-  const sanitizedQuery = sanitizeQuery(rawQuery);
+  const sanitizedQuery = sanitizeSearchQuery(rawQuery);
 
   useEffect(() => {
     if (!sanitizedQuery) {
@@ -115,45 +95,24 @@ export function useMusicSearch(rawQuery, scope = "all") {
       }
     });
     const activeScopes = SEARCH_SCOPES[scope] || SEARCH_SCOPES.all;
-    const normalizedQuery = normalizeText(sanitizedQuery);
     const shouldSearchSongs = activeScopes.includes("songs");
     const shouldSearchGenres = activeScopes.includes("genres");
     const shouldSearchAlbums = activeScopes.includes("albums");
     const shouldSearchArtists = activeScopes.includes("artists");
     const shouldSearchPlaylists = activeScopes.includes("playlists");
-    const requests = [];
+    const musicSearchFields = [
+      ...(shouldSearchSongs ? ["title", "artist"] : []),
+      ...(shouldSearchAlbums ? ["album"] : []),
+      ...(shouldSearchGenres ? ["genre"] : []),
+    ];
 
-    if (shouldSearchSongs) {
-      requests.push(musicService.searchMusicsByTitle(sanitizedQuery));
-      requests.push(musicService.searchMusicsByArtist(sanitizedQuery));
-    }
-
-    if (shouldSearchAlbums) {
-      requests.push(musicService.searchMusicsByAlbum(sanitizedQuery));
-    }
-
-    if (shouldSearchGenres) {
-      requests.push(musicService.searchMusicsByGenre(sanitizedQuery));
-    }
-
-    const musicSearchPromise = requests.length
-      ? Promise.allSettled(requests).then((resultsArray) => {
-        const allResults = [];
-        resultsArray.forEach((result) => {
-          if (result.status === "fulfilled" && Array.isArray(result.value)) {
-            allResults.push(...result.value);
-          }
-        });
-
-        return dedupeByIdentity(allResults, "music");
-      })
+    const musicSearchPromise = musicSearchFields.length
+      ? musicService.searchMusicsSmart(sanitizedQuery, { fields: musicSearchFields })
       : Promise.resolve([]);
 
     const artistSearchPromise = shouldSearchArtists
-      ? musicService.getArtists(80).then((artists) => (
-        dedupeByIdentity(artists, "artist").filter((artist) => (
-          normalizeText(getArtistSearchText(artist)).includes(normalizedQuery)
-        ))
+      ? musicService.getArtists().then((artists) => (
+        filterBySearch(dedupeByIdentity(artists, "artist"), sanitizedQuery, getArtistSearchText)
       ))
       : Promise.resolve([]);
 
@@ -173,9 +132,7 @@ export function useMusicSearch(rawQuery, scope = "all") {
           }
         });
 
-        return dedupeByIdentity(playlists, "playlist").filter((playlist) => (
-          normalizeText(getPlaylistSearchText(playlist)).includes(normalizedQuery)
-        ));
+        return filterBySearch(dedupeByIdentity(playlists, "playlist"), sanitizedQuery, getPlaylistSearchText);
       })
       : Promise.resolve([]);
 

@@ -34,6 +34,7 @@
   animation: forgotFadeUp 0.9s ease !important;
 }
 
+/* ── Avatar area (button above + circle below) ─────────── */
 .custom-profile-avatar-area {
   position: relative !important;
   display: inline-flex !important;
@@ -58,6 +59,7 @@
   animation: forgotFloat 3.4s ease-in-out infinite !important;
 }
 
+/* Avatar photo fills the circle */
 .custom-profile-avatar-img {
   width: 100% !important;
   height: 100% !important;
@@ -66,6 +68,7 @@
   border-radius: 50% !important;
 }
 
+/* Initials fallback */
 .custom-profile-avatar-initials {
   width: 100% !important;
   height: 100% !important;
@@ -77,10 +80,11 @@
   font-weight: 800 !important;
   color: #0a0a0a !important;
   background: linear-gradient(135deg, #02FFD4 0%, #00C9A7 100%) !important;
-  font-family: Inter, sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
   user-select: none !important;
 }
 
+/* Loading spinner inside circle */
 .custom-profile-avatar-spinner {
   width: 100% !important;
   height: 100% !important;
@@ -94,6 +98,7 @@
   color: #1dd3b0 !important;
 }
 
+/* Edit photo button — overlays the bottom of the avatar circle */
 .custom-profile-edit-photo-btn {
   position: absolute !important;
   bottom: -14px !important;
@@ -343,25 +348,30 @@
   font-weight: 500 !important;
 }
 
+/* Back button aligned to the left at the top of the wrapper */
 .custom-profile-back-top {
   align-self: flex-start !important;
   justify-content: flex-start !important;
   margin-bottom: 24px !important;
 }
 
+/* FaUser icon inside the name input */
 .custom-profile-input-icon-pos {
   left: 16px !important;
   position: absolute !important;
 }
 
+/* Name input padding so text clears the icon */
 .custom-profile-name-input {
   padding-left: 50px !important;
 }
 
+/* Disabled / sent state for the submit button */
 .custom-profile-button--disabled {
   opacity: 0.7 !important;
   cursor: not-allowed !important;
 }
+
 
 @keyframes forgotFadeUp {
   from {

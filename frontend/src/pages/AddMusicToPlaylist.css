@@ -166,12 +166,26 @@
   min-width: 0;
 }
 
-.add-music-info img {
+.add-music-info img,
+.add-music-cover-placeholder {
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  object-fit: cover;
   flex-shrink: 0;
+}
+
+.add-music-info img {
+  object-fit: cover;
+}
+
+.add-music-cover-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #39f0d0;
+  background:
+    radial-gradient(circle at 35% 20%, rgba(57, 240, 208, 0.18), transparent 42%),
+    rgba(255, 255, 255, 0.045);
 }
 
 .add-music-info > div {

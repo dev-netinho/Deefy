@@ -157,6 +157,7 @@
   color: #7f7f7f !important;
 }
 
+/* Remover coloração amarela de autofill mantendo a curvatura transparente */
 .forgot-input-box input:-webkit-autofill,
 .forgot-input-box input:-webkit-autofill:hover,
 .forgot-input-box input:-webkit-autofill:focus,
@@ -166,6 +167,7 @@
   background-color: transparent !important;
   border-radius: inherit !important;
 }
+
 
 .forgot-button-primary {
   width: 100% !important;
@@ -263,17 +265,42 @@
   font-weight: 500 !important;
 }
 
-.forgot-back-top {
+.custom-profile-back-login {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  color: #d6d6d6 !important;
+  cursor: pointer !important;
+  font-size: 1.2rem !important;
+  transition: color 0.25s ease, transform 0.25s ease !important;
+  animation: forgotFadeIn 1.4s ease !important;
+}
+
+.custom-profile-back-login:hover {
+  color: #39f0d0 !important;
+  transform: translateX(-3px) !important;
+}
+
+.custom-profile-back-login span {
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+/* Back button aligned to the left at the top of the wrapper */
+.custom-profile-back-top {
   align-self: flex-start !important;
   justify-content: flex-start !important;
   margin-bottom: 24px !important;
 }
+
 
 @keyframes forgotFadeUp {
   from {
     opacity: 0;
     transform: translateY(28px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -284,16 +311,20 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
 @keyframes forgotFloat {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
     box-shadow: 0 0 40px rgba(57, 240, 208, 0.12);
   }
+
   50% {
     transform: translateY(-6px);
     box-shadow: 0 0 55px rgba(57, 240, 208, 0.18);

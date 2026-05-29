@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { createElement, useState, useEffect, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import { adminService } from "../services/adminService";
 import { showMusicError, showMusicSuccess } from "../utils/musicToast";
 import ButtonSpinner from "../components/ButtonSpinner";
+import { getSearchableText, matchesSearchText } from "../utils/search";
 import {
   MdPeople, MdPersonOff, MdDelete, MdEdit, MdSave, MdClose,
   MdBlock, MdCheckCircle, MdAdminPanelSettings, MdPerson,
@@ -28,7 +29,7 @@ function roleLabel(role) {
 function StatCard({ icon: Icon, label, value, accent, onClick, active }) {
   return (
     <button type="button" className={`um-stat-card${active ? " um-stat-card--active" : ""}`} style={{ "--um-accent": accent }} onClick={onClick}>
-      <div className="um-stat-icon"><Icon /></div>
+      <div className="um-stat-icon">{createElement(Icon)}</div>
       <div className="um-stat-info">
         <p className="um-stat-value">{value ?? "—"}</p>
         <p className="um-stat-label">{label}</p>
@@ -161,10 +162,7 @@ export default function UserManagement() {
   const filtered = users.filter(u => {
     // text search
     if (search) {
-      const q = search.toLowerCase();
-      if (!(u.name || "").toLowerCase().includes(q)
-          && !(u.email || "").toLowerCase().includes(q)
-          && !(u.username || "").toLowerCase().includes(q)) {
+      if (!matchesSearchText(getSearchableText(u.name, u.email, u.username), search)) {
         return false;
       }
     }

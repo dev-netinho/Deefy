@@ -144,6 +144,18 @@
   color: #7f7f7f !important;
 }
 
+/* Remover coloração amarela de autofill mantendo a curvatura transparente */
+.login-input-box input:-webkit-autofill,
+.login-input-box input:-webkit-autofill:hover,
+.login-input-box input:-webkit-autofill:focus,
+.login-input-box input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+  background-color: transparent !important;
+  border-radius: inherit !important;
+}
+
+
 .login-forgot-password {
   margin: 12px 2px 0 !important;
   text-align: right !important;

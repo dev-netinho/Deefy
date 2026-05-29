@@ -90,8 +90,10 @@ function CustomProfile() {
           <span>Voltar</span>
         </div>
 
+        {/* Avatar: circle + edit button stacked */}
         <div className="custom-profile-avatar-area">
 
+          {/* Edit photo button — above the circle */}
           <div className="custom-profile-edit-photo-btn" onClick={() => navigate("/edit-profile")}>
             <div className="custom-profile-edit-photo-icon-wrapper">
               <IoCameraOutline />
@@ -99,6 +101,7 @@ function CustomProfile() {
             <div className="custom-profile-edit-photo-text">Editar<br />Foto</div>
           </div>
 
+          {/* Avatar circle */}
           <div className="custom-profile-icon-circle">
             {loadingProfile ? (
               <div className="custom-profile-avatar-spinner">
@@ -116,6 +119,7 @@ function CustomProfile() {
               </div>
             )}
           </div>
+
         </div>
 
         <div className="custom-profile-text">

@@ -12,15 +12,13 @@ import {
   MdMoreHoriz,
   MdPlayArrow,
   MdPlaylistAdd,
+  MdLibraryMusic,
   MdShuffle,
 } from 'react-icons/md'
 import { musicService } from '../services/musicService.js'
 import { showMusicError, showMusicSuccess } from '../utils/musicToast'
 import { usePlayer } from '../contexts/PlayerContext.jsx'
 import { normalizeMusic } from '../utils/musicNormalizer.js'
-import { isAdmin } from '../utils/auth.js'
-
-const FALLBACK_COVER = 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800'
 
 function shuffleSongs(songs) {
   const shuffled = [...songs]
@@ -103,8 +101,6 @@ function UserPlaylistDetail() {
   const songs = (playlist?.tracks || []).map(normalizeMusic).filter(Boolean)
   const playlistDescription = playlist?.description || playlist?.descricao || ''
   const playlistCoverUrl = playlist?.coverUrl || playlist?.capaUrl || ''
-  const isPublicPlaylist = playlist?.publica === true || playlist?.publica === 'true'
-  const canManagePlaylist = Boolean(playlist) && (!isPublicPlaylist || isAdmin())
 
   const handleSongRemoved = (removedSong) => {
     const removedMusicId = removedSong?.id !== undefined && removedSong?.id !== null
@@ -167,15 +163,26 @@ function UserPlaylistDetail() {
     if (songs.length >= 4) {
       return (
         <div className="user-playlist-cover-grid">
-          <img src={songs[0].coverUrl || FALLBACK_COVER} alt={`Capa de ${songs[0].title || 'música'}`} />
-          <img src={songs[1].coverUrl || FALLBACK_COVER} alt={`Capa de ${songs[1].title || 'música'}`} />
-          <img src={songs[2].coverUrl || FALLBACK_COVER} alt={`Capa de ${songs[2].title || 'música'}`} />
-          <img src={songs[3].coverUrl || FALLBACK_COVER} alt={`Capa de ${songs[3].title || 'música'}`} />
+          {songs.slice(0, 4).map((song, index) => (
+            song.coverUrl ? (
+              <img key={song.id || `${song.title}-${index}`} src={song.coverUrl} alt={`Capa de ${song.title || 'música'}`} />
+            ) : (
+              <div key={song.id || `${song.title}-${index}`} className="user-playlist-cover-grid-placeholder" aria-hidden="true">
+                <MdLibraryMusic />
+              </div>
+            )
+          ))}
         </div>
       )
     }
-    const cover = songs[0]?.coverUrl || FALLBACK_COVER
-    return <img className="user-playlist-cover" src={cover} alt="Capa da playlist" />
+    const cover = songs[0]?.coverUrl || ''
+    return cover ? (
+      <img className="user-playlist-cover" src={cover} alt="Capa da playlist" />
+    ) : (
+      <div className="user-playlist-cover user-playlist-cover-placeholder" aria-hidden="true">
+        <MdLibraryMusic />
+      </div>
+    )
   }
 
   if (loading) {
@@ -264,7 +271,9 @@ function UserPlaylistDetail() {
               <p className="user-playlist-description">{playlistDescription}</p>
             )}
 
-            <p>Criada em {playlist.dataCriacao || new Date().toLocaleDateString('pt-BR')} • {songs.length} músicas</p>
+            <p>
+              {playlist.dataCriacao ? `Criada em ${playlist.dataCriacao}` : 'Data de criação não informada'} • {songs.length} músicas
+            </p>
 
             <div className="user-playlist-actions">
               <button
@@ -290,56 +299,54 @@ function UserPlaylistDetail() {
                 <MdShuffle />
               </button>
 
-              {canManagePlaylist && (
-                <div className="user-playlist-actions-menu-wrap" ref={menuRef}>
-                  <button
-                    type="button"
-                    className={`user-playlist-icon-btn user-playlist-more-btn${isMenuOpen ? ' is-active' : ''}`}
-                    onClick={() => setIsMenuOpen((current) => !current)}
-                    aria-label="Mais ações da playlist"
-                    aria-expanded={isMenuOpen}
-                    aria-haspopup="menu"
-                    title="Mais ações"
-                  >
-                    <MdMoreHoriz />
-                  </button>
+              <div className="user-playlist-actions-menu-wrap" ref={menuRef}>
+                <button
+                  type="button"
+                  className={`user-playlist-icon-btn user-playlist-more-btn${isMenuOpen ? ' is-active' : ''}`}
+                  onClick={() => setIsMenuOpen((current) => !current)}
+                  aria-label="Mais ações da playlist"
+                  aria-expanded={isMenuOpen}
+                  aria-haspopup="menu"
+                  title="Mais ações"
+                >
+                  <MdMoreHoriz />
+                </button>
 
-                  {isMenuOpen && (
-                    <div className="user-playlist-actions-menu" role="menu">
-                      <Link
-                        to={`/playlist/${playlist.id}/add-music`}
-                        className="user-playlist-menu-item"
-                        role="menuitem"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <MdPlaylistAdd />
-                        <span>Adicionar música</span>
-                      </Link>
+                {isMenuOpen && (
+                  <div className="user-playlist-actions-menu" role="menu">
+                    <Link
+                      to={`/playlist/${playlist.id}/add-music`}
+                      className="user-playlist-menu-item"
+                      role="menuitem"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <MdPlaylistAdd />
+                      <span>Adicionar música</span>
+                    </Link>
 
-                      <Link
-                        to={`/playlist/${playlist.id}/edit`}
-                        className="user-playlist-menu-item"
-                        role="menuitem"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <MdEdit />
-                        <span>Editar playlist</span>
-                      </Link>
+                    <Link
+                      to={`/playlist/${playlist.id}/edit`}
+                      className="user-playlist-menu-item"
+                      role="menuitem"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <MdEdit />
+                      <span>Editar playlist</span>
+                    </Link>
 
-                      <button
-                        type="button"
-                        className="user-playlist-menu-item user-playlist-menu-item-danger"
-                        role="menuitem"
-                        onClick={handleDelete}
-                        disabled={isDeleting}
-                      >
-                        <MdDelete />
-                        <span>{isDeleting ? 'Excluindo...' : 'Excluir playlist'}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                    <button
+                      type="button"
+                      className="user-playlist-menu-item user-playlist-menu-item-danger"
+                      role="menuitem"
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                    >
+                      <MdDelete />
+                      <span>{isDeleting ? 'Excluindo...' : 'Excluir playlist'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </section>
@@ -348,15 +355,13 @@ function UserPlaylistDetail() {
           <SongList
             songs={songs}
             title=""
-            playlistId={canManagePlaylist ? playlist.id : undefined}
+            playlistId={playlist.id}
             onSongRemoved={handleSongRemoved}
-            allowAddToPlaylist={canManagePlaylist}
           />
         ) : (
           <p style={{ margin: '20px 0', color: '#a9a9a9' }}>Você ainda não adicionou nenhuma música a esta playlist.</p>
         )}
       </main>
-
     </div>
   )
 }

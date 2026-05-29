@@ -22,9 +22,6 @@ import PlaylistDetail from './pages/PlaylistDetail.jsx'
 import Playlists from './pages/Playlists.jsx'
 import UserPlaylistDetail from './pages/UserPlaylistDetail.jsx'
 import FavoritesDetail from './pages/FavoritesDetail.jsx'
-import Artists from './pages/Artists.jsx'
-import SystemPlaylists from './pages/SystemPlaylists.jsx'
-import SharedMusic from './pages/SharedMusic.jsx'
 
 import { PlayerProvider } from './contexts/PlayerContext.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
@@ -33,6 +30,9 @@ import PublicRoute from './routes/PublicRoute.jsx'
 import PlayerController from './routes/PlayerController.jsx'
 import CreatePlaylist from './pages/CreatePlaylist.jsx'
 import AddMusicToPlaylist from './pages/AddMusicToPlaylist.jsx'
+import SharedMusic from './pages/SharedMusic.jsx'
+import SystemPlaylists from './pages/SystemPlaylists.jsx'
+import Artists from './pages/Artists.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -71,15 +71,15 @@ createRoot(document.getElementById('root')).render(
           <Route path="/custom-profile" element={<ProtectedRoute><CustomProfile /></ProtectedRoute>} />
 
           <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
-          <Route path="/artists" element={<ProtectedRoute><Artists /></ProtectedRoute>} />
-          <Route path="/system-playlists" element={<ProtectedRoute><SystemPlaylists /></ProtectedRoute>} />
-          <Route path="/music/:id" element={<ProtectedRoute><SharedMusic /></ProtectedRoute>} />
           <Route path="/playlist-detail/:id" element={<ProtectedRoute><PlaylistDetail /></ProtectedRoute>} />
           <Route path="/user-playlist-detail/:id" element={<ProtectedRoute><UserPlaylistDetail /></ProtectedRoute>} />
           <Route path="/favorites" element={<ProtectedRoute><FavoritesDetail /></ProtectedRoute>} />
+          <Route path="/system-playlists" element={<ProtectedRoute><SystemPlaylists /></ProtectedRoute>} />
+          <Route path="/artists" element={<ProtectedRoute><Artists /></ProtectedRoute>} />
           <Route path="/create-playlist" element={<ProtectedRoute><CreatePlaylist /></ProtectedRoute>} />
           <Route path="/playlist/:id/add-music" element={<ProtectedRoute><AddMusicToPlaylist /></ProtectedRoute>} />
           <Route path="/playlist/:id/edit" element={<ProtectedRoute><CreatePlaylist /></ProtectedRoute>} />
+          <Route path="/music/:id" element={<ProtectedRoute><SharedMusic /></ProtectedRoute>} />
 
           <Route
             path="/admin"

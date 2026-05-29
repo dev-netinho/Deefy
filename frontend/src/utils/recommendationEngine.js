@@ -33,7 +33,7 @@ function writeProfile(profile) {
   try {
     window.localStorage.setItem(PROFILE_KEY, JSON.stringify(profile))
   } catch (error) {
-    console.warn('Nao foi possivel salvar recomendacoes locais.', error)
+    console.warn('Não foi possível salvar recomendações locais.', error)
   }
 }
 
@@ -96,8 +96,15 @@ function itemSignals(item) {
 
 export function getRecommendationScore(item, profile = readProfile()) {
   const signals = itemSignals(item)
-  const styleScore = signals.styles.reduce((score, key) => score + (profile.styles[key] || 0), 0)
-  const artistScore = signals.artists.reduce((score, key) => score + (profile.artists[key] || 0), 0)
+
+  const styleScore = signals.styles.reduce(
+    (score, key) => score + (profile.styles[key] || 0),
+    0,
+  )
+  const artistScore = signals.artists.reduce(
+    (score, key) => score + (profile.artists[key] || 0),
+    0,
+  )
 
   return 1 + styleScore * 2 + artistScore
 }

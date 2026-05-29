@@ -1,11 +1,12 @@
-import { isJwtExpired } from './jwt';
-
 // Chave que será usada no localStorage (buscada do .env para organização)
+import { getRoleFromToken, isJwtExpired } from './jwt';
+
 const TOKEN_KEY = import.meta.env.VITE_STORAGE_TOKEN_KEY || "@deefy-token";
 const ROLE_KEY = "@deefy-role";
 const AUTH_KEY = "@deefy-auth";
+const INTENDED_ROUTE_KEY = "@deefy-intended-route";
 
-function clearStoredAuth() {
+function clearStoredSession() {
   localStorage.removeItem(AUTH_KEY);
   localStorage.removeItem("@deefy-user");
   localStorage.removeItem(ROLE_KEY);
@@ -18,7 +19,7 @@ function clearStoredAuth() {
  */
 export const setToken = (token) => {
   if (!token || isJwtExpired(token)) {
-    clearStoredAuth();
+    clearStoredSession();
     return;
   }
 
@@ -27,14 +28,14 @@ export const setToken = (token) => {
 };
 
 /**
- * Busca o token JWT salvo, ignorando sessões inválidas ou expiradas.
+ * Busca o token JWT salvo
  * @returns {string | null}
  */
 export const getToken = () => {
   const token = localStorage.getItem(TOKEN_KEY);
 
   if (!token || isJwtExpired(token)) {
-    clearStoredAuth();
+    clearStoredSession();
     return null;
   }
 
@@ -45,7 +46,23 @@ export const getToken = () => {
  * Remove o token e dados de sessão (Logout)
  */
 export const removeToken = () => {
-  clearStoredAuth();
+  clearStoredSession();
+  localStorage.removeItem(INTENDED_ROUTE_KEY);
+};
+
+export const setIntendedRoute = (route) => {
+  if (route) localStorage.setItem(INTENDED_ROUTE_KEY, route);
+};
+
+export const consumeIntendedRoute = () => {
+  const route = localStorage.getItem(INTENDED_ROUTE_KEY);
+  localStorage.removeItem(INTENDED_ROUTE_KEY);
+
+  if (!route || !route.startsWith('/') || route.startsWith('//')) {
+    return null;
+  }
+
+  return route;
 };
 
 /**
@@ -69,7 +86,7 @@ export const setUserRole = (role) => {
  * @returns {string | null}
  */
 export const getUserRole = () => {
-  return localStorage.getItem(ROLE_KEY);
+  return getRoleFromToken(getToken()) || localStorage.getItem(ROLE_KEY);
 };
 
 /**

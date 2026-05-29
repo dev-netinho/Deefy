@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FaArrowLeft, FaCheck, FaPlus, FaSearch } from 'react-icons/fa'
+import { FaArrowLeft, FaCheck, FaMusic, FaPlus, FaSearch } from 'react-icons/fa'
 import { Link, useParams } from 'react-router-dom'
 import './AddMusicToPlaylist.css'
 
@@ -79,17 +79,15 @@ function AddMusicToPlaylist() {
       return () => { isMounted = false }
     }
 
-    Promise.allSettled([
-      musicService.searchMusicsByTitle(debouncedQuery),
-      musicService.searchMusicsByArtist(debouncedQuery),
-      musicService.searchMusicsByGenre(debouncedQuery)
-    ]).then(results => {
+    musicService.searchMusicsSmart(debouncedQuery, {
+      fields: ['title', 'artist', 'album', 'genre'],
+    }).then((data) => {
       if (!isMounted) return;
-      const allMusics = results
-        .filter(r => r.status === 'fulfilled')
-        .flatMap(r => r.value || []);
-      
-      setResults(uniqueSongs(allMusics));
+      setResults(uniqueSongs(data || []));
+    }).catch((err) => {
+      if (!isMounted) return;
+      console.error('Erro ao buscar músicas', err);
+      setResults([]);
     }).finally(() => {
       if (isMounted) setIsLoading(false);
     })
@@ -171,18 +169,24 @@ function AddMusicToPlaylist() {
                 return (
                 <article className={`add-music-card${isAdded ? ' is-added' : ''}`} key={songKey || `${song.title}-${index}`}>
                   <div className="add-music-info">
-                    <img
-                      src={song.coverUrl || 'https://picsum.photos/seed/music/80/80'}
-                      alt={`Capa de ${song.title || 'música'}`}
-                    />
+                    {song.coverUrl ? (
+                      <img
+                        src={song.coverUrl}
+                        alt={`Capa de ${song.title || 'música'}`}
+                      />
+                    ) : (
+                      <span className="add-music-cover-placeholder" aria-hidden="true">
+                        <FaMusic />
+                      </span>
+                    )}
 
                     <div>
-                      <h3>{song.title || 'Música sem título'}</h3>
-                      <p>{song.artist || 'Artista desconhecido'}</p>
+                      <h3>{song.title || 'Título não informado'}</h3>
+                      <p>{song.artist || 'Artista não informado'}</p>
                     </div>
                   </div>
 
-                  <span className="add-music-album">{song.album || 'Álbum desconhecido'}</span>
+                  <span className="add-music-album">{song.album || 'Álbum não informado'}</span>
                   <span className="add-music-duration">{song.duration || '--:--'}</span>
 
                   <button 

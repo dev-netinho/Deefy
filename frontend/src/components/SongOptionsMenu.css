@@ -32,7 +32,7 @@
   right: 0;
   z-index: 9999;
 
-  width: 270px;
+  width: 330px;
   padding: 8px;
 
   border-radius: 18px;
@@ -110,6 +110,10 @@
 
 .song-options-menu button span {
   flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .song-options-divider {
@@ -149,35 +153,50 @@
   color: #39f0d0;
 }
 
-.song-options-submenu-note {
-  display: block;
+.song-options-empty {
   padding: 10px 12px;
-  color: #8f8f96;
-  font-size: 0.82rem;
-  line-height: 1.35;
+  color: #8a8a8a;
+  font-size: 0.84rem;
+}
+
+@media (max-width: 768px) {
+  .song-options-menu {
+    right: -8px;
+    width: min(300px, calc(100vw - 28px));
+  }
 }
 
 .song-share-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 99999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 22000;
+  display: grid;
+  place-items: center;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(14px);
 }
 
 .song-share-modal {
   position: relative;
-  width: min(460px, 100%);
-  padding: 28px;
-  border-radius: 24px;
-  background: #141417;
+  width: min(480px, 100%);
+  padding: 24px;
+  border-radius: 22px;
+  background: rgba(20, 20, 23, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
-  color: #f5f5f5;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.62);
+  color: #f2f2f2;
+  text-align: left;
+}
+
+.song-share-modal h2 {
+  margin: 0 44px 8px 0;
+  font-size: 1.35rem;
+}
+
+.song-share-modal p {
+  margin: 0 0 18px;
+  color: #a9a9a9;
 }
 
 .song-share-close {
@@ -189,72 +208,60 @@
   border: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.06);
-  color: #f5f5f5;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
-.song-share-modal h2 {
-  margin: 0 0 8px;
-}
-
-.song-share-modal p {
-  margin: 0 0 20px;
-  color: #b8b8b8;
-}
-
 .song-share-link-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 118px;
   gap: 10px;
-  padding: 8px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 16px;
 }
 
 .song-share-link-row input {
-  flex: 1;
   min-width: 0;
-  border: none;
-  background: transparent;
-  color: #e4e4e4;
-  outline: none;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #fff;
+  font: inherit;
 }
 
 .song-share-link-row button,
 .song-share-actions a {
   border: none;
-  border-radius: 12px;
-  background: rgba(57, 240, 208, 0.14);
-  color: #39f0d0;
-  cursor: pointer;
+  border-radius: 14px;
+  min-height: 44px;
+  padding: 0 14px;
+  background: #9fffe8;
+  color: #061512;
   text-decoration: none;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .song-share-link-row button {
-  padding: 10px 12px;
+  width: 118px;
+  padding: 0 12px;
 }
 
 .song-share-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 16px;
 }
 
-.song-share-actions a {
-  padding: 12px;
-}
-
-@media (max-width: 768px) {
-  .song-options-menu {
-    right: -8px;
-    width: 235px;
-  }
-
+@media (max-width: 520px) {
+  .song-share-link-row,
   .song-share-actions {
     grid-template-columns: 1fr;
   }

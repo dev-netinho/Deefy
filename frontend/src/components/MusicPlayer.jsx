@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   FaHeart,
   FaPause,
@@ -10,7 +11,7 @@ import {
   FaVolumeMute,
   FaVolumeUp,
 } from "react-icons/fa";
-import { FiChevronDown, FiMaximize2, FiRepeat } from "react-icons/fi";
+import { FiChevronDown, FiMaximize2, FiRepeat, FiX } from "react-icons/fi";
 import { MdPlaylistAdd } from "react-icons/md";
 import { toast } from "sonner";
 import { usePlayer } from "../contexts/PlayerContext";
@@ -27,6 +28,47 @@ const EMPTY_TRACK = {
   durationSeconds: 0,
   isFavorite: false,
 };
+
+const PLAYER_PROGRESS_STORAGE_KEY = "@deefy-player-progress";
+
+function getTrackStorageKey(track) {
+  return track?.id ?? track?.audioUrl ?? track?.title ?? "";
+}
+
+function readStoredPlaybackTime(track) {
+  const trackKey = String(getTrackStorageKey(track));
+  if (!trackKey || typeof window === "undefined") return 0;
+
+  try {
+    const storedProgress = window.localStorage.getItem(PLAYER_PROGRESS_STORAGE_KEY);
+    const progress = storedProgress ? JSON.parse(storedProgress) : null;
+
+    if (progress?.trackKey !== trackKey) return 0;
+
+    const storedTime = Number(progress.currentTime);
+    return Number.isFinite(storedTime) && storedTime > 0 ? storedTime : 0;
+  } catch (error) {
+    console.warn("Deefy player: nao foi possivel restaurar o progresso.", error);
+    return 0;
+  }
+}
+
+function writeStoredPlaybackTime(track, seconds) {
+  const trackKey = String(getTrackStorageKey(track));
+  if (!trackKey || typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(
+      PLAYER_PROGRESS_STORAGE_KEY,
+      JSON.stringify({
+        trackKey,
+        currentTime: Math.max(Number(seconds) || 0, 0),
+      }),
+    );
+  } catch (error) {
+    console.warn("Deefy player: nao foi possivel salvar o progresso.", error);
+  }
+}
 
 function parseDuration(value) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -56,11 +98,6 @@ function resolveMediaUrl(value) {
   return value;
 }
 
-function sameTrack(left, right) {
-  if (!left || !right) return false;
-  return String(left.id) === String(right.id);
-}
-
 function normalizeTrack(track) {
   if (!track) return EMPTY_TRACK;
 
@@ -83,7 +120,7 @@ function normalizeTrack(track) {
     "";
 
   const audioUrl = resolveMediaUrl(
-    track.audioUrl ||
+      track.audioUrl ||
       track.arquivoUrl ||
       track.arquivourl ||
       track.url ||
@@ -97,6 +134,7 @@ function normalizeTrack(track) {
   const coverUrl = resolveMediaUrl(
     track.coverUrl ||
       track.capaUrl ||
+      track.capaurl ||
       track.imageUrl ||
       track.thumbnailUrl ||
       track.cover ||
@@ -131,7 +169,15 @@ function formatTime(seconds) {
   return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
 }
 
-function MusicPlayer({ playlists = [], onAddToPlaylist }) {
+function getPlaylistId(playlist) {
+  return playlist?.id ?? playlist?.uuid ?? playlist?.slug ?? null;
+}
+
+function getPlaylistName(playlist) {
+  return playlist?.name || playlist?.title || "Playlist";
+}
+
+function MusicPlayer({ playlists, onAddToPlaylist, isHidden = false }) {
   const audioRef = useRef(null);
   const compactDragActiveRef = useRef(false);
   const expandedDragActiveRef = useRef(false);
@@ -141,19 +187,23 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   const playlistMenuRef = useRef(null);
   const contextIsPlayingRef = useRef(false);
   const shouldResumePlaybackRef = useRef(false);
+  const pendingRestoreTimeRef = useRef(0);
+  const lastPersistedSecondRef = useRef(-1);
   const lastPlaybackCommandIdRef = useRef(null);
-  const favoriteStatusRequestRef = useRef(0);
+  const playlistSheetDragStartYRef = useRef(null);
+  const playlistSheetDragOffsetYRef = useRef(0);
 
   const {
     currentTrack: contextTrack,
     isPlaying: contextIsPlaying,
     isShuffle,
-    queue,
     playbackCommand,
+    queue,
     playNext,
     playPrevious,
     setPlaying: setContextPlaying,
     setShuffleMode,
+    expandedRequestId,
   } = usePlayer();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -163,13 +213,19 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   const [isMuted, setIsMuted] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [isFavoriteBusy, setIsFavoriteBusy] = useState(false);
+  const [favoriteTrackIds, setFavoriteTrackIds] = useState(() => new Set());
   const [playlistMenuContext, setPlaylistMenuContext] = useState(null);
+  const [userPlaylists, setUserPlaylists] = useState([]);
+  const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(false);
+  const [playlistError, setPlaylistError] = useState("");
+  const [addingPlaylistId, setAddingPlaylistId] = useState(null);
+  const [addedPlaylistIds, setAddedPlaylistIds] = useState(() => new Set());
   const [isExpanded, setIsExpanded] = useState(false);
   const [isExpandedClosing, setIsExpandedClosing] = useState(false);
   const [dragStartY, setDragStartY] = useState(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [playlistSheetDragOffset, setPlaylistSheetDragOffset] = useState(0);
 
   const tracks = useMemo(() => {
     if (Array.isArray(queue) && queue.length) return queue;
@@ -177,7 +233,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   }, [queue, contextTrack]);
 
   const currentTrackIndex = contextTrack
-    ? tracks.findIndex((track) => sameTrack(track, contextTrack))
+    ? tracks.findIndex((track) => String(track?.id ?? "") === String(contextTrack.id ?? ""))
     : -1;
   const activeTrackIndex = currentTrackIndex >= 0 ? currentTrackIndex : 0;
   const rawTrack = contextTrack || tracks[activeTrackIndex] || null;
@@ -186,6 +242,14 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   const hasAudioUrl = Boolean(currentTrack.audioUrl);
   const hasPrevious = tracks.length > 1 && activeTrackIndex > 0;
   const hasNext = tracks.length > 1 && activeTrackIndex < tracks.length - 1;
+  const providedPlaylists = useMemo(
+    () => (Array.isArray(playlists) ? playlists : []),
+    [playlists],
+  );
+  const effectivePlaylists = useMemo(() => {
+    if (providedPlaylists.length > 0) return providedPlaylists;
+    return userPlaylists;
+  }, [providedPlaylists, userPlaylists]);
   const progressPercent = duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
 
   const progressStyle = {
@@ -198,6 +262,10 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
 
   const expandedDragStyle = {
     "--deefy-player-drag-offset": `${Math.max(dragOffsetY, 0)}px`,
+  };
+
+  const playlistSheetStyle = {
+    "--deefy-player-sheet-drag-offset": `${Math.max(playlistSheetDragOffset, 0)}px`,
   };
 
   const isMobileViewport = () =>
@@ -217,6 +285,21 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
     expandedDragActiveRef.current = false;
   };
 
+  const resetPlaylistSheetDrag = () => {
+    playlistSheetDragStartYRef.current = null;
+    playlistSheetDragOffsetYRef.current = 0;
+    setPlaylistSheetDragOffset(0);
+  };
+
+  const persistPlaybackProgress = useCallback((seconds) => {
+    const nextSecond = Math.floor(Number(seconds) || 0);
+
+    if (lastPersistedSecondRef.current === nextSecond) return;
+
+    lastPersistedSecondRef.current = nextSecond;
+    writeStoredPlaybackTime(currentTrack, seconds);
+  }, [currentTrack]);
+
   const syncContextPlaying = useCallback((nextPlaying) => {
     if (contextIsPlayingRef.current !== nextPlaying) {
       setContextPlaying(nextPlaying);
@@ -229,46 +312,72 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   }, [contextIsPlaying]);
 
   useEffect(() => {
-    setIsFavorite(currentTrack.isFavorite);
-  }, [currentTrack.id, currentTrack.isFavorite]);
+    if (!playbackCommand || playbackCommand.id === lastPlaybackCommandIdRef.current) return;
+
+    lastPlaybackCommandIdRef.current = playbackCommand.id;
+
+    if (playbackCommand.type === "toggle") {
+      togglePlaying();
+    }
+  }, [playbackCommand]);
 
   useEffect(() => {
-    if (!currentTrack.id) {
-      setIsFavorite(false);
-      return undefined;
-    }
+    let isMounted = true;
 
-    const requestId = favoriteStatusRequestRef.current + 1;
-    favoriteStatusRequestRef.current = requestId;
+    musicService.getFavoriteMusics()
+      .then((favorites) => {
+        if (!isMounted) return;
 
-    musicService.getFavoriteStatus(currentTrack.id)
-      .then((isCurrentFavorite) => {
-        if (favoriteStatusRequestRef.current === requestId) {
-          setIsFavorite(isCurrentFavorite);
-        }
+        setFavoriteTrackIds(
+          new Set(
+            (favorites || [])
+              .map((track) => track?.id)
+              .filter((id) => id !== undefined && id !== null && id !== "")
+              .map(String),
+          ),
+        );
       })
       .catch((error) => {
-        console.warn("Deefy player: nao foi possivel consultar favorito.", error);
+        console.warn("Deefy player: nao foi possivel carregar favoritos.", error);
       });
 
-    return undefined;
-  }, [currentTrack.id]);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return undefined;
-    }
+    const currentTrackId = currentTrack.id === null ? "" : String(currentTrack.id);
+    setIsFavorite(Boolean(currentTrack.isFavorite || favoriteTrackIds.has(currentTrackId)));
+  }, [currentTrack.id, currentTrack.isFavorite, favoriteTrackIds]);
 
+  useEffect(() => {
     const handleFavoriteChanged = (event) => {
-      if (!currentTrack.id || String(event.detail?.musicId) !== String(currentTrack.id)) {
-        return;
-      }
+      const eventTrackId = event.detail?.musicId;
+      if (!eventTrackId) return;
 
-      setIsFavorite(Boolean(event.detail?.isFavorite));
+      setFavoriteTrackIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+
+        if (event.detail?.isFavorite) {
+          nextIds.add(String(eventTrackId));
+        } else {
+          nextIds.delete(String(eventTrackId));
+        }
+
+        return nextIds;
+      });
     };
 
     window.addEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
-    return () => window.removeEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
+    return () => {
+      window.removeEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
+    };
+  }, []);
+
+  useEffect(() => {
+    setAddedPlaylistIds(new Set());
+    lastPersistedSecondRef.current = -1;
   }, [currentTrack.id]);
 
   useEffect(() => {
@@ -284,16 +393,36 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   }, [isPlaying, contextIsPlaying]);
 
   useEffect(() => {
+    if (!isHidden) return;
+
+    setPlaylistMenuContext(null);
+    setIsExpanded(false);
+    setIsExpandedClosing(false);
+    resetDrag();
+  }, [isHidden]);
+
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
+    const restoredTime = readStoredPlaybackTime(currentTrack);
+    pendingRestoreTimeRef.current = restoredTime;
+
     const resetTimer = window.setTimeout(() => {
-      setCurrentTime(0);
+      setCurrentTime(restoredTime);
       setDuration(currentTrack.durationSeconds || 0);
     }, 0);
 
     audio.pause();
     audio.load();
+
+    if (restoredTime > 0) {
+      try {
+        audio.currentTime = restoredTime;
+      } catch (error) {
+        console.warn("Deefy player: progresso sera restaurado ao carregar metadados.", error);
+      }
+    }
 
     if (!hasAudioUrl) {
       window.setTimeout(() => setIsPlaying(false), 0);
@@ -324,23 +453,44 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
     currentTrack.id,
     hasAudioUrl,
     syncContextPlaying,
+    currentTrack,
   ]);
 
   const handleTimeUpdate = () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    setCurrentTime(audio.currentTime || 0);
+    const nextTime = audio.currentTime || 0;
+    setCurrentTime(nextTime);
+    persistPlaybackProgress(nextTime);
   };
 
   const handleLoadedMetadata = () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    setDuration(Number.isFinite(audio.duration) ? audio.duration : currentTrack.durationSeconds || 0);
+    const nextDuration = Number.isFinite(audio.duration) ? audio.duration : currentTrack.durationSeconds || 0;
+    const restoredTime = pendingRestoreTimeRef.current;
+
+    if (restoredTime > 0) {
+      const safeTime = nextDuration > 0
+        ? Math.min(restoredTime, Math.max(nextDuration - 0.5, 0))
+        : restoredTime;
+
+      try {
+        audio.currentTime = safeTime;
+      } catch (error) {
+        console.warn("Deefy player: nao foi possivel restaurar o tempo salvo.", error);
+      }
+
+      pendingRestoreTimeRef.current = 0;
+    }
+
+    setCurrentTime(audio.currentTime || restoredTime || 0);
+    setDuration(nextDuration);
   };
 
-  const togglePlaying = useCallback(() => {
+  const togglePlaying = () => {
     const audio = audioRef.current;
 
     if (!audio || !hasAudioUrl) {
@@ -367,25 +517,14 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
         syncContextPlaying(false);
         console.warn("Deefy player: play bloqueado pelo navegador ou URL invalida.", error);
       });
-  }, [hasAudioUrl, isPlaying, syncContextPlaying]);
-
-  useEffect(() => {
-    if (!playbackCommand || playbackCommand.id === lastPlaybackCommandIdRef.current) {
-      return;
-    }
-
-    lastPlaybackCommandIdRef.current = playbackCommand.id;
-
-    if (playbackCommand.type === "toggle") {
-      togglePlaying();
-    }
-  }, [playbackCommand, togglePlaying]);
+  };
 
   const handleSeek = (event) => {
     const nextTime = Number(event.target.value);
     const audio = audioRef.current;
 
     setCurrentTime(nextTime);
+    persistPlaybackProgress(nextTime);
 
     if (audio && Number.isFinite(nextTime)) {
       audio.currentTime = nextTime;
@@ -402,25 +541,22 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
     setIsMuted((current) => !current);
   };
 
-  const toggleShuffle = () => {
-    setShuffleMode((current) => !current);
-  };
-
   const handlePrevious = () => {
     if (!hasPrevious) return;
-    shouldResumePlaybackRef.current = true;
+    shouldResumePlaybackRef.current = isPlaying;
     playPrevious();
   };
 
   const handleNext = () => {
     if (!hasNext) return;
-    shouldResumePlaybackRef.current = true;
+    shouldResumePlaybackRef.current = isPlaying;
     playNext();
   };
 
   const handleEnded = () => {
     if (isRepeat && audioRef.current) {
       audioRef.current.currentTime = 0;
+      persistPlaybackProgress(0);
       audioRef.current.play().catch((error) => {
         setIsPlaying(false);
         syncContextPlaying(false);
@@ -437,45 +573,140 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
 
     setIsPlaying(false);
     syncContextPlaying(false);
+    persistPlaybackProgress(0);
   };
 
   const toggleFavorite = async () => {
     if (!currentTrack.id) return;
 
     const nextFavorite = !isFavorite;
-    favoriteStatusRequestRef.current += 1;
-    setIsFavoriteBusy(true);
+    const currentTrackId = String(currentTrack.id);
     setIsFavorite(nextFavorite);
 
     try {
       const savedFavoriteState = await musicService.toggleFavorite(currentTrack.id, isFavorite);
+      setFavoriteTrackIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+
+        if (savedFavoriteState) {
+          nextIds.add(currentTrackId);
+        } else {
+          nextIds.delete(currentTrackId);
+        }
+
+        return nextIds;
+      });
       setIsFavorite(savedFavoriteState);
     } catch (error) {
       setIsFavorite(!nextFavorite);
       console.warn("Deefy player: nao foi possivel atualizar favorito.", error);
-    } finally {
-      setIsFavoriteBusy(false);
     }
   };
+
+  const loadUserPlaylists = useCallback(async () => {
+    if (providedPlaylists.length > 0) {
+      setPlaylistError("");
+      return;
+    }
+
+    try {
+      setIsLoadingPlaylists(true);
+      setPlaylistError("");
+      const data = await musicService.getUserPlaylists();
+      setUserPlaylists(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setPlaylistError("Nao foi possivel carregar suas playlists.");
+      console.warn("Deefy player: nao foi possivel carregar playlists.", error);
+    } finally {
+      setIsLoadingPlaylists(false);
+    }
+  }, [providedPlaylists]);
 
   const togglePlaylistMenu = (context) => {
     setPlaylistMenuContext((current) => (current === context ? null : context));
   };
 
+  const closePlaylistMenu = () => {
+    resetPlaylistSheetDrag();
+    setPlaylistMenuContext(null);
+  };
+
+  const handlePlaylistSheetTouchStart = (event) => {
+    event.stopPropagation();
+    playlistSheetDragStartYRef.current = event.touches[0].clientY;
+    playlistSheetDragOffsetYRef.current = 0;
+    setPlaylistSheetDragOffset(0);
+  };
+
+  const handlePlaylistSheetTouchMove = (event) => {
+    event.stopPropagation();
+
+    const startY = playlistSheetDragStartYRef.current;
+    if (startY === null) return;
+
+    const nextOffset = event.touches[0].clientY - startY;
+    const listElement = event.target?.closest?.(".deefy-player-playlist-sheet-list");
+
+    if (listElement && listElement.scrollTop > 0 && nextOffset > 0) {
+      return;
+    }
+
+    const safeOffset = Math.max(nextOffset, 0);
+    playlistSheetDragOffsetYRef.current = safeOffset;
+    setPlaylistSheetDragOffset(safeOffset);
+  };
+
+  const handlePlaylistSheetTouchEnd = (event) => {
+    event.stopPropagation();
+
+    if (playlistSheetDragOffsetYRef.current > 72) {
+      closePlaylistMenu();
+      return;
+    }
+
+    resetPlaylistSheetDrag();
+  };
+
   const handleAddToPlaylist = async (playlist) => {
-    if (!currentTrack.id || !playlist?.id || typeof onAddToPlaylist !== "function") {
-      console.info("Deefy player: aguardando integracao real de playlists para adicionar a faixa.");
-      setPlaylistMenuContext(null);
+    const playlistId = getPlaylistId(playlist);
+    const playlistName = getPlaylistName(playlist);
+
+    if (!currentTrack.id || !playlistId) {
+      toast.error("Nao foi possivel identificar a musica ou playlist.");
+      closePlaylistMenu();
       return;
     }
 
     try {
-      await onAddToPlaylist(playlist, currentTrack);
-      toast.success(`Musica adicionada a playlist ${playlist.name || playlist.title}`);
+      setAddingPlaylistId(String(playlistId));
+
+      if (typeof onAddToPlaylist === "function") {
+        await onAddToPlaylist(playlist, currentTrack);
+      } else {
+        await musicService.addMusicToPlaylist(playlistId, currentTrack);
+      }
+
+      setAddedPlaylistIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        nextIds.add(String(playlistId));
+        return nextIds;
+      });
+      toast.success(`Musica adicionada a playlist ${playlistName}`);
     } catch (error) {
+      if (error?.response?.status === 409 || error?.status === 409) {
+        setAddedPlaylistIds((currentIds) => {
+          const nextIds = new Set(currentIds);
+          nextIds.add(String(playlistId));
+          return nextIds;
+        });
+        toast.error("Essa musica ja esta nessa playlist.");
+      } else {
+        toast.error(error?.response?.data?.message || "Erro ao adicionar musica a playlist.");
+      }
       console.warn("Deefy player: nao foi possivel adicionar a playlist.", error);
     } finally {
-      setPlaylistMenuContext(null);
+      setAddingPlaylistId(null);
+      closePlaylistMenu();
     }
   };
 
@@ -485,6 +716,20 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
     setIsExpandedClosing(false);
     setIsExpanded(true);
   };
+
+  useEffect(() => {
+    if (!expandedRequestId || isHidden || !hasSelectedTrack) return;
+    setPlaylistMenuContext(null);
+    dragStartYRef.current = null;
+    dragOffsetYRef.current = 0;
+    compactDragActiveRef.current = false;
+    expandedDragActiveRef.current = false;
+    setDragStartY(null);
+    setDragOffsetY(0);
+    setIsDragging(false);
+    setIsExpandedClosing(false);
+    setIsExpanded(true);
+  }, [expandedRequestId, hasSelectedTrack, isHidden]);
 
   const closeExpandedPlayer = () => {
     setPlaylistMenuContext(null);
@@ -598,6 +843,8 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   useEffect(() => {
     if (!playlistMenuContext) return undefined;
 
+    loadUserPlaylists();
+
     const handlePointerDown = (event) => {
       if (playlistMenuRef.current?.contains(event.target)) return;
       setPlaylistMenuContext(null);
@@ -614,7 +861,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
       document.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [playlistMenuContext]);
+  }, [loadUserPlaylists, playlistMenuContext]);
 
   useEffect(() => {
     if (!isExpanded) return undefined;
@@ -703,14 +950,122 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
     );
   };
 
+  const renderPlaylistMenuItems = () => {
+    const hasPlaylists = effectivePlaylists.length > 0;
+
+    if (isLoadingPlaylists) {
+      return (
+        <p className="deefy-player-playlist-empty">
+          Carregando playlists...
+        </p>
+      );
+    }
+
+    if (playlistError) {
+      return (
+        <p className="deefy-player-playlist-empty deefy-player-playlist-error">
+          {playlistError}
+        </p>
+      );
+    }
+
+    if (hasPlaylists) {
+      return effectivePlaylists.map((playlist) => {
+        const playlistId = getPlaylistId(playlist);
+        const playlistIdKey = playlistId === null ? "" : String(playlistId);
+        const isAdding = addingPlaylistId === playlistIdKey;
+        const isAdded = Boolean(playlistIdKey && addedPlaylistIds.has(playlistIdKey));
+
+        return (
+          <button
+            key={playlistIdKey || getPlaylistName(playlist)}
+            type="button"
+            className={`deefy-player-playlist-menu-item ${
+              isAdded ? "is-added" : ""
+            }`}
+            role="menuitem"
+            disabled={isAdding || isAdded}
+            onClick={(event) => {
+              stopCompactControlClick(event);
+              handleAddToPlaylist(playlist);
+            }}
+          >
+            <span className="deefy-player-playlist-menu-icon">
+              <MdPlaylistAdd />
+            </span>
+            <span className="deefy-player-playlist-menu-name">
+              {isAdding ? "Adicionando..." : isAdded ? "Adicionada" : getPlaylistName(playlist)}
+            </span>
+          </button>
+        );
+      });
+    }
+
+    return (
+      <p className="deefy-player-playlist-empty">
+        Nenhuma playlist pessoal encontrada
+      </p>
+    );
+  };
+
   const renderPlaylistMenu = (context, extraClassName = "") => {
     const isOpen = playlistMenuContext === context;
-    const hasPlaylists = Array.isArray(playlists) && playlists.length > 0;
+    const playlistOverlay = isOpen ? (
+      <div
+        className="deefy-player-playlist-sheet-backdrop"
+        ref={playlistMenuRef}
+        onClick={(event) => {
+          stopCompactControlClick(event);
+          if (event.target === event.currentTarget) {
+            closePlaylistMenu();
+          }
+        }}
+        onTouchStart={stopCompactControlClick}
+        onTouchMove={stopCompactControlClick}
+        onTouchEnd={stopCompactControlClick}
+        onTouchCancel={stopCompactControlClick}
+      >
+        <section
+          className="deefy-player-playlist-sheet"
+          style={playlistSheetStyle}
+          role="menu"
+          aria-label="Playlists"
+          onClick={stopCompactControlClick}
+          onTouchStart={handlePlaylistSheetTouchStart}
+          onTouchMove={handlePlaylistSheetTouchMove}
+          onTouchEnd={handlePlaylistSheetTouchEnd}
+          onTouchCancel={handlePlaylistSheetTouchEnd}
+        >
+          <div className="deefy-player-playlist-sheet-handle" aria-hidden="true" />
+
+          <div className="deefy-player-playlist-sheet-header">
+            <div className="deefy-player-playlist-sheet-copy">
+              <p className="deefy-player-playlist-sheet-kicker">Adicionar à playlist</p>
+            </div>
+
+            <button
+              type="button"
+              className="deefy-player-playlist-sheet-close"
+              onClick={(event) => {
+                stopCompactControlClick(event);
+                closePlaylistMenu();
+              }}
+              aria-label="Fechar playlists"
+            >
+              <FiX />
+            </button>
+          </div>
+
+          <div className="deefy-player-playlist-sheet-list">
+            {renderPlaylistMenuItems()}
+          </div>
+        </section>
+      </div>
+    ) : null;
 
     return (
       <div
         className={`deefy-player-playlist-wrap ${extraClassName}`}
-        ref={isOpen ? playlistMenuRef : null}
       >
         <button
           type="button"
@@ -728,45 +1083,36 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
           <MdPlaylistAdd />
         </button>
 
-        {isOpen && (
-          <div
-            className="deefy-player-playlist-menu"
-            role="menu"
-            aria-label="Playlists"
-          >
-            <p className="deefy-player-playlist-menu-title">Adicionar em</p>
-            <div className="deefy-player-playlist-menu-list">
-              {hasPlaylists ? (
-                playlists.map((playlist) => (
-                  <button
-                    key={playlist.id || playlist.name || playlist.title}
-                    type="button"
-                    className="deefy-player-playlist-menu-item"
-                    role="menuitem"
-                    onClick={(event) => {
-                      stopCompactControlClick(event);
-                      handleAddToPlaylist(playlist);
-                    }}
-                  >
-                    <span className="deefy-player-playlist-menu-icon">
-                      <MdPlaylistAdd />
-                    </span>
-                    <span className="deefy-player-playlist-menu-name">
-                      {playlist.name || playlist.title || "Playlist"}
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <p className="deefy-player-playlist-empty">
-                  Nenhuma playlist disponivel
-                </p>
-              )}
-            </div>
-          </div>
-        )}
+        {playlistOverlay && typeof document !== "undefined"
+          ? createPortal(playlistOverlay, document.body)
+          : playlistOverlay}
       </div>
     );
   };
+
+  const renderExpandedActions = (className) => (
+    <div className={className}>
+      <button
+        type="button"
+        className={`deefy-player-favorite-action deefy-player-expanded-favorite ${
+          isFavorite ? "is-favorite" : ""
+        }`}
+        onClick={toggleFavorite}
+        disabled={!currentTrack.id}
+        aria-label="Favoritar"
+        aria-pressed={isFavorite}
+      >
+        <span className="deefy-player-favorite-icon">
+          {isFavorite ? <FaHeart /> : <FaRegHeart />}
+        </span>
+      </button>
+
+      {renderPlaylistMenu(
+        "expanded",
+        "deefy-player-expanded-playlist-wrap"
+      )}
+    </div>
+  );
 
   if (!hasSelectedTrack) {
     return null;
@@ -775,8 +1121,9 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
   return (
     <>
       <aside
-        className="deefy-player-shell"
+        className={`deefy-player-shell ${isHidden ? "deefy-player-hidden" : ""}`}
         aria-label="Player musical"
+        aria-hidden={isHidden}
         onClick={handleCompactPlayerClick}
         onTouchStart={handleCompactTouchStart}
         onTouchMove={handleCompactTouchMove}
@@ -791,8 +1138,14 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
           onLoadedMetadata={handleLoadedMetadata}
           onDurationChange={handleLoadedMetadata}
           onEnded={handleEnded}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
+          onPlay={() => {
+            setIsPlaying(true);
+            syncContextPlaying(true);
+          }}
+          onPause={() => {
+            setIsPlaying(false);
+            syncContextPlaying(false);
+          }}
           onError={(event) => {
             setIsPlaying(false);
             syncContextPlaying(false);
@@ -822,7 +1175,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
               stopCompactControlClick(event);
               toggleFavorite();
             }}
-            disabled={!currentTrack.id || isFavoriteBusy}
+            disabled={!currentTrack.id}
             aria-label="Favoritar"
             aria-pressed={isFavorite}
           >
@@ -841,7 +1194,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
               }`}
               onClick={(event) => {
                 stopCompactControlClick(event);
-                toggleShuffle();
+                setShuffleMode((current) => !current);
               }}
               aria-label="Aleatorio"
               aria-pressed={isShuffle}
@@ -969,7 +1322,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
         </div>
       </aside>
 
-      {isExpanded && (
+      {isExpanded && !isHidden && (
         <div
           className={`deefy-player-expanded ${
             isExpandedClosing ? "is-closing" : ""
@@ -1013,6 +1366,8 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
 
               <div className="deefy-player-expanded-content">
                 <div className="deefy-player-expanded-track-row">
+                  {renderExpandedActions("deefy-player-expanded-track-actions")}
+
                   <div className="deefy-player-expanded-copy">
                     <p
                       className={`deefy-player-expanded-title ${
@@ -1022,32 +1377,14 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
                     >
                       <span>{currentTrack.title}</span>
                     </p>
-                    <p className="deefy-player-expanded-meta">
-                      {currentTrack.artist}
-                      {currentTrack.album ? ` - ${currentTrack.album}` : ""}
-                    </p>
-                  </div>
+                    <div className="deefy-player-expanded-meta-row">
+                      <p className="deefy-player-expanded-meta">
+                        {currentTrack.artist}
+                        {currentTrack.album ? ` - ${currentTrack.album}` : ""}
+                      </p>
 
-                  <div className="deefy-player-expanded-track-actions">
-                    <button
-                      type="button"
-                      className={`deefy-player-favorite-action deefy-player-expanded-favorite ${
-                        isFavorite ? "is-favorite" : ""
-                      }`}
-                      onClick={toggleFavorite}
-                      disabled={!currentTrack.id || isFavoriteBusy}
-                      aria-label="Favoritar"
-                      aria-pressed={isFavorite}
-                    >
-                      <span className="deefy-player-favorite-icon">
-                        {isFavorite ? <FaHeart /> : <FaRegHeart />}
-                      </span>
-                    </button>
-
-                    {renderPlaylistMenu(
-                      "expanded",
-                      "deefy-player-expanded-playlist-wrap"
-                    )}
+                      {renderExpandedActions("deefy-player-expanded-mobile-actions")}
+                    </div>
                   </div>
                 </div>
 
@@ -1079,7 +1416,7 @@ function MusicPlayer({ playlists = [], onAddToPlaylist }) {
                     className={`deefy-player-control-action deefy-player-expanded-control ${
                       isShuffle ? "is-active" : ""
                     }`}
-                    onClick={toggleShuffle}
+                    onClick={() => setShuffleMode((current) => !current)}
                     aria-label="Aleatorio"
                     aria-pressed={isShuffle}
                   >

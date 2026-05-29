@@ -117,6 +117,17 @@
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
 }
 
+.playlist-detail-cover-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #39f0d0;
+  font-size: 4.8rem;
+  background:
+    radial-gradient(circle at 35% 20%, rgba(57, 240, 208, 0.2), transparent 42%),
+    rgba(255, 255, 255, 0.055);
+}
+
 .playlist-detail-info {
   min-width: 0;
   max-width: 760px;

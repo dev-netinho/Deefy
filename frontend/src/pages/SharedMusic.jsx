@@ -8,7 +8,7 @@ import './SharedMusic.css'
 
 function SharedMusic() {
   const { id } = useParams()
-  const { playTrack } = usePlayer()
+  const { playTrack, requestExpandedPlayer } = usePlayer()
   const [status, setStatus] = useState('Carregando música compartilhada...')
 
   useEffect(() => {
@@ -25,6 +25,7 @@ function SharedMusic() {
         }
 
         playTrack(track, [track])
+        requestExpandedPlayer()
         setStatus(`Abrindo "${track.title}" no player...`)
       })
       .catch(() => {
@@ -34,7 +35,7 @@ function SharedMusic() {
     return () => {
       isMounted = false
     }
-  }, [id, playTrack])
+  }, [id, playTrack, requestExpandedPlayer])
 
   return (
     <div className="shared-music-page">

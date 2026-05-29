@@ -1,6 +1,6 @@
 import { IoIosInformationCircleOutline } from "react-icons/io";
 import { IoChevronBack } from "react-icons/io5";
-import { MdOutlineLockReset, MdOutlineLock, MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
+import { MdOutlineLockReset, MdOutlineEmail, MdOutlineLock, MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
 import { useState } from "react";
 import background from "../assets/background2.jpg";
 import "./ForgotPass.css";
@@ -64,16 +64,18 @@ function RedefinePass() {
 
     try {
       if (token) {
+        // Fluxo de recuperação de senha esquecida
         await api.post("/auth/reset-password", { token, novaSenha: password });
+        setSent(true);
         showMusicSuccess("Senha alterada com sucesso! Você já pode fazer login.");
         setTimeout(() => navigate("/login"), 3000);
       } else {
+        // Fluxo de alteração de senha para usuário logado
         await api.patch("/users/me/password", { senhaAtual: currentPassword, novaSenha: password });
+        setSent(true);
         showMusicSuccess("Sua senha foi atualizada com sucesso!");
-        setTimeout(() => navigate(-1), 3000);
+        setTimeout(() => navigate(-1), 3000); // Volta para a página de configurações
       }
-
-      setSent(true);
     } catch (err) {
       const message =
         err.response?.data?.message ||
@@ -92,7 +94,8 @@ function RedefinePass() {
       <div className="forgot-overlay"></div>
 
       <section className="forgot-wrapper">
-        <div className="forgot-back-login forgot-back-top" onClick={() => navigate(-1)}>
+        {/* Back button */}
+        <div className="custom-profile-back-login custom-profile-back-top" onClick={() => navigate(-1)}>
           <IoChevronBack />
           <span>Voltar</span>
         </div>
@@ -109,6 +112,7 @@ function RedefinePass() {
         </div>
 
         <div className="forgot-form-area">
+          {/* Mostra o campo "Senha Atual" apenas se for alteração logada (sem token) */}
           {!token && (
             <div className="forgot-input-group">
               <h3>SENHA ATUAL</h3>
@@ -117,7 +121,7 @@ function RedefinePass() {
                 <input
                   type={showCurrentPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   disabled={isLoading}

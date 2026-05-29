@@ -8,124 +8,44 @@ import {
   normalizePlaylist,
   normalizePlaylistList,
 } from '../utils/musicNormalizer.js';
+import {
+  filterBySearch,
+  getSearchableText,
+  sanitizeSearchQuery,
+} from '../utils/search.js';
+import { fetchAllPages, getListFromApiResponse } from '../utils/apiPagination.js';
 
 export { normalizeMusic, normalizePlaylist };
 
 export const FAVORITE_MUSIC_CHANGED_EVENT = 'deefy:favorite-music-changed';
-const PLAYLIST_METADATA_KEY = '@deefy-playlist-metadata-v1';
+
+function getListFromResponse(data) {
+  return getListFromApiResponse(data);
+}
 
 function notifyFavoriteMusicChanged(musicId, isFavorite) {
-  if (typeof window === 'undefined' || musicId === undefined || musicId === null || musicId === '') {
-    return;
-  }
+  if (typeof window === 'undefined') return;
 
   window.dispatchEvent(new CustomEvent(FAVORITE_MUSIC_CHANGED_EVENT, {
     detail: {
-      musicId: String(musicId),
+      musicId: musicId === undefined || musicId === null ? '' : String(musicId),
       isFavorite: Boolean(isFavorite),
     },
   }));
 }
 
-function readPlaylistMetadataStore() {
-  if (typeof window === 'undefined') return {};
-
-  try {
-    const rawValue = window.localStorage.getItem(PLAYLIST_METADATA_KEY);
-    if (!rawValue) return {};
-
-    const parsedValue = JSON.parse(rawValue);
-    return parsedValue && typeof parsedValue === 'object' ? parsedValue : {};
-  } catch (error) {
-    console.warn('Failed to read playlist metadata store:', error);
-    return {};
-  }
-}
-
-function writePlaylistMetadataStore(metadataStore) {
-  if (typeof window === 'undefined') return;
-
-  try {
-    window.localStorage.setItem(PLAYLIST_METADATA_KEY, JSON.stringify(metadataStore));
-  } catch (error) {
-    console.warn('Failed to save playlist metadata store:', error);
-  }
-}
-
-function getPlaylistMetadata(playlistId) {
-  if (playlistId === undefined || playlistId === null || playlistId === '') return null;
-  const metadataStore = readPlaylistMetadataStore();
-  return metadataStore[String(playlistId)] || null;
-}
-
-function savePlaylistMetadata(playlistId, data = {}) {
-  if (playlistId === undefined || playlistId === null || playlistId === '') return;
-
-  const metadataStore = readPlaylistMetadataStore();
-  const description = data.description ?? data.descricao ?? '';
-  const coverUrl = data.coverUrl ?? data.capaUrl ?? '';
-
-  metadataStore[String(playlistId)] = {
-    description,
-    descricao: description,
-    coverUrl,
-    capaUrl: coverUrl,
-    updatedAt: new Date().toISOString(),
-  };
-
-  writePlaylistMetadataStore(metadataStore);
-}
-
-function firstNonEmpty(...values) {
-  return values.find((value) => value !== undefined && value !== null && value !== '');
-}
-
-function removePlaylistMetadata(playlistId) {
-  if (playlistId === undefined || playlistId === null || playlistId === '') return;
-
-  const metadataStore = readPlaylistMetadataStore();
-  delete metadataStore[String(playlistId)];
-  writePlaylistMetadataStore(metadataStore);
-}
-
-function withPlaylistMetadata(playlist) {
-  const normalizedPlaylist = normalizePlaylist(playlist) || playlist;
-  if (!normalizedPlaylist?.id) return normalizedPlaylist;
-
-  const metadata = getPlaylistMetadata(normalizedPlaylist.id);
-  if (!metadata) return normalizedPlaylist;
-
-  return {
-    ...normalizedPlaylist,
-    description: firstNonEmpty(normalizedPlaylist.description, normalizedPlaylist.descricao, metadata.description, metadata.descricao, ''),
-    descricao: firstNonEmpty(normalizedPlaylist.descricao, normalizedPlaylist.description, metadata.descricao, metadata.description, ''),
-    coverUrl: firstNonEmpty(normalizedPlaylist.coverUrl, normalizedPlaylist.capaUrl, metadata.coverUrl, metadata.capaUrl, ''),
-    capaUrl: firstNonEmpty(normalizedPlaylist.capaUrl, normalizedPlaylist.coverUrl, metadata.capaUrl, metadata.coverUrl, ''),
-  };
-}
-
 function toPlaylistPayload(data = {}) {
-  const description = data.description ?? data.descricao ?? '';
-  const coverUrl = data.coverUrl ?? data.capaUrl ?? '';
+  const name = firstValue(data.name, data.nome, data.title, data.titulo);
+  const description = firstValue(data.description, data.descricao, data.bio);
+  const coverUrl = firstValue(data.coverUrl, data.capaUrl, data.capaurl, data.imageUrl);
+  const isPublic = firstValue(data.publica, data.public, data.isPublic);
 
   return {
-    name: data.name ?? data.nome,
-    publica: data.publica,
-    description,
-    coverUrl,
+    name: typeof name === 'string' ? name.trim() : name,
+    publica: Boolean(isPublic),
+    description: typeof description === 'string' ? description.trim() : (description || ''),
+    coverUrl: typeof coverUrl === 'string' ? coverUrl.trim() : (coverUrl || ''),
   };
-}
-
-function getListFromResponse(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.content)) return data.content;
-  if (Array.isArray(data?.musics)) return data.musics;
-  if (Array.isArray(data?.playlists)) return data.playlists;
-  if (Array.isArray(data?.favorites)) return data.favorites;
-  if (Array.isArray(data?.favoritos)) return data.favoritos;
-  if (Array.isArray(data?.favoriteMusics)) return data.favoriteMusics;
-  if (Array.isArray(data?.musicasFavoritas)) return data.musicasFavoritas;
-  return [];
 }
 
 async function hydrateMusicItems(items) {
@@ -154,13 +74,87 @@ async function hydrateMusicItems(items) {
 async function hydratePlaylistTracks(playlist) {
   const rawTracks = getPlaylistTrackItems(playlist);
   const tracks = await hydrateMusicItems(rawTracks);
-  const normalizedPlaylist = withPlaylistMetadata(playlist) || playlist;
+  const normalizedPlaylist = normalizePlaylist(playlist) || playlist;
 
   return {
     ...playlist,
     ...normalizedPlaylist,
     tracks,
   };
+}
+
+let musicCatalogCache = null;
+let musicCatalogSize = 0;
+let musicCatalogPromise = null;
+
+function dedupeByIdentity(items, fallbackPrefix) {
+  const map = new Map();
+
+  items.forEach((item, index) => {
+    if (!item) return;
+    const key = firstValue(item.id, item.uuid, item.slug, item.title, item.titulo, item.name, item.nome)
+      || `${fallbackPrefix}-${index}`;
+    if (!map.has(String(key))) {
+      map.set(String(key), item);
+    }
+  });
+
+  return Array.from(map.values());
+}
+
+function firstValue(...values) {
+  return values.find((value) => value !== undefined && value !== null && value !== '');
+}
+
+function getMusicSearchText(music, fields = ['title', 'artist', 'album', 'genre']) {
+  const values = [];
+
+  if (fields.includes('title')) {
+    values.push(music?.title, music?.titulo, music?.name, music?.nome);
+  }
+
+  if (fields.includes('artist')) {
+    values.push(
+      music?.artist,
+      music?.artista,
+      music?.artistName,
+      music?.artistaNome,
+      music?.artists,
+      music?.artistas,
+    );
+  }
+
+  if (fields.includes('album')) {
+    values.push(music?.album, music?.albumName, music?.albumTitle, music?.disco);
+  }
+
+  if (fields.includes('genre')) {
+    values.push(music?.genre, music?.genero, music?.genreName, music?.generoNome, music?.style, music?.estilo);
+  }
+
+  return getSearchableText(...values);
+}
+
+function getFallbackSearchRequests(service, query, fields) {
+  const requests = [];
+
+  if (fields.includes('title')) {
+    requests.push(service.searchMusicsByTitle(query));
+  }
+
+  if (fields.includes('artist')) {
+    requests.push(service.searchMusicsByArtist(query));
+  }
+
+  if (fields.includes('album')) {
+    requests.push(service.searchMusicsByAlbum(query));
+  }
+
+  if (fields.includes('genre')) {
+    requests.push(service.searchMusicsByGenre(query));
+  }
+
+  return requests;
 }
 
 export const musicService = {
@@ -177,6 +171,65 @@ export const musicService = {
     } catch (error) {
       console.error('Failed to fetch home musics:', error);
       throw error;
+    }
+  },
+
+  async getCatalogMusics(size = 400) {
+    if (musicCatalogCache && musicCatalogSize >= size) {
+      return musicCatalogCache;
+    }
+
+    if (!musicCatalogPromise || musicCatalogSize < size) {
+      musicCatalogSize = size;
+      musicCatalogPromise = api.get('/musics', { params: { size } })
+        .then((response) => {
+          musicCatalogCache = normalizeMusicList(getListFromResponse(response.data));
+          return musicCatalogCache;
+        })
+        .catch((error) => {
+          musicCatalogPromise = null;
+          console.error('Failed to fetch music catalog:', error);
+          throw error;
+        });
+    }
+
+    return musicCatalogPromise;
+  },
+
+  clearMusicCatalogCache() {
+    musicCatalogCache = null;
+    musicCatalogSize = 0;
+    musicCatalogPromise = null;
+  },
+
+  async searchCatalogMusics(query, options = {}) {
+    const sanitizedQuery = sanitizeSearchQuery(query);
+    if (!sanitizedQuery) return [];
+
+    const fields = options.fields || ['title', 'artist', 'album', 'genre'];
+    const catalog = await this.getCatalogMusics(options.size || 400);
+    return filterBySearch(catalog, sanitizedQuery, (music) => getMusicSearchText(music, fields));
+  },
+
+  async searchMusicsSmart(query, options = {}) {
+    const sanitizedQuery = sanitizeSearchQuery(query);
+    if (!sanitizedQuery) return [];
+
+    const fields = options.fields || ['title', 'artist', 'album', 'genre'];
+
+    try {
+      return await this.searchCatalogMusics(sanitizedQuery, { ...options, fields });
+    } catch {
+      const requests = getFallbackSearchRequests(this, sanitizedQuery, fields);
+      if (!requests.length) return [];
+
+      const results = await Promise.allSettled(requests);
+      return dedupeByIdentity(
+        results
+          .filter((result) => result.status === 'fulfilled' && Array.isArray(result.value))
+          .flatMap((result) => result.value),
+        'music',
+      );
     }
   },
 
@@ -203,6 +256,7 @@ export const musicService = {
   async addMusic(musicData) {
     try {
       const response = await api.post('/musics', musicData);
+      this.clearMusicCatalogCache();
       return response.data;
     } catch (error) {
       console.error('Failed to add music:', error);
@@ -288,7 +342,7 @@ export const musicService = {
       const response = await api.get(`/musics/search/genre`, {
         params: {
           genre: genre.trim(),
-          size: 200
+          size: 20
         }
       });
       return normalizeMusicList(getListFromResponse(response.data));
@@ -315,7 +369,7 @@ export const musicService = {
         return true;
       }
     } catch (error) {
-      const status = error?.response?.status || error?.status;
+      const status = error?.status || error?.response?.status;
 
       if (!isCurrentlyFavorite && status === 409) {
         notifyFavoriteMusicChanged(musicId, true);
@@ -330,22 +384,6 @@ export const musicService = {
       console.error('Failed to toggle favorite:', error);
       throw error;
     }
-  },
-
-  /**
-   * Get favorite status for one music.
-   * @param {string|number} musicId
-   * @returns {Promise<boolean>}
-   */
-  async getFavoriteStatus(musicId) {
-    const response = await api.get(`/favorites/musics/${musicId}/status`);
-    return Boolean(
-      response.data?.favoritado ??
-      response.data?.favorite ??
-      response.data?.isFavorite ??
-      response.data?.favorited ??
-      false
-    );
   },
 
   /**
@@ -371,7 +409,7 @@ export const musicService = {
   async getUserPlaylists() {
     try {
       const response = await api.get('/playlists');
-      return normalizePlaylistList(getListFromResponse(response.data)).map(withPlaylistMetadata);
+      return normalizePlaylistList(getListFromResponse(response.data));
     } catch (error) {
       console.error('Failed to get user playlists:', error);
       throw error;
@@ -379,13 +417,13 @@ export const musicService = {
   },
 
   /**
-   * Get playlists generated by the system/admin for global discovery.
-   * @returns {Promise<Array>} Array of public global playlists
+   * Get global/system playlists recommended by Deefy
+   * @returns {Promise<Array>} Array of playlists
    */
   async getGlobalPlaylists() {
     try {
       const response = await api.get('/playlists/global');
-      return normalizePlaylistList(getListFromResponse(response.data)).map(withPlaylistMetadata);
+      return normalizePlaylistList(getListFromResponse(response.data));
     } catch (error) {
       console.error('Failed to get global playlists:', error);
       throw error;
@@ -397,10 +435,9 @@ export const musicService = {
    * @param {number} size
    * @returns {Promise<Array>} Array of artists
    */
-  async getArtists(size = 20) {
+  async getArtists(size = 100) {
     try {
-      const response = await api.get('/artists', { params: { size } });
-      return getListFromResponse(response.data);
+      return fetchAllPages(api, '/artists', { size });
     } catch (error) {
       console.error('Failed to get artists:', error);
       throw error;
@@ -414,8 +451,25 @@ export const musicService = {
    */
   async getPlaylistById(id) {
     try {
-      const response = await api.get(`/playlists/${id}`);
-      return hydratePlaylistTracks(response.data);
+      try {
+        const directResponse = await api.get(`/playlists/${id}`);
+        return hydratePlaylistTracks(directResponse.data);
+      } catch (directError) {
+        console.warn(`Failed direct playlist lookup ${id}, trying lists:`, directError);
+      }
+
+      const [userResponse, globalResponse] = await Promise.allSettled([
+        api.get('/playlists'),
+        api.get('/playlists/global'),
+      ]);
+      const playlists = [
+        ...(userResponse.status === 'fulfilled' ? getListFromResponse(userResponse.value.data) : []),
+        ...(globalResponse.status === 'fulfilled' ? getListFromResponse(globalResponse.value.data) : []),
+      ];
+      const playlist = playlists.find(p => String(p.id) === String(id));
+
+      if (!playlist) throw new Error('Playlist não encontrada');
+      return hydratePlaylistTracks(playlist);
     } catch (error) {
       console.error(`Failed to get playlist ${id}:`, error);
       throw error;
@@ -430,13 +484,7 @@ export const musicService = {
   async createPlaylist(data) {
     try {
       const response = await api.post('/playlists', toPlaylistPayload(data));
-      const playlist = normalizePlaylist(response.data) || response.data;
-
-      if (playlist?.id) {
-        savePlaylistMetadata(playlist.id, data);
-      }
-
-      return withPlaylistMetadata(playlist);
+      return normalizePlaylist(response.data) || response.data;
     } catch (error) {
       console.error('Failed to create playlist:', error);
       throw error;
@@ -452,9 +500,7 @@ export const musicService = {
   async updatePlaylist(id, data) {
     try {
       const response = await api.put(`/playlists/${id}`, toPlaylistPayload(data));
-
-      savePlaylistMetadata(id, data);
-      return withPlaylistMetadata(response.data);
+      return normalizePlaylist(response.data) || response.data;
     } catch (error) {
       console.error(`Failed to update playlist ${id}:`, error);
       throw error;
@@ -496,7 +542,6 @@ export const musicService = {
   async deletePlaylist(id) {
     try {
       await api.delete(`/playlists/${id}`);
-      removePlaylistMetadata(id);
     } catch (error) {
       console.error(`Failed to delete playlist ${id}:`, error);
       throw error;
@@ -517,7 +562,7 @@ export const musicService = {
       }
 
       const response = await api.post(`/playlists/${playlistId}/tracks/${resolvedMusicId}`);
-      return withPlaylistMetadata(response.data);
+      return normalizePlaylist(response.data) || response.data;
     } catch (error) {
       console.error(`Failed to add music ${musicId} to playlist ${playlistId}:`, error);
       throw error;

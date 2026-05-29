@@ -44,11 +44,8 @@ export function getRoleFromToken(token) {
 }
 
 /**
- * Checks whether a JWT is expired using the client clock.
- *
- * This does not replace server-side validation. It only prevents the UI from
- * keeping an obviously expired session and loading protected pages with a dead
- * token.
+ * Checks JWT expiration with a small tolerance to avoid using a token that is
+ * about to expire during the next request.
  *
  * @param {string} token
  * @param {number} clockToleranceSeconds
@@ -58,10 +55,8 @@ export function isJwtExpired(token, clockToleranceSeconds = 30) {
   const payload = decodeJwtPayload(token);
   const expiration = Number(payload?.exp);
 
-  if (!Number.isFinite(expiration)) {
-    return true;
-  }
+  if (!Number.isFinite(expiration)) return true;
 
-  const nowInSeconds = Math.floor(Date.now() / 1000);
-  return expiration <= nowInSeconds + clockToleranceSeconds;
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  return expiration <= currentTimestamp + clockToleranceSeconds;
 }

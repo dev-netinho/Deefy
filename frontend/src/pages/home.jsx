@@ -13,16 +13,6 @@ import { musicService } from "../services/musicService";
 import { pickWeightedRecommendations, rankRecommendations } from "../utils/recommendationEngine";
 import "./home.css";
 
-const fallbackPlaylistCovers = [
-  "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=900",
-  "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=900",
-  "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=900",
-  "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=900",
-  "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=900",
-];
-
-const fallbackArtistCover = "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=900";
-
 const searchTypes = [
   { id: "all", label: "Tudo", icon: <FaMusic aria-hidden="true" /> },
   { id: "songs", label: "Músicas", icon: <FaPlay aria-hidden="true" /> },
@@ -50,12 +40,6 @@ function getPlaylistId(playlist) {
   return playlist?.id || playlist?.uuid || playlist?.playlistId || playlist?.codigo || "";
 }
 
-function hashText(value) {
-  return String(value || "")
-    .split("")
-    .reduce((hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0, 0);
-}
-
 function getTrackCover(track) {
   return firstText(
     track?.coverUrl,
@@ -67,12 +51,6 @@ function getTrackCover(track) {
   );
 }
 
-function getPlaylistFallbackCover(playlist) {
-  const seed = playlist?.id || playlist?.uuid || getPlaylistTitle(playlist);
-  const index = Math.abs(hashText(seed)) % fallbackPlaylistCovers.length;
-  return fallbackPlaylistCovers[index];
-}
-
 function getPlaylistCover(playlist) {
   return firstText(
     playlist?.coverUrl,
@@ -80,8 +58,7 @@ function getPlaylistCover(playlist) {
     playlist?.imageUrl,
     playlist?.imagemUrl,
     playlist?.thumbnailUrl,
-    playlist?.tracks?.map(getTrackCover).find(Boolean),
-    getPlaylistFallbackCover(playlist)
+    playlist?.tracks?.map(getTrackCover).find(Boolean)
   );
 }
 
@@ -115,24 +92,8 @@ function getArtistMeta(artist) {
     artist?.estilo,
     artist?.bio,
     artist?.description,
-    "Catálogo Deefy"
+    "Informação não cadastrada"
   );
-}
-
-function getPlaylistSubtitle(playlist) {
-  const trackCount = playlist?.tracks?.length || playlist?.musics?.length || playlist?.musicas?.length || 0;
-
-  return firstText(
-    playlist?.description,
-    playlist?.descricao,
-    trackCount ? `${trackCount} músicas escolhidas pelo seu gosto.` : "",
-    "Seleções novas para atualizar o seu clima de hoje."
-  );
-}
-
-function getPlaylistHref(playlist) {
-  const playlistId = getPlaylistId(playlist);
-  return playlistId ? `/user-playlist-detail/${playlistId}` : "/system-playlists";
 }
 
 function SearchTypeFilters({ activeType, onChange }) {
@@ -166,18 +127,24 @@ function PlaylistSearchResults({ playlists }) {
       </div>
 
       <div className="home-search-card-grid">
-        {playlists.map((playlist, index) => (
-          <Link
-            key={getPlaylistId(playlist) || `${getPlaylistTitle(playlist)}-${index}`}
-            className="home-search-card home-search-card--playlist"
-            to={getPlaylistHref(playlist)}
-            style={{ backgroundImage: `url(${getPlaylistCover(playlist)})` }}
-          >
-            <span className="home-search-card-badge">Playlist</span>
-            <h3>{getPlaylistTitle(playlist)}</h3>
-            <p>{getPlaylistSubtitle(playlist)}</p>
-          </Link>
-        ))}
+        {playlists.map((playlist, index) => {
+          const playlistId = getPlaylistId(playlist);
+          const routeBase = playlist.__searchSource === "user" ? "/user-playlist-detail" : "/playlist-detail";
+          const href = playlistId ? `${routeBase}/${playlistId}` : "/system-playlists";
+
+          return (
+            <Link
+              key={playlistId || `${getPlaylistTitle(playlist)}-${index}`}
+              className="home-search-card home-search-card--playlist"
+              to={href}
+              style={getPlaylistCover(playlist) ? { backgroundImage: `url(${getPlaylistCover(playlist)})` } : undefined}
+            >
+              <span className="home-search-card-badge">Playlist</span>
+              <h3>{getPlaylistTitle(playlist)}</h3>
+              <p>{getPlaylistSubtitle(playlist)}</p>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
@@ -205,7 +172,7 @@ function ArtistSearchResults({ artists }) {
               key={artist?.id || artist?.uuid || `${artistName}-${index}`}
               className="home-search-card home-search-card--artist"
               to={artistHref}
-              style={{ backgroundImage: `url(${getArtistImage(artist) || fallbackArtistCover})` }}
+              style={getArtistImage(artist) ? { backgroundImage: `url(${getArtistImage(artist)})` } : undefined}
             >
               <span className="home-search-card-badge">Artista</span>
               <h3>{artistName}</h3>
@@ -227,13 +194,26 @@ function ShowcaseSkeleton() {
   );
 }
 
+function getPlaylistSubtitle(playlist) {
+  const trackCount = playlist?.tracks?.length || playlist?.musics?.length || playlist?.musicas?.length || 0;
+
+  return firstText(
+    playlist?.description,
+    playlist?.descricao,
+    trackCount ? `${trackCount} músicas escolhidas pelo seu gosto.` : ""
+  );
+}
+
 function HomeFeatureSection({ playlists, artists }) {
   const featuredPlaylist = rankRecommendations(playlists)[0];
   const featuredArtist = rankRecommendations(artists)[0];
   const featuredPlaylistId = featuredPlaylist?.id || featuredPlaylist?.uuid || "";
   const artistName = getArtistName(featuredArtist);
-  const artistImage = getArtistImage(featuredArtist) || fallbackArtistCover;
-  const playlistHref = featuredPlaylist ? getPlaylistHref(featuredPlaylist) : "/system-playlists";
+  const artistImage = getArtistImage(featuredArtist);
+  const playlistCover = getPlaylistCover(featuredPlaylist);
+  const playlistHref = featuredPlaylistId
+    ? `/playlist-detail/${featuredPlaylistId}`
+    : "/system-playlists";
   const allPlaylistsHref = featuredPlaylistId
     ? `/system-playlists?highlight=${encodeURIComponent(featuredPlaylistId)}`
     : "/system-playlists";
@@ -248,49 +228,54 @@ function HomeFeatureSection({ playlists, artists }) {
           <span>CRIADO PARA VOCÊ</span>
           <h2>Descobertas Deefy</h2>
         </div>
+
       </div>
 
       <div className="home-feature-grid">
-        <article
-          className="home-feature-card home-feature-card--playlists"
-          style={{ backgroundImage: `url(${getPlaylistCover(featuredPlaylist)})` }}
-        >
-          <Link className="home-feature-card-all-link" to={allPlaylistsHref}>
-            <span>Ver todas</span>
-            <FaChevronRight />
-          </Link>
-
-          <Link
-            className="home-feature-card-panel"
-            to={playlistHref}
-            aria-label={`Abrir playlist ${getPlaylistTitle(featuredPlaylist)}`}
+        {featuredPlaylist && (
+          <article
+            className="home-feature-card home-feature-card--playlists"
+            style={playlistCover ? { backgroundImage: `url(${playlistCover})` } : undefined}
           >
-            <span className="home-feature-pill">Playlist recomendada</span>
-            <h3>{getPlaylistTitle(featuredPlaylist)}</h3>
-            <p>{getPlaylistSubtitle(featuredPlaylist)}</p>
+            <Link className="home-feature-card-all-link" to={allPlaylistsHref}>
+              <span>Ver todas</span>
+              <FaChevronRight />
+            </Link>
 
-            <span className="home-feature-action">
-              <FaPlay />
-              <span>Explorar</span>
+            <Link
+              className="home-feature-card-panel"
+              to={playlistHref}
+              aria-label={`Abrir playlist ${getPlaylistTitle(featuredPlaylist)}`}
+            >
+              <span className="home-feature-pill">Playlist recomendada</span>
+              <h3>{getPlaylistTitle(featuredPlaylist)}</h3>
+              <p>{getPlaylistSubtitle(featuredPlaylist)}</p>
+
+              <span className="home-feature-action">
+                <FaPlay />
+                <span>Explorar</span>
+              </span>
+            </Link>
+          </article>
+        )}
+
+        {featuredArtist && (
+          <Link
+            className="home-feature-card home-feature-card--artists"
+            to={artistHref}
+            style={artistImage ? { backgroundImage: `url(${artistImage})` } : undefined}
+          >
+            <span className="home-feature-floating-icon">
+              <FaMicrophoneAlt />
             </span>
+
+            <div className="home-feature-card-copy">
+              <span>Artistas</span>
+              <h3>{artistName}</h3>
+              <p>{getArtistMeta(featuredArtist)}</p>
+            </div>
           </Link>
-        </article>
-
-        <Link
-          className="home-feature-card home-feature-card--artists"
-          to={artistHref}
-          style={{ backgroundImage: `url(${artistImage})` }}
-        >
-          <span className="home-feature-floating-icon">
-            <FaMicrophoneAlt />
-          </span>
-
-          <div className="home-feature-card-copy">
-            <span>Artistas</span>
-            <h3>{artistName === "Artista" ? "Artistas recomendados" : artistName}</h3>
-            <p>{getArtistMeta(featuredArtist)}</p>
-          </div>
-        </Link>
+        )}
       </div>
     </section>
   );
@@ -298,14 +283,16 @@ function HomeFeatureSection({ playlists, artists }) {
 
 function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [rawQuery, setRawQuery] = useState(() => searchParams.get("artist") || "");
+  const [rawQuery, setRawQuery] = useState(() => searchParams.get("artist") || searchParams.get("genre") || "");
   const [homeMusics, setHomeMusics] = useState([]);
   const [recommendedPlaylists, setRecommendedPlaylists] = useState([]);
   const [recommendedArtists, setRecommendedArtists] = useState([]);
   const [isLoadingHome, setIsLoadingHome] = useState(true);
-  const [activeSearchType, setActiveSearchType] = useState("all");
+  const [activeSearchType, setActiveSearchType] = useState(() => (searchParams.has("genre") ? "genres" : "all"));
   const [hasSearchFocus, setHasSearchFocus] = useState(false);
 
+  // Debounce the input to avoid recalculating or hitting an API on every keystroke
+  // Waits 300ms after the user stops typing
   const debouncedQuery = useDebounce(rawQuery, 300);
 
   useEffect(() => {
@@ -314,7 +301,7 @@ function Home() {
     Promise.allSettled([
       musicService.getHomeMusics(32),
       musicService.getGlobalPlaylists(),
-      musicService.getArtists(36),
+      musicService.getArtists(),
     ])
       .then(([musicResult, playlistResult, artistResult]) => {
         if (!isMounted) return;
@@ -343,11 +330,12 @@ function Home() {
   const handleSearchChange = (nextValue) => {
     setRawQuery(nextValue);
 
-    if (!nextValue.trim() && searchParams.has("artist")) {
+    if (!nextValue.trim() && (searchParams.has("artist") || searchParams.has("genre"))) {
       setSearchParams({}, { replace: true });
     }
   };
 
+  // Sanitizes the debounced query and returns API results
   const {
     songResults,
     artistResults,
@@ -356,16 +344,22 @@ function Home() {
     isLoading: isSearchingApi,
   } = useMusicSearch(debouncedQuery, activeSearchType);
 
+  // isSearching controls the UI transition. Using rawQuery makes the transition instant
+  // when the user types the first letter, whereas the results fetch/filter remains debounced.
   const isSearching = rawQuery.trim().length > 0;
 
   return (
     <div className="home-layout">
+      {/* Fixed sidebar (desktop) / bottom nav (mobile) */}
       <Sidebar />
 
+      {/* Main scrollable area */}
       <div className="home-main">
+        {/* Sticky header */}
         <Header />
 
         <main className="home-content">
+          {/* Always-visible search bar */}
           <div className="home-search-wrapper">
             <SearchBar
               value={rawQuery}
@@ -380,6 +374,7 @@ function Home() {
             )}
           </div>
 
+          {/* ── Default state (no query) ── */}
           {!isSearching && (
             <>
               {isLoadingHome ? (
@@ -402,6 +397,7 @@ function Home() {
             </>
           )}
 
+          {/* ── Search results ── */}
           {isSearching && (
             <>
               {isSearchingApi ? (
@@ -426,6 +422,7 @@ function Home() {
             </>
           )}
 
+          {/* ── Empty state ── */}
           {isSearching && !isSearchingApi && isEmpty && <EmptyState query={rawQuery.trim()} />}
         </main>
       </div>

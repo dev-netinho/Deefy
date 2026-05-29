@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MdFavorite, MdPlayArrow } from "react-icons/md";
+import { MdFavorite, MdMusicNote } from "react-icons/md";
 import { usePlayer } from "../contexts/PlayerContext";
 import { FAVORITE_MUSIC_CHANGED_EVENT, musicService } from "../services/musicService";
 import { getMusicIdFromTrack, normalizeMusic } from "../utils/musicNormalizer";
@@ -29,6 +29,7 @@ function SongList({
   onFavoriteRemoved,
   onFavoriteChanged,
   allowAddToPlaylist = true,
+  allowRemoveFromPlaylist = Boolean(onSongRemoved),
 }) {
   const { currentTrack, playTrack, togglePlay } = usePlayer();
   const [favoriteSongIds, setFavoriteSongIds] = useState(() => new Set());
@@ -36,7 +37,6 @@ function SongList({
     () => (songs || []).map(normalizeMusic).filter(Boolean),
     [songs],
   );
-  const currentTrackId = getSongId(currentTrack);
 
   useEffect(() => {
     if (isFavoriteContext) {
@@ -60,23 +60,17 @@ function SongList({
   }, [isFavoriteContext, normalizedSongs]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return undefined;
-    }
-
     const handleFavoriteChanged = (event) => {
-      const musicId = event.detail?.musicId;
-      const isNowFavorite = Boolean(event.detail?.isFavorite);
-
-      if (!musicId) return;
+      const eventSongId = event.detail?.musicId;
+      if (!eventSongId) return;
 
       setFavoriteSongIds((currentIds) => {
         const nextIds = new Set(currentIds);
 
-        if (isNowFavorite) {
-          nextIds.add(String(musicId));
+        if (event.detail?.isFavorite) {
+          nextIds.add(String(eventSongId));
         } else {
-          nextIds.delete(String(musicId));
+          nextIds.delete(String(eventSongId));
         }
 
         return nextIds;
@@ -84,7 +78,9 @@ function SongList({
     };
 
     window.addEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
-    return () => window.removeEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
+    return () => {
+      window.removeEventListener(FAVORITE_MUSIC_CHANGED_EVENT, handleFavoriteChanged);
+    };
   }, []);
 
   const handleFavoriteChanged = (song, isFavorite) => {
@@ -112,7 +108,15 @@ function SongList({
     onFavoriteRemoved?.(song);
   };
 
-  const shouldAllowSongPlaylistActions = Boolean(playlistId) || allowAddToPlaylist;
+  const handlePlaySong = (song, isActive) => {
+    if (isActive) {
+      togglePlay();
+      return;
+    }
+
+    recordListeningSignal(song);
+    playTrack(song, normalizedSongs);
+  };
 
   return (
     <section className="song-list" aria-label={title}>
@@ -123,7 +127,7 @@ function SongList({
 <div className="song-list-header" role="row">
   <span className="song-col-num" role="columnheader">#</span>
   <span className="song-col-info" role="columnheader">TÍTULO</span>
-  <span className="song-col-album" role="columnheader">ÁLBUM</span>
+  <span className="song-col-album" role="columnheader">GÊNEROS</span>
   <span className="song-col-dur" role="columnheader">⏱</span>
   <span className="song-col-options" role="columnheader"></span>
 </div>
@@ -131,17 +135,8 @@ function SongList({
         {/* Rows */}
         {normalizedSongs.map((song, index) => {
           const songId = getSongId(song);
-          const isActive = Boolean(songId && currentTrackId === songId);
+          const isActive = Boolean(songId && String(currentTrack?.id ?? '') === songId);
           const isFavorite = isFavoriteContext || favoriteSongIds.has(songId) || Boolean(song.isFavorite);
-          const handleSongAction = () => {
-            if (isActive) {
-              togglePlay();
-              return;
-            }
-
-            recordListeningSignal(song);
-            playTrack(song, normalizedSongs);
-          };
 
           return (
             <div
@@ -149,18 +144,24 @@ function SongList({
               className={`song-row${isActive ? " song-row--active" : ""}${isFavorite ? " song-row--favorite" : ""}`}
               role="row"
               tabIndex={0}
-              onClick={handleSongAction}
+              onClick={() => {
+                handlePlaySong(song, isActive);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleSongAction();
+                  handlePlaySong(song, isActive);
                 }
               }}
             >
               {/* # / play icon */}
               <span className="song-col-num" role="cell">
                 {isActive ? (
-                  <MdPlayArrow className="song-playing-icon" />
+                  <span className="song-sound-wave" aria-label="Música selecionada">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </span>
                 ) : (
                   <span className="song-index">{index + 1}</span>
                 )}
@@ -172,13 +173,19 @@ function SongList({
                   className={`song-cover-wrap${isFavorite ? " is-favorite" : ""}`}
                   title={isFavorite ? "Esta música está nos favoritos" : undefined}
                 >
-                  <img
-                    className="song-cover"
-                    src={song.coverUrl || "https://picsum.photos/seed/music/80/80"}
-                    alt={`Capa de ${song.title || "música"}`}
-                    loading="lazy"
-                    draggable="false"
-                  />
+                  {song.coverUrl ? (
+                    <img
+                      className="song-cover"
+                      src={song.coverUrl}
+                      alt={`Capa de ${song.title || "música"}`}
+                      loading="lazy"
+                      draggable="false"
+                    />
+                  ) : (
+                    <span className="song-cover song-cover-placeholder" aria-hidden="true">
+                      <MdMusicNote />
+                    </span>
+                  )}
                   {isFavorite && (
                     <span
                       className="song-favorite-badge"
@@ -190,15 +197,15 @@ function SongList({
                 </div>
                 <div className="song-text">
                   <span className={`song-title${isActive ? " song-title--active" : ""}`}>
-                    {song.title || "Música sem título"}
+                    {song.title || "Título não informado"}
                   </span>
-                  <span className="song-artist">{song.artist || "Artista desconhecido"}</span>
+                  <span className="song-artist">{song.artist || "Artista não informado"}</span>
                 </div>
               </div>
 
               {/* Album */}
               <span className="song-col-album" role="cell">
-                {song.album || "Álbum desconhecido"}
+                {song.genre || song.genero || song.album || "Gênero não informado"}
               </span>
 
 {/* Duration */}
@@ -220,7 +227,8 @@ function SongList({
     isFavorite={isFavorite}
     onFavoriteRemoved={handleFavoriteRemoved}
     onFavoriteChanged={handleFavoriteChanged}
-    allowAddToPlaylist={shouldAllowSongPlaylistActions}
+    allowAddToPlaylist={allowAddToPlaylist}
+    allowRemoveFromPlaylist={allowRemoveFromPlaylist}
   />
 </div>
             </div>

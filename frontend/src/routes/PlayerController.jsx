@@ -1,36 +1,32 @@
 import { useLocation } from 'react-router-dom';
 import MusicPlayer from '../components/MusicPlayer';
 
-const ROTAS_COM_PLAYER = [
-  '/home',
-  '/preferences',
-  '/admin',
-  '/playlists',
-  '/favorites',
-  '/artists',
-  '/system-playlists',
+const ROTAS_SEM_PLAYER = [
+  '/',
+  '/login',
+  '/registration',
+  '/forgot-password',
+  '/redefinepass',
+  '/verify-account',
 ];
 
-const PREFIXOS_COM_PLAYER = [
-  '/music/',
-  '/playlist-detail/',
-  '/user-playlist-detail/',
+const ROTAS_PLAYER_OCULTO = [
+  '/configuration',
+  '/edit-profile',
+  '/custom-profile',
 ];
 
 /**
- * Renderiza o MusicPlayer apenas nas rotas que devem exibi-lo.
+ * Mantem uma unica instancia do MusicPlayer nas paginas internas.
  */
 function PlayerController() {
   const location = useLocation();
 
-  const shouldShowPlayer = ROTAS_COM_PLAYER.includes(location.pathname)
-    || PREFIXOS_COM_PLAYER.some((prefix) => location.pathname.startsWith(prefix));
-
-  if (!shouldShowPlayer) {
+  if (ROTAS_SEM_PLAYER.includes(location.pathname)) {
     return null;
   }
 
-  return <MusicPlayer />;
+  return <MusicPlayer isHidden={ROTAS_PLAYER_OCULTO.includes(location.pathname)} />;
 }
 
 export default PlayerController;

@@ -148,6 +148,18 @@
   color: #7f7f7f !important;
 }
 
+/* Remover coloração amarela de autofill mantendo a curvatura transparente */
+.registration-input-box input:-webkit-autofill,
+.registration-input-box input:-webkit-autofill:hover,
+.registration-input-box input:-webkit-autofill:focus,
+.registration-input-box input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+  background-color: transparent !important;
+  border-radius: inherit !important;
+}
+
+
 .registration-error {
   margin: 8px 0 16px !important;
   color: #ff5d5d !important;
