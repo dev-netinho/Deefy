@@ -163,6 +163,7 @@ adequado para publicacao open source.
 - [Hanrry Santos](https://github.com/hanrrysantos)
 - [Saylon Batista](https://github.com/saylonrb)
 - [Vitoria Ribas](https://github.com/vitoria-ribas)
+- [Daniele Araujo](https://github.com/gutdani)
 
 Se voce tambem participou do projeto, adicione seu nome e perfil GitHub nesta
 secao.
