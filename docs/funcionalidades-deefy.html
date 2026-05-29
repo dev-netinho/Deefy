@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Funcionalidades atuais do Deefy</title>
+  <style>
+    :root {
+      --page: #f7f6f3;
+      --surface: #ffffff;
+      --surface-soft: #fbfbfa;
+      --ink: #1f211f;
+      --muted: #74736f;
+      --line: #e8e5de;
+      --line-strong: #d9d5cb;
+      --green-bg: #edf3ec;
+      --green-text: #346538;
+      --blue-bg: #e1f3fe;
+      --blue-text: #1f6c9f;
+      --yellow-bg: #fbf3db;
+      --yellow-text: #956400;
+      --red-bg: #fdebec;
+      --red-text: #9f2f2d;
+      --mono: "SF Mono", "Geist Mono", "JetBrains Mono", Consolas, monospace;
+      --sans: "SF Pro Display", "Geist Sans", "Helvetica Neue", Arial, sans-serif;
+      --serif: "Newsreader", "Instrument Serif", "Playfair Display", Georgia, serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(31, 33, 31, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(31, 33, 31, 0.025) 1px, transparent 1px),
+        var(--page);
+      background-size: 42px 42px;
+      font-family: var(--sans);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .ambient {
+      position: fixed;
+      inset: auto -20vw -30vh auto;
+      width: 62vw;
+      height: 62vw;
+      border-radius: 50%;
+      background: rgba(52, 101, 56, 0.035);
+      pointer-events: none;
+      animation: drift 28s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to { transform: translate3d(-6vw, -4vh, 0) scale(1.08); }
+    }
+
+    .page {
+      width: min(1160px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 56px 0 72px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 58px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: var(--surface);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .tag.green { color: var(--green-text); background: var(--green-bg); }
+    .tag.blue { color: var(--blue-text); background: var(--blue-bg); }
+    .tag.yellow { color: var(--yellow-text); background: var(--yellow-bg); }
+    .tag.red { color: var(--red-text); background: var(--red-bg); }
+    .tag.neutral { color: #56534d; background: #f0eee8; border-color: var(--line); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 28px;
+      align-items: stretch;
+      margin-bottom: 36px;
+    }
+
+    .hero-copy,
+    .hero-card,
+    .card,
+    .panel {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .hero-copy {
+      padding: clamp(32px, 6vw, 64px);
+    }
+
+    .kicker {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: -0.035em;
+      line-height: 1.04;
+    }
+
+    h1 {
+      max-width: 760px;
+      font-family: var(--serif);
+      font-size: clamp(3.2rem, 8vw, 6.7rem);
+      font-weight: 680;
+    }
+
+    .hero-copy > p {
+      max-width: 690px;
+      margin: 24px 0 0;
+      color: #4d4b47;
+      font-size: clamp(1rem, 1.6vw, 1.2rem);
+    }
+
+    .hero-card {
+      padding: 28px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .hero-card h2 {
+      font-size: 1.5rem;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .score {
+      padding: 16px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .score strong {
+      display: block;
+      font-family: var(--serif);
+      font-size: 2.4rem;
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+    }
+
+    .score span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 26px 0 58px;
+    }
+
+    .nav a {
+      text-decoration: none;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: #55514b;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    section {
+      margin: 76px 0;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(280px, 0.55fr);
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    .section-head h2 {
+      font-family: var(--serif);
+      font-size: clamp(2.1rem, 4.4vw, 4.6rem);
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      padding: 24px;
+      min-height: 100%;
+    }
+
+    .card h3 {
+      margin-bottom: 12px;
+      font-size: 1.25rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .card ul,
+    .card ol {
+      margin: 16px 0 0;
+      padding-left: 21px;
+    }
+
+    .card li {
+      margin: 8px 0;
+      color: #3f3d39;
+    }
+
+    .inventory {
+      counter-reset: item;
+      display: grid;
+      gap: 9px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .inventory li {
+      counter-increment: item;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+      padding: 15px 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .inventory li::before {
+      content: counter(item, decimal-leading-zero);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.8;
+    }
+
+    .inventory strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+
+    .inventory small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .matrix {
+      display: grid;
+      gap: 12px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr) 180px;
+      gap: 18px;
+      padding: 18px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .row h3 {
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .row p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    code,
+    kbd {
+      font-family: var(--mono);
+      font-size: 0.86em;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #f3f1ec;
+      padding: 2px 5px;
+    }
+
+    .routes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .routes code {
+      white-space: nowrap;
+    }
+
+    .note-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .note {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .note h3 {
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .note p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 84px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .section-head,
+      .grid,
+      .grid.two,
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .meta {
+        justify-content: flex-start;
+      }
+
+      .inventory li {
+        grid-template-columns: 40px minmax(0, 1fr);
+      }
+
+      .inventory li .tag {
+        grid-column: 2;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page {
+        width: min(100% - 24px, 1160px);
+        padding-top: 28px;
+      }
+
+      .hero-copy,
+      .hero-card,
+      .card,
+      .row,
+      .note {
+        padding: 18px;
+      }
+
+      .score-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+  <main class="page">
+    <header class="topbar reveal">
+      <div class="brand">
+        <span class="brand-mark">DF</span>
+        <span>Inventário funcional do Deefy</span>
+      </div>
+      <div class="meta" aria-label="Metadados do documento">
+        <span class="tag green">Produção</span>
+        <span class="tag blue">Branch main</span>
+        <span class="tag neutral">25/05/2026</span>
+      </div>
+    </header>
+
+    <section class="hero reveal">
+      <div class="hero-copy">
+        <p class="kicker">Visão geral</p>
+        <h1>Funcionalidades atuais do Deefy</h1>
+        <p>
+          Este documento resume o que o sistema entrega hoje: fluxo de usuário,
+          catálogo musical, player, playlists, favoritos, painel administrativo,
+          importação de conteúdo e integrações de infraestrutura.
+        </p>
+      </div>
+      <aside class="hero-card" aria-label="Resumo quantitativo">
+        <div>
+          <p class="kicker">Resumo rápido</p>
+          <h2>Mapa de escopo</h2>
+        </div>
+        <div class="score-grid">
+          <div class="score">
+            <strong>21</strong>
+            <span>rotas de frontend mapeadas</span>
+          </div>
+          <div class="score">
+            <strong>12</strong>
+            <span>controllers principais no backend</span>
+          </div>
+          <div class="score">
+            <strong>6</strong>
+            <span>abas no painel admin</span>
+          </div>
+          <div class="score">
+            <strong>50+</strong>
+            <span>ações funcionais listadas</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <nav class="nav reveal" aria-label="Navegação interna">
+      <a href="#lista">Lista completa</a>
+      <a href="#areas">Por área</a>
+      <a href="#rotas">Rotas</a>
+      <a href="#backend">Backend</a>
+      <a href="#observacoes">Observações</a>
+    </nav>
+
+    <section id="lista" class="reveal">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Lista numerada</p>
+          <h2>Funcionalidades para apresentação</h2>
+        </div>
+        <p>
+          Lista em formato direto, parecida com a referência enviada, mas cobrindo
+          o estado atual do sistema.
+        </p>
+      </div>
+
+      <ol class="inventory">
+        <li><div><strong>Acessar a landing page pública</strong><small>Rota inicial com apresentação do produto e chamada para login/cadastro.</small></div><span class="tag green">Usuário</span></li>
+        <li><div><strong>Criar conta de usuário comum</strong><small>Registro com envio dos dados para a API.</small></div><span class="tag green">Usuário</span></li>
+        <li><div><strong>Verificar conta</strong><small>Fluxo de confirmação em rota dedicada.</small></div><span class="tag green">Usuário</span></li>
+        <li><div><strong>Fazer login</strong><small>Autenticação com JWT e proteção das rotas internas.</small></div><span class="tag green">Usuário</span></li>
+        <li><div><strong>Recuperar senha</strong><small>Solicitação de redefinição e alteração posterior de senha.</small></div><span class="tag green">Usuário</span></li>
+        <li><div><strong>Sair da conta</strong><small>Remove token, sessão local e redireciona para a área pública.</small></div><span class="tag green">Usuário</span></li>
+        <li><div><strong>Ver dados do perfil logado</strong><small>Nome e foto retornados por <code>/users/me</code>.</small></div><span class="tag green">Perfil</span></li>
+        <li><div><strong>Alterar nome do usuário</strong><small>Atualização por <code>PATCH /users/me/name</code>.</small></div><span class="tag green">Perfil</span></li>
+        <li><div><strong>Alterar senha do usuário</strong><small>Valida senha atual e grava nova senha.</small></div><span class="tag green">Perfil</span></li>
+        <li><div><strong>Enviar foto de perfil</strong><small>Upload multipart para storage e persistência da URL pública.</small></div><span class="tag green">Perfil</span></li>
+        <li><div><strong>Remover foto de perfil</strong><small>Limpa a URL da foto no perfil do usuário.</small></div><span class="tag green">Perfil</span></li>
+        <li><div><strong>Listar músicas da Home</strong><small>Carrega recomendações iniciais do catálogo.</small></div><span class="tag green">Catálogo</span></li>
+        <li><div><strong>Buscar música por título</strong><small>Pesquisa textual por nome da faixa.</small></div><span class="tag green">Busca</span></li>
+        <li><div><strong>Buscar música por artista</strong><small>Pesquisa por nome do artista principal.</small></div><span class="tag green">Busca</span></li>
+        <li><div><strong>Buscar música por gênero</strong><small>Usada na Home, em playlists e nos cards de estilos.</small></div><span class="tag green">Busca</span></li>
+        <li><div><strong>Buscar música por álbum visual</strong><small>Compatibilização com os dados atuais sem tabela física de álbum em produção.</small></div><span class="tag yellow">Compatível</span></li>
+        <li><div><strong>Ver detalhes de uma música</strong><small>Busca por ID para tela de compartilhamento e player.</small></div><span class="tag green">Catálogo</span></li>
+        <li><div><strong>Reproduzir música no player</strong><small>Player com áudio real vindo do backend/storage.</small></div><span class="tag green">Player</span></li>
+        <li><div><strong>Pausar e retomar música</strong><small>Controle básico de reprodução.</small></div><span class="tag green">Player</span></li>
+        <li><div><strong>Avançar e voltar na fila</strong><small>Fila baseada na lista de músicas aberta pelo usuário.</small></div><span class="tag green">Player</span></li>
+        <li><div><strong>Ativar modo aleatório</strong><small>Embaralha a fila do player sem mover a playlist original.</small></div><span class="tag green">Player</span></li>
+        <li><div><strong>Repetir faixa</strong><small>Modo de repetição no player.</small></div><span class="tag green">Player</span></li>
+        <li><div><strong>Controlar progresso da música</strong><small>Barra de progresso e seek.</small></div><span class="tag green">Player</span></li>
+        <li><div><strong>Controlar volume e mudo</strong><small>Controle local do elemento de áudio.</small></div><span class="tag green">Player</span></li>
+        <li><div><strong>Abrir player expandido</strong><small>Interface ampliada para capa, controles e ações.</small></div><span class="tag green">Player</span></li>
+        <li><div><strong>Favoritar música</strong><small>Salva música nos favoritos do usuário.</small></div><span class="tag green">Favoritos</span></li>
+        <li><div><strong>Remover música dos favoritos</strong><small>Remove a música da lista de curtidas.</small></div><span class="tag green">Favoritos</span></li>
+        <li><div><strong>Listar músicas favoritas</strong><small>Tela dedicada para playlist de favoritos.</small></div><span class="tag green">Favoritos</span></li>
+        <li><div><strong>Favoritar artista</strong><small>Endpoint disponível para curtir artistas.</small></div><span class="tag blue">API</span></li>
+        <li><div><strong>Favoritar gênero</strong><small>Endpoint disponível para curtir gêneros.</small></div><span class="tag blue">API</span></li>
+        <li><div><strong>Criar playlist pessoal</strong><small>Define nome, visibilidade, descrição e capa.</small></div><span class="tag green">Playlists</span></li>
+        <li><div><strong>Listar playlists pessoais</strong><small>Exibe playlists criadas pelo usuário logado.</small></div><span class="tag green">Playlists</span></li>
+        <li><div><strong>Editar playlist pessoal</strong><small>Altera nome, descrição, capa e visibilidade.</small></div><span class="tag green">Playlists</span></li>
+        <li><div><strong>Excluir playlist pessoal</strong><small>Remove playlist do usuário quando permitido.</small></div><span class="tag green">Playlists</span></li>
+        <li><div><strong>Adicionar música à playlist</strong><small>Busca músicas e vincula faixa à playlist criada.</small></div><span class="tag green">Playlists</span></li>
+        <li><div><strong>Remover música da playlist</strong><small>Remove faixa de playlists próprias.</small></div><span class="tag green">Playlists</span></li>
+        <li><div><strong>Visualizar detalhes de playlist</strong><small>Mostra capa, descrição e músicas contidas.</small></div><span class="tag green">Playlists</span></li>
+        <li><div><strong>Listar playlists globais do sistema</strong><small>Playlists públicas do usuário sistema/admin.</small></div><span class="tag green">Descoberta</span></li>
+        <li><div><strong>Bloquear gestão de playlists globais para usuário comum</strong><small>Usuário comum não edita nem exclui playlist pública/global.</small></div><span class="tag green">Regra</span></li>
+        <li><div><strong>Explorar gêneros musicais</strong><small>Cards simples por gênero que tocam músicas reais do estilo.</small></div><span class="tag green">Descoberta</span></li>
+        <li><div><strong>Listar artistas</strong><small>Catálogo visual em <code>/artists</code>.</small></div><span class="tag green">Descoberta</span></li>
+        <li><div><strong>Filtrar Home por artista</strong><small>Links de artistas abrem a Home com busca aplicada.</small></div><span class="tag green">Descoberta</span></li>
+        <li><div><strong>Compartilhar música por link</strong><small>Gera link <code>/music/:id</code> e permite copiar/enviar.</small></div><span class="tag green">Social</span></li>
+        <li><div><strong>Abrir música compartilhada</strong><small>Carrega a música pelo ID e inicia no player.</small></div><span class="tag green">Social</span></li>
+        <li><div><strong>Buscar música no Google</strong><small>Ação auxiliar no menu de opções da faixa.</small></div><span class="tag green">Social</span></li>
+        <li><div><strong>Registrar histórico de reprodução</strong><small>Endpoint de histórico disponível no backend.</small></div><span class="tag blue">API</span></li>
+        <li><div><strong>Criar artista no painel admin</strong><small>Cadastro de nome, bio e foto.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Criar gênero no painel admin</strong><small>Cadastro e remoção de gêneros.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Criar álbum no painel admin</strong><small>Área administrativa de lançamentos/álbuns.</small></div><span class="tag yellow">Admin</span></li>
+        <li><div><strong>Criar música no painel admin</strong><small>Cadastro de título, gênero, artista, feats, capa, áudio e duração.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Enviar imagem para storage</strong><small>Upload administrativo de imagens.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Enviar áudio para storage</strong><small>Upload administrativo de arquivos de música.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Criar playlist pública pelo admin</strong><small>Seleciona músicas e publica playlist visível para usuários.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Importar playlist do YouTube</strong><small>Admin informa link, gênero, artista opcional e limite.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Acompanhar job de importação</strong><small>Backend roda script em background e painel exibe status/log.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Salvar cookies do YouTube pelo painel</strong><small>Permite configurar cookies fora do Git para reduzir bloqueios.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Gerenciar usuários</strong><small>Listagem, busca, edição, banimento e troca de role.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Ver estatísticas administrativas</strong><small>Cards de totais de usuários e catálogo.</small></div><span class="tag blue">Admin</span></li>
+        <li><div><strong>Proteger rotas por autenticação</strong><small>Rotas internas exigem sessão/token.</small></div><span class="tag green">Segurança</span></li>
+        <li><div><strong>Proteger rotas admin por role</strong><small>Áreas administrativas exigem permissão de admin.</small></div><span class="tag green">Segurança</span></li>
+      </ol>
+    </section>
+
+    <section id="areas" class="reveal">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Agrupamento</p>
+          <h2>Funcionalidades por área</h2>
+        </div>
+        <p>
+          Esta visão ajuda a explicar a estrutura do produto sem cair em detalhes
+          de implementação linha por linha.
+        </p>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <span class="tag green">Conta</span>
+          <h3>Acesso e sessão</h3>
+          <p>Cadastro, verificação, login JWT, recuperação de senha, rotas públicas e protegidas.</p>
+          <div class="routes">
+            <code>/</code><code>/registration</code><code>/login</code><code>/verify-account</code><code>/forgot-password</code>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag green">Perfil</span>
+          <h3>Configurações do usuário</h3>
+          <p>Leitura do perfil logado, alteração de nome, senha, foto por upload e remoção de foto.</p>
+          <div class="routes">
+            <code>/configuration</code><code>/custom-profile</code><code>/edit-profile</code><code>/redefinepass</code>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag green">Home</span>
+          <h3>Descoberta musical</h3>
+          <p>Home com músicas recomendadas, artistas, playlists globais e busca visual por categorias.</p>
+          <div class="routes">
+            <code>/home</code><code>/artists</code><code>/system-playlists</code>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag green">Player</span>
+          <h3>Reprodução</h3>
+          <p>Play, pause, avançar, voltar, volume, seek, repetir, aleatório, player compacto e expandido.</p>
+          <div class="routes">
+            <code>MusicPlayer</code><code>PlayerContext</code>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag green">Playlists</span>
+          <h3>Biblioteca do usuário</h3>
+          <p>Criar, editar, excluir, adicionar músicas, remover músicas, ver detalhes e tocar fila.</p>
+          <div class="routes">
+            <code>/playlists</code><code>/create-playlist</code><code>/user-playlist-detail/:id</code><code>/playlist/:id/add-music</code>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag green">Favoritos</span>
+          <h3>Curtidas</h3>
+          <p>Favoritar e desfavoritar músicas, listar favoritos e refletir estado no player/listas.</p>
+          <div class="routes">
+            <code>/favorites</code><code>/api/v1/favorites</code>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag blue">Admin</span>
+          <h3>Catálogo e curadoria</h3>
+          <p>Cadastro de gêneros, artistas, álbuns, músicas, playlists públicas e uploads de mídia.</p>
+          <div class="routes">
+            <code>/admin</code><code>/api/v1/storage</code>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag blue">Admin</span>
+          <h3>Importação YouTube</h3>
+          <p>Importação por playlist com yt-dlp, ffmpeg, Supabase Storage, logs, cookies e deduplicação.</p>
+          <div class="routes">
+            <code>/api/v1/admin/playlist-imports</code>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="tag blue">Admin</span>
+          <h3>Gestão de usuários</h3>
+          <p>Listagem, filtros, estatísticas, edição de dados, banimento/desbanimento e troca de perfil.</p>
+          <div class="routes">
+            <code>/admin/users</code><code>/api/v1/users</code>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="rotas" class="reveal">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Frontend</p>
+          <h2>Rotas visíveis do sistema</h2>
+        </div>
+        <p>Mapa das páginas React registradas atualmente.</p>
+      </div>
+
+      <div class="matrix">
+        <div class="row"><div><h3>Públicas</h3><p>Entrada e autenticação</p></div><div class="routes"><code>/</code><code>/login</code><code>/registration</code><code>/forgot-password</code><code>/verify-account</code></div><span class="tag green">Acesso</span></div>
+        <div class="row"><div><h3>Perfil</h3><p>Dados pessoais</p></div><div class="routes"><code>/configuration</code><code>/custom-profile</code><code>/edit-profile</code><code>/redefinepass</code></div><span class="tag green">Protegida</span></div>
+        <div class="row"><div><h3>Catálogo</h3><p>Descoberta e busca</p></div><div class="routes"><code>/home</code><code>/artists</code><code>/system-playlists</code><code>/music/:id</code></div><span class="tag green">Protegida</span></div>
+        <div class="row"><div><h3>Playlists</h3><p>Uso pessoal e global</p></div><div class="routes"><code>/playlists</code><code>/playlist-detail/:id</code><code>/user-playlist-detail/:id</code><code>/create-playlist</code><code>/playlist/:id/add-music</code><code>/playlist/:id/edit</code></div><span class="tag green">Protegida</span></div>
+        <div class="row"><div><h3>Favoritos</h3><p>Lista de curtidas</p></div><div class="routes"><code>/favorites</code></div><span class="tag green">Protegida</span></div>
+        <div class="row"><div><h3>Admin</h3><p>Operação interna</p></div><div class="routes"><code>/admin</code><code>/admin/users</code></div><span class="tag blue">Role admin</span></div>
+      </div>
+    </section>
+
+    <section id="backend" class="reveal">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Backend</p>
+          <h2>APIs que sustentam as funcionalidades</h2>
+        </div>
+        <p>Controllers principais encontrados no backend Spring Boot.</p>
+      </div>
+
+      <div class="grid two">
+        <article class="card">
+          <h3>Autenticação e usuário</h3>
+          <ul>
+            <li><code>/api/v1/auth/login</code>, <code>/register</code>, <code>/verify-account</code>, <code>/forgot-password</code>, <code>/reset-password</code>.</li>
+            <li><code>/api/v1/users/me</code>, alteração de nome, senha e foto.</li>
+            <li>Admin: listagem, estatísticas, edição, banimento e alteração de role.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Músicas e busca</h3>
+          <ul>
+            <li>CRUD administrativo de músicas.</li>
+            <li>Detalhes por ID e listagem paginada.</li>
+            <li>Busca por título, artista, gênero e álbum visual.</li>
+            <li>Rota de músicas aleatórias/recomendadas para Home.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Playlists e favoritos</h3>
+          <ul>
+            <li>Criação, listagem, detalhe, edição e exclusão de playlists.</li>
+            <li>Adicionar/remover faixas em playlists.</li>
+            <li>Playlists globais por regra de usuário sistema/admin.</li>
+            <li>Favoritos de músicas, artistas e gêneros.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Admin, storage e importação</h3>
+          <ul>
+            <li>CRUD de gêneros, artistas e álbuns.</li>
+            <li>Upload de imagens e áudios para storage.</li>
+            <li>Importação de playlist do YouTube em background.</li>
+            <li>Status/log de jobs e armazenamento seguro de cookies operacionais.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="observacoes" class="reveal">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Análise atual</p>
+          <h2>Pontos de atenção</h2>
+        </div>
+        <p>
+          Itens que funcionam, mas merecem cuidado porque impactam fluidez,
+          estabilidade ou evolução.
+        </p>
+      </div>
+
+      <div class="note-list">
+        <article class="note">
+          <span class="tag yellow">Performance</span>
+          <h3>Configurações carregam perfil via API a cada montagem</h3>
+          <p>
+            <code>/configuration</code>, <code>/custom-profile</code> e <code>/edit-profile</code>
+            buscam <code>/users/me</code> individualmente. A interface poderia usar cache local primeiro
+            e atualizar em background para parecer instantânea.
+          </p>
+        </article>
+
+        <article class="note">
+          <span class="tag yellow">Player</span>
+          <h3>Player é desmontado em rotas fora da lista permitida</h3>
+          <p>
+            O áudio vive dentro do componente visual do player. Quando a rota não renderiza
+            <code>MusicPlayer</code>, o elemento <code>&lt;audio&gt;</code> some e a música pode parar
+            ou reiniciar ao navegar.
+          </p>
+        </article>
+
+        <article class="note">
+          <span class="tag yellow">Busca</span>
+          <h3>Busca ampla dispara muitas chamadas paralelas</h3>
+          <p>
+            A busca global pode consultar músicas, artistas, playlists, gênero e álbum. Funciona,
+            mas pode gerar delays perceptíveis sem cache ou cancelamento de requisições antigas.
+          </p>
+        </article>
+
+        <article class="note">
+          <span class="tag yellow">Favoritos</span>
+          <h3>Estado de favoritos é consultado em várias montagens</h3>
+          <p>
+            Listas de músicas carregam favoritos para marcar os corações. O comportamento é correto,
+            mas pode ficar mais rápido com cache centralizado por usuário.
+          </p>
+        </article>
+
+        <article class="note">
+          <span class="tag red">Modelo de dados</span>
+          <h3>Álbum ainda é uma compatibilidade visual</h3>
+          <p>
+            O fluxo principal em produção não tem tabela física de álbum consolidada. Hoje a UI usa
+            gênero e playlists globais para preservar a ideia visual de lançamento/álbum.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Documento gerado a partir das rotas e controllers atuais do projeto.</span>
+      <span><code>docs/funcionalidades-deefy.html</code></span>
+    </footer>
+  </main>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.reveal').forEach((element, index) => {
+      element.style.transitionDelay = `${Math.min(index * 45, 240)}ms`;
+      observer.observe(element);
+    });
+  </script>
+</body>
+</html>

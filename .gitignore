@@ -1,4 +1,16 @@
 .env
+.env.*
+!.env.example
+!.env.production.example
+
 secrets/
+*cookies*.txt
+*.pem
+*.p12
+*.jks
+
+.idea/
+docker-compose.staging-supabase.local.yml
+
 __pycache__/
 *.pyc

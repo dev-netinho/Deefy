@@ -601,8 +601,8 @@ Resumo:
 - Para esse caso, o `yt-dlp` suporta cookies exportados do navegador em formato `cookies.txt`.
 - Nao automatizamos login do Google no servidor por seguranca.
 - O cookie e tratado como segredo operacional, fora do Git.
-- A pasta remota usada e `/home/olua_developer/deefy/secrets`.
-- O arquivo esperado e `/home/olua_developer/deefy/secrets/youtube-cookies.txt`.
+- A pasta remota usada e `<pasta-do-projeto>/secrets`.
+- O arquivo esperado e `<pasta-do-projeto>/secrets/youtube-cookies.txt`.
 - O compose monta essa pasta no container como `/app/secrets`.
 - O script detecta `/app/secrets/youtube-cookies.txt` automaticamente e usa `--cookies`.
 

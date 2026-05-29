@@ -1,0 +1,69 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: deefy-local-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: deefy
+      POSTGRES_USER: deefy
+      POSTGRES_PASSWORD: deefy
+    ports:
+      - "5433:5432"
+    volumes:
+      - deefy-local-postgres:/var/lib/postgresql/data
+      - ./database/scripts/schema_local.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro,Z
+      - ./database/scripts/seed_local_demo.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro,Z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deefy -d deefy"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: deefy-local-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/deefy
+      SPRING_DATASOURCE_USERNAME: deefy
+      SPRING_DATASOURCE_PASSWORD: deefy
+      JWT_SECRET: local-dev-secret-change-me-local-dev-secret
+      JWT_EXPIRATION: 86400000
+      JWT_RESET_EXPIRATION: 900000
+      JWT_ACCOUNT_ACTIVATION_EXPIRATION: 900000
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173
+      APP_FRONTEND_BASE_URL: http://localhost:5173
+      RESEND_API_KEY: ""
+      RESEND_API_URL: https://api.resend.com/emails
+      RESEND_FROM: Deefy <onboarding@resend.dev>
+      SUPABASE_PROJECT_URL: ""
+      SUPABASE_SERVICE_ROLE_KEY: ""
+      SUPABASE_STORAGE_PUBLIC_BASE_URL: ""
+      SUPABASE_STORAGE_MUSIC_BUCKET: musicas
+      SUPABASE_STORAGE_IMAGE_BUCKET: imagens
+      SUPABASE_STORAGE_PROFILE_BUCKET: fotos de perfil
+      DEEFY_IMPORT_OWNER_EMAIL: deefy.admin@deefy.com
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080/api/v1
+    container_name: deefy-local-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  deefy-local-postgres:

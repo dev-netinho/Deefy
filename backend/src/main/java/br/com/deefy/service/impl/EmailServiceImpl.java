@@ -21,16 +21,19 @@ public class EmailServiceImpl implements EmailService {
     private final String apiKey;
     private final String remetente;
     private final String frontendBaseUrl;
+    private final String apiUrl;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
 
     public EmailServiceImpl(
-            @Value("${resend.api.key:re_chave_falsa_para_o_github}") String apiKey,
+            @Value("${resend.api.key:}") String apiKey,
             @Value("${resend.from:Deefy <onboarding@resend.dev>}") String remetente,
+            @Value("${resend.api.url:https://api.resend.com/emails}") String apiUrl,
             @Value("${app.frontend.base-url:http://localhost:5173}") String frontendBaseUrl,
             ObjectMapper objectMapper) {
         this.apiKey = apiKey;
         this.remetente = remetente;
+        this.apiUrl = apiUrl;
         this.frontendBaseUrl = frontendBaseUrl.replaceAll("/+$", "");
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newHttpClient();
@@ -89,7 +92,7 @@ public class EmailServiceImpl implements EmailService {
             String jsonBody = objectMapper.writeValueAsString(payload);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.resend.com/emails"))
+                    .uri(URI.create(apiUrl))
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))

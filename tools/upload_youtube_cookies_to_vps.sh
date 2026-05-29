@@ -7,8 +7,9 @@ if [[ $# -ne 1 ]]; then
 fi
 
 cookie_file="$1"
-remote_host="${DEEFY_VPS_HOST:-koss-vps}"
-remote_dir="${DEEFY_REMOTE_APP_DIR:-/home/olua_developer/deefy}/secrets"
+remote_host="${DEEFY_VPS_HOST:?Defina DEEFY_VPS_HOST com o host SSH da VPS.}"
+remote_app_dir="${DEEFY_REMOTE_APP_DIR:?Defina DEEFY_REMOTE_APP_DIR com a pasta remota do projeto.}"
+remote_dir="$remote_app_dir/secrets"
 remote_file="$remote_dir/youtube-cookies.txt"
 
 if [[ ! -f "$cookie_file" ]]; then

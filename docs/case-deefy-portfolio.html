@@ -1,0 +1,2360 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deefy | Case de desenvolvimento, integracao e deploy</title>
+  <meta name="description" content="Case portfolio do Deefy: organizacao, integracao entre frontend/backend, Supabase, Docker, VPS, painel admin e importacao de musicas.">
+  <meta property="og:title" content="Deefy | Case de desenvolvimento, integracao e deploy">
+  <meta property="og:description" content="Do prototipo local ao sistema online: lideranca tecnica, integracao, deploy e automacao de catalogo musical.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="./assets/deefy-case/case-preview-hero.png">
+  <meta name="theme-color" content="#0f2f29">
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;900&family=Fraunces:opsz,wght@9..144,650;9..144,850&family=JetBrains+Mono:wght@500;700&display=swap");
+
+    :root {
+      --ink: #10221f;
+      --ink-strong: #071210;
+      --muted: #596a65;
+      --soft: #eef1e7;
+      --paper: #fbf7ec;
+      --card: rgba(255, 252, 243, 0.74);
+      --line: rgba(29, 58, 50, 0.15);
+      --green: #10d9b3;
+      --green-dark: #0f6f5d;
+      --green-soft: #d8f8ef;
+      --amber: #f0b45b;
+      --clay: #c46d4d;
+      --blueprint: #183e37;
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --shadow: 0 28px 90px rgba(18, 43, 37, 0.16);
+      --mono: "JetBrains Mono", "Courier New", monospace;
+      --display: "Fraunces", Georgia, serif;
+      --body: "Archivo", Verdana, sans-serif;
+      --ease: cubic-bezier(.2, .9, .15, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 4%, rgba(16, 217, 179, 0.22), transparent 28rem),
+        radial-gradient(circle at 78% 12%, rgba(240, 180, 91, 0.18), transparent 24rem),
+        linear-gradient(135deg, #f9f2df 0%, #eef2e7 42%, #f7eee0 100%);
+      font-family: var(--body);
+      line-height: 1.55;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.36;
+      background-image:
+        linear-gradient(rgba(16, 34, 31, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 34, 31, 0.035) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(180deg, black, transparent 82%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.13;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.8) 0 1px, transparent 1px),
+        radial-gradient(circle at 80% 40%, rgba(0,0,0,.35) 0 1px, transparent 1px);
+      background-size: 4px 4px, 5px 5px;
+      mix-blend-mode: multiply;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 20;
+      transform: translateY(-150%);
+      padding: .7rem 1rem;
+      border-radius: 999px;
+      color: #06251f;
+      background: var(--green);
+      font-weight: 700;
+      transition: transform .2s ease;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 30;
+      width: 100%;
+      height: 4px;
+      background: transparent;
+    }
+
+    .progress span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--amber));
+      box-shadow: 0 0 22px rgba(16, 217, 179, .46);
+    }
+
+    .shell {
+      position: relative;
+      z-index: 2;
+      width: min(1240px, calc(100% - 34px));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 12px;
+      z-index: 15;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 12px;
+      padding: .55rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(251, 247, 236, .76);
+      box-shadow: 0 16px 50px rgba(14, 38, 33, .12);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .65rem;
+      min-width: max-content;
+      padding: .42rem .8rem .42rem .45rem;
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: -.03em;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 2.35rem;
+      height: 2.35rem;
+      border-radius: 50%;
+      color: #06241e;
+      background: var(--green);
+      font-family: var(--display);
+      font-size: 1.1rem;
+      box-shadow: inset 0 -8px 15px rgba(0, 0, 0, .12);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: .25rem;
+      align-items: center;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-links::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav a:not(.brand) {
+      flex: 0 0 auto;
+      padding: .58rem .82rem;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: color .2s ease, background .2s ease, transform .2s ease;
+    }
+
+    .nav a:not(.brand):hover,
+    .nav a:not(.brand).active {
+      color: var(--ink-strong);
+      background: rgba(16, 217, 179, .18);
+      transform: translateY(-1px);
+    }
+
+    .hero {
+      min-height: calc(100dvh - 80px);
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr);
+      gap: clamp(1.4rem, 5vw, 4.5rem);
+      align-items: center;
+      padding: clamp(3.5rem, 9vw, 8rem) 0 clamp(4rem, 8vw, 7rem);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: .45rem;
+      align-items: center;
+      margin: 0 0 1.2rem;
+      color: var(--green-dark);
+      font-family: var(--mono);
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: .7rem;
+      height: .7rem;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 8px rgba(16, 217, 179, .12);
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      color: var(--ink-strong);
+      text-wrap: balance;
+    }
+
+    h1 {
+      max-width: 930px;
+      font-family: var(--display);
+      font-size: clamp(4rem, 11vw, 10.6rem);
+      line-height: .84;
+      letter-spacing: -.075em;
+    }
+
+    h1 span {
+      color: transparent;
+      -webkit-text-stroke: 1.5px rgba(7, 18, 16, .72);
+      text-shadow: none;
+    }
+
+    h2 {
+      font-family: var(--display);
+      font-size: clamp(2.7rem, 7vw, 6.7rem);
+      line-height: .9;
+      letter-spacing: -.06em;
+    }
+
+    h3 {
+      font-size: clamp(1.25rem, 2vw, 1.65rem);
+      line-height: 1.1;
+      letter-spacing: -.03em;
+    }
+
+    p {
+      color: var(--muted);
+      text-wrap: pretty;
+    }
+
+    .lead {
+      max-width: 780px;
+      margin: 1.45rem 0 0;
+      color: #31413d;
+      font-size: clamp(1.18rem, 2.3vw, 1.55rem);
+      line-height: 1.42;
+    }
+
+    .hero-actions,
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      margin-top: 1.7rem;
+    }
+
+    .btn,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .55rem;
+      min-height: 2.75rem;
+      padding: .75rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform .22s var(--ease), background .22s ease, box-shadow .22s ease;
+    }
+
+    .btn.primary {
+      color: #05241f;
+      background: var(--green);
+      border-color: transparent;
+      box-shadow: 0 18px 42px rgba(16, 217, 179, .28);
+    }
+
+    .btn.secondary {
+      background: rgba(255, 255, 255, .55);
+    }
+
+    .btn:hover,
+    .chip:hover {
+      transform: translateY(-3px);
+    }
+
+    .btn:active,
+    .chip:active {
+      transform: translateY(-1px) scale(.99);
+    }
+
+    .chip {
+      min-height: 2.25rem;
+      padding: .52rem .78rem;
+      color: #2f443f;
+      background: rgba(255, 255, 255, .5);
+      font-size: .86rem;
+    }
+
+    .hero-panel {
+      position: relative;
+      isolation: isolate;
+      padding: 1rem;
+      border-radius: var(--radius-xl);
+      background: rgba(15, 47, 41, .92);
+      box-shadow: var(--shadow);
+      color: #eafff8;
+      overflow: hidden;
+      transform: rotate(1.4deg);
+    }
+
+    .hero-panel::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(16, 217, 179, .28), transparent 26%),
+        radial-gradient(circle at 80% 12%, rgba(240, 180, 91, .28), transparent 20%),
+        linear-gradient(135deg, transparent, rgba(255, 255, 255, .07));
+      animation: drift 13s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate3d(-2%, -1%, 0) rotate(0deg);
+      }
+      to {
+        transform: translate3d(3%, 2%, 0) rotate(5deg);
+      }
+    }
+
+    .panel-window {
+      padding: 1rem;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 26px;
+      background: rgba(4, 18, 16, .56);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
+    }
+
+    .window-dots {
+      display: flex;
+      gap: .42rem;
+      margin-bottom: 1rem;
+    }
+
+    .window-dots i {
+      width: .72rem;
+      height: .72rem;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .window-dots i:nth-child(2) {
+      background: var(--amber);
+    }
+
+    .window-dots i:nth-child(3) {
+      background: #f1725f;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .8rem;
+    }
+
+    .metric {
+      padding: 1rem;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .metric strong {
+      display: block;
+      color: white;
+      font-family: var(--display);
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: .9;
+      letter-spacing: -.07em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: .45rem;
+      color: rgba(234, 255, 248, .7);
+      font-size: .85rem;
+      font-weight: 700;
+    }
+
+    .terminal {
+      margin-top: .9rem;
+      padding: 1rem;
+      border-radius: 18px;
+      background: rgba(3, 12, 11, .72);
+      color: #baf5e7;
+      font-family: var(--mono);
+      font-size: .82rem;
+      overflow: hidden;
+    }
+
+    .terminal span {
+      color: var(--amber);
+    }
+
+    section {
+      padding: clamp(3.5rem, 8vw, 7rem) 0;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(280px, .55fr);
+      gap: 2rem;
+      align-items: end;
+      margin-bottom: 2rem;
+    }
+
+    .section-head p {
+      margin: 0;
+      font-size: 1.04rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1rem;
+    }
+
+    .card {
+      grid-column: span 4;
+      position: relative;
+      min-height: 100%;
+      padding: clamp(1.15rem, 2.5vw, 1.5rem);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--card);
+      box-shadow: 0 16px 45px rgba(25, 57, 50, .08);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(16, 217, 179, .16), transparent 34%);
+      transition: opacity .2s ease;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card.wide {
+      grid-column: span 6;
+    }
+
+    .card.full {
+      grid-column: 1 / -1;
+    }
+
+    .card.feature {
+      color: #ecfff9;
+      background: linear-gradient(135deg, rgba(15,47,41,.96), rgba(21,69,58,.88));
+      border-color: rgba(255, 255, 255, .12);
+    }
+
+    .card.feature p,
+    .card.feature li {
+      color: rgba(236, 255, 249, .72);
+    }
+
+    .card-label {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      margin-bottom: 1rem;
+      color: var(--green-dark);
+      font-family: var(--mono);
+      font-size: .74rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .feature .card-label {
+      color: var(--green);
+    }
+
+    .card-label::before {
+      content: "";
+      width: .5rem;
+      height: .5rem;
+      border-radius: 2px;
+      background: currentColor;
+      transform: rotate(15deg);
+    }
+
+    .card p,
+    .card ul {
+      margin: .75rem 0 0;
+    }
+
+    ul {
+      padding-left: 1.05rem;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: .45rem;
+    }
+
+    .phase {
+      display: grid;
+      grid-template-columns: minmax(220px, .45fr) minmax(0, 1fr);
+      gap: 1.1rem;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: rgba(255, 255, 255, .42);
+    }
+
+    .phase + .phase {
+      margin-top: 1rem;
+    }
+
+    .phase-tag {
+      min-height: 100%;
+      padding: 1.25rem;
+      border-radius: 24px;
+      background: var(--ink);
+      color: white;
+    }
+
+    .phase-tag strong {
+      display: block;
+      font-family: var(--display);
+      font-size: clamp(2.3rem, 5vw, 4.8rem);
+      line-height: .88;
+      letter-spacing: -.07em;
+    }
+
+    .phase-tag span {
+      display: block;
+      margin-top: .8rem;
+      color: rgba(255, 255, 255, .68);
+      font-family: var(--mono);
+      font-size: .82rem;
+    }
+
+    .phase-body {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .85rem;
+    }
+
+    .mini {
+      padding: 1rem;
+      border-radius: 18px;
+      background: rgba(251, 247, 236, .8);
+      border: 1px solid rgba(16, 34, 31, .08);
+    }
+
+    .mini strong {
+      display: block;
+      margin-bottom: .35rem;
+    }
+
+    .mini p {
+      margin: 0;
+      font-size: .92rem;
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: .75rem;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .node {
+      position: relative;
+      min-height: 116px;
+      padding: 1rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, .62);
+      border: 1px solid var(--line);
+    }
+
+    .node::after {
+      content: "->";
+      position: absolute;
+      right: -.72rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--green-dark);
+      font-family: var(--mono);
+      font-weight: 800;
+    }
+
+    .node:last-child::after {
+      content: "";
+    }
+
+    .node b {
+      display: block;
+      color: var(--ink-strong);
+    }
+
+    .node span {
+      display: block;
+      margin-top: .4rem;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: .8rem;
+      counter-reset: flow;
+      margin-top: 1rem;
+    }
+
+    .flow-step {
+      counter-increment: flow;
+      min-height: 160px;
+      padding: 1rem;
+      border-radius: 22px;
+      background: rgba(15, 47, 41, .92);
+      color: #ecfff9;
+      box-shadow: 0 18px 50px rgba(15, 47, 41, .12);
+    }
+
+    .flow-step::before {
+      content: counter(flow, decimal-leading-zero);
+      display: inline-grid;
+      place-items: center;
+      width: 2.1rem;
+      height: 2.1rem;
+      margin-bottom: .85rem;
+      border-radius: 50%;
+      color: #06241f;
+      background: var(--green);
+      font-family: var(--mono);
+      font-size: .72rem;
+      font-weight: 900;
+    }
+
+    .flow-step b {
+      display: block;
+      margin-bottom: .35rem;
+    }
+
+    .flow-step span {
+      color: rgba(236, 255, 249, .7);
+      font-size: .88rem;
+    }
+
+    .db-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .code-card {
+      padding: clamp(1rem, 2.4vw, 1.35rem);
+      border-radius: var(--radius-lg);
+      background: rgba(7, 18, 16, .94);
+      color: #eafff8;
+      border: 1px solid rgba(255, 255, 255, .1);
+      box-shadow: 0 20px 60px rgba(13, 35, 31, .16);
+    }
+
+    .code-card h3 {
+      color: white;
+      margin-bottom: .55rem;
+    }
+
+    .code-card p {
+      color: rgba(234, 255, 248, .68);
+    }
+
+    .code-card pre {
+      margin: 1rem 0 0;
+      padding: 1rem;
+      border-radius: 16px;
+      color: #baf5e7;
+      background: rgba(0, 0, 0, .28);
+      border: 1px solid rgba(255, 255, 255, .08);
+      font-family: var(--mono);
+      font-size: .78rem;
+      line-height: 1.55;
+      overflow-x: auto;
+    }
+
+    .cors-lab {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(300px, .58fr);
+      gap: 1rem;
+      align-items: stretch;
+      margin-top: 1rem;
+    }
+
+    .cors-console {
+      min-height: 100%;
+      padding: clamp(1.1rem, 2.6vw, 1.5rem);
+      border-radius: var(--radius-lg);
+      color: #eafff8;
+      background:
+        radial-gradient(circle at 14% 8%, rgba(16, 217, 179, .24), transparent 18rem),
+        linear-gradient(135deg, rgba(7, 18, 16, .96), rgba(24, 62, 55, .93));
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .cors-console p {
+      color: rgba(234, 255, 248, .72);
+    }
+
+    .cors-code {
+      display: grid;
+      gap: .75rem;
+      margin-top: 1rem;
+      font-family: var(--mono);
+      font-size: .86rem;
+    }
+
+    .cors-code div {
+      padding: .9rem;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, .27);
+      border: 1px solid rgba(255, 255, 255, .08);
+      overflow-x: auto;
+    }
+
+    .cors-code b {
+      color: var(--green);
+      display: block;
+      margin-bottom: .35rem;
+      font-family: var(--body);
+      font-size: .78rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .cors-diagram {
+      display: grid;
+      gap: .75rem;
+    }
+
+    .cors-hop {
+      position: relative;
+      padding: 1rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .62);
+      border: 1px solid var(--line);
+    }
+
+    .cors-hop + .cors-hop::before {
+      content: "permissao?";
+      position: absolute;
+      top: -.92rem;
+      left: 1.2rem;
+      padding: .22rem .45rem;
+      border-radius: 999px;
+      color: #06241f;
+      background: var(--green);
+      font-family: var(--mono);
+      font-size: .64rem;
+      font-weight: 900;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .cors-hop b {
+      display: block;
+      color: var(--ink-strong);
+    }
+
+    .cors-hop span {
+      display: block;
+      margin-top: .35rem;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .qa-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .qa-card {
+      padding: 1rem;
+      border-radius: 20px;
+      background: rgba(251, 247, 236, .82);
+      border: 1px solid rgba(16, 34, 31, .08);
+    }
+
+    .qa-card b {
+      display: block;
+      color: var(--ink-strong);
+      margin-bottom: .35rem;
+    }
+
+    .qa-card span {
+      color: var(--muted);
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 1.25rem;
+      top: 1rem;
+      bottom: 1rem;
+      width: 2px;
+      background: linear-gradient(var(--green), rgba(16, 217, 179, 0));
+    }
+
+    .timeline-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 3rem 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .timeline-dot {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 2.55rem;
+      height: 2.55rem;
+      border-radius: 50%;
+      color: #06241f;
+      background: var(--green);
+      font-family: var(--mono);
+      font-size: .76rem;
+      font-weight: 900;
+      box-shadow: 0 0 0 8px rgba(16, 217, 179, .15);
+    }
+
+    .timeline-card {
+      padding: 1.2rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, .6);
+      border: 1px solid var(--line);
+    }
+
+    .timeline-card p {
+      margin: .35rem 0 0;
+    }
+
+    .shot-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .shot-card {
+      grid-column: span 4;
+      min-height: 290px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, transparent 0%, rgba(5, 18, 16, .86) 82%),
+        radial-gradient(circle at 18% 18%, rgba(16, 217, 179, .44), transparent 28%),
+        linear-gradient(135deg, #21332f, #0d1614);
+      color: white;
+      box-shadow: 0 25px 70px rgba(13, 35, 31, .2);
+      isolation: isolate;
+    }
+
+    .shot-card.has-media {
+      min-height: 340px;
+      background: #08100e;
+      cursor: zoom-in;
+    }
+
+    .shot-card.has-media:focus-visible {
+      outline: 4px solid rgba(16, 217, 179, .9);
+      outline-offset: 5px;
+    }
+
+    .shot-card.wide {
+      grid-column: span 8;
+    }
+
+    .shot-card::before {
+      content: "";
+      position: absolute;
+      inset: 1rem;
+      z-index: -1;
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 22px;
+      background:
+        linear-gradient(rgba(255, 255, 255, .08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .08) 1px, transparent 1px);
+      background-size: 26px 26px;
+      opacity: .72;
+    }
+
+    .shot-card.has-media::before {
+      inset: 0;
+      z-index: 1;
+      border: 0;
+      border-radius: 0;
+      opacity: 1;
+      background:
+        linear-gradient(180deg, rgba(2, 5, 4, .08) 0%, rgba(2, 5, 4, .18) 36%, rgba(2, 5, 4, .9) 100%),
+        radial-gradient(circle at 18% 18%, rgba(16, 217, 179, .12), transparent 34%);
+    }
+
+    .shot-card.has-media:hover .shot-media {
+      transform: scale(1.035);
+    }
+
+    .shot-card.has-media:hover .shot-zoom,
+    .shot-card.has-media:focus-visible .shot-zoom {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .shot-card::after {
+      content: attr(data-type);
+      position: absolute;
+      top: 1.1rem;
+      left: 1.1rem;
+      padding: .42rem .62rem;
+      border-radius: 999px;
+      color: rgba(255, 255, 255, .78);
+      background: rgba(255, 255, 255, .1);
+      font-family: var(--mono);
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .shot-card.has-media::after {
+      z-index: 3;
+      backdrop-filter: blur(10px);
+    }
+
+    .shot-media {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(.98) contrast(1.02);
+      transform: scale(1.001);
+      transition: transform .7s var(--ease), filter .7s var(--ease);
+    }
+
+    .shot-card figcaption {
+      position: relative;
+      z-index: 2;
+      padding: 1.25rem;
+    }
+
+    .shot-card.has-media figcaption {
+      z-index: 2;
+      max-width: 92%;
+    }
+
+    .shot-zoom {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .5rem .7rem;
+      border-radius: 999px;
+      color: #06231d;
+      background: rgba(16, 217, 179, .92);
+      box-shadow: 0 16px 35px rgba(0, 0, 0, .26);
+      font-size: .75rem;
+      font-weight: 900;
+      opacity: .92;
+      transform: translateY(-2px);
+      transition: opacity .22s ease, transform .22s var(--ease);
+    }
+
+    .shot-card h3 {
+      color: white;
+    }
+
+    .shot-card p {
+      margin: .45rem 0 0;
+      color: rgba(255, 255, 255, .72);
+      font-size: .95rem;
+    }
+
+    .shot-note {
+      display: inline-flex;
+      margin-top: .9rem;
+      padding: .45rem .65rem;
+      border-radius: 999px;
+      color: #06241f;
+      background: var(--green);
+      font-size: .76rem;
+      font-weight: 900;
+    }
+
+    body.lightbox-open {
+      overflow: hidden;
+    }
+
+    .media-lightbox[hidden] {
+      display: none;
+    }
+
+    .media-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      padding: clamp(.75rem, 2vw, 2rem);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(16, 217, 179, .18), transparent 28rem),
+        rgba(3, 8, 7, .88);
+      backdrop-filter: blur(18px);
+    }
+
+    .media-lightbox-panel {
+      position: relative;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      width: min(100%, 1320px);
+      height: min(100%, 860px);
+      overflow: hidden;
+      border-radius: 30px;
+      background: #07100d;
+      border: 1px solid rgba(255, 255, 255, .16);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, .55);
+    }
+
+    .media-lightbox-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      padding: .85rem .95rem .75rem 1.15rem;
+      color: #eafff8;
+      border-bottom: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .media-lightbox-kicker {
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: .74rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .media-lightbox-title {
+      margin-top: .18rem;
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      font-weight: 900;
+      letter-spacing: -.03em;
+    }
+
+    .media-lightbox-close {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.65rem;
+      height: 2.65rem;
+      border: 0;
+      border-radius: 999px;
+      color: #06231d;
+      background: var(--green);
+      font-size: 1.25rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .2s var(--ease), background .2s ease;
+    }
+
+    .media-lightbox-close:hover {
+      transform: rotate(6deg) scale(1.04);
+      background: #7ef0d7;
+    }
+
+    .media-lightbox-close:focus-visible {
+      outline: 3px solid white;
+      outline-offset: 3px;
+    }
+
+    .media-lightbox-figure {
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      padding: clamp(.8rem, 2vw, 1.4rem);
+      background:
+        linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px),
+        #050908;
+      background-size: 34px 34px;
+    }
+
+    .media-lightbox-img {
+      width: 100%;
+      height: 100%;
+      max-height: calc(100dvh - 190px);
+      object-fit: contain;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .media-lightbox-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      padding: .85rem 1.15rem 1rem;
+      color: rgba(234, 255, 248, .76);
+      border-top: 1px solid rgba(255, 255, 255, .1);
+      font-size: .94rem;
+    }
+
+    .media-lightbox-caption span:last-child {
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: .72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      white-space: nowrap;
+    }
+
+    .talk-track {
+      display: grid;
+      grid-template-columns: .6fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+      padding: 1rem;
+      border-radius: var(--radius-xl);
+      background: rgba(255, 255, 255, .45);
+      border: 1px solid var(--line);
+    }
+
+    .talk-clock {
+      position: sticky;
+      top: 100px;
+      padding: 1.2rem;
+      border-radius: 26px;
+      color: white;
+      background: var(--blueprint);
+    }
+
+    .talk-clock strong {
+      display: block;
+      font-family: var(--display);
+      font-size: clamp(3rem, 7vw, 6rem);
+      line-height: .85;
+      letter-spacing: -.07em;
+    }
+
+    .talk-list {
+      display: grid;
+      gap: .8rem;
+    }
+
+    .talk-item {
+      padding: 1rem;
+      border-radius: 20px;
+      background: rgba(251, 247, 236, .82);
+      border: 1px solid rgba(16, 34, 31, .08);
+    }
+
+    .talk-item b {
+      display: block;
+      margin-bottom: .25rem;
+    }
+
+    .talk-item span {
+      color: var(--muted);
+    }
+
+    .quote {
+      padding: clamp(1.5rem, 4vw, 2.6rem);
+      border-radius: var(--radius-xl);
+      color: #ecfff9;
+      background: var(--ink);
+      box-shadow: var(--shadow);
+    }
+
+    .quote p {
+      max-width: 950px;
+      margin: 0;
+      color: #ecfff9;
+      font-family: var(--display);
+      font-size: clamp(2rem, 4.7vw, 4.6rem);
+      line-height: .98;
+      letter-spacing: -.06em;
+    }
+
+    .footer {
+      padding: 2rem 0 4rem;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .75s var(--ease), transform .75s var(--ease);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .delay-1 { transition-delay: .08s; }
+    .delay-2 { transition-delay: .16s; }
+    .delay-3 { transition-delay: .24s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @media (max-width: 1040px) {
+      .hero,
+      .section-head,
+      .talk-track {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-panel {
+        transform: none;
+      }
+
+      .card,
+      .card.wide,
+      .shot-card,
+      .shot-card.wide {
+        grid-column: span 6;
+      }
+
+      .architecture,
+      .flow,
+      .db-grid,
+      .cors-lab,
+      .qa-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .node::after {
+        content: "";
+      }
+
+      .phase-body {
+        grid-template-columns: 1fr;
+      }
+
+      .talk-clock {
+        position: static;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: min(100% - 22px, 1240px);
+      }
+
+      .nav {
+        align-items: stretch;
+        border-radius: 24px;
+        flex-direction: column;
+      }
+
+      .nav-links {
+        width: 100%;
+      }
+
+      h1 {
+        font-size: clamp(3.4rem, 18vw, 5rem);
+      }
+
+      .metric-grid,
+      .architecture,
+      .flow,
+      .db-grid,
+      .cors-lab,
+      .qa-grid,
+      .phase {
+        grid-template-columns: 1fr;
+      }
+
+      .card,
+      .card.wide,
+      .shot-card,
+      .shot-card.wide {
+        grid-column: 1 / -1;
+      }
+
+      .footer-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#conteudo" class="skip-link">Ir para o conteudo</a>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <nav class="nav shell" aria-label="Navegacao do case">
+    <a class="brand" href="#topo" aria-label="Voltar ao inicio">
+      <span class="brand-mark">d</span>
+      <span>Deefy case</span>
+    </a>
+    <div class="nav-links">
+      <a href="#papel">Papel</a>
+      <a href="#organizacao">Organizacao</a>
+      <a href="#fases">Fases</a>
+      <a href="#integracao">Integracao</a>
+      <a href="#banco">Banco</a>
+      <a href="#cors">CORS</a>
+      <a href="#deploy">Deploy</a>
+      <a href="#percalcos">Percalcos</a>
+      <a href="#evidencias">Evidencias</a>
+      <a href="#fala">Roteiro curto</a>
+    </div>
+  </nav>
+
+  <main id="conteudo">
+    <header id="topo" class="hero shell">
+      <div class="reveal">
+        <p class="eyebrow">Projeto academico real publicado na web</p>
+        <h1>Deefy: do mock ao <span>sistema online</span>.</h1>
+        <p class="lead">
+          Um resumo apresentavel da trajetoria tecnica do projeto: organizacao do grupo,
+          integracao entre equipes, backend unificado, Supabase, Docker, VPS, painel admin
+          e importacao de musicas para popular o catalogo.
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="https://deefy.olua.me" target="_blank" rel="noreferrer">Abrir producao</a>
+          <a class="btn secondary" href="#fala">Ver roteiro de 6 minutos</a>
+        </div>
+        <div class="chip-row" aria-label="Papeis exercidos no projeto">
+          <span class="chip">Tech lead</span>
+          <span class="chip">Integracao frontend/API</span>
+          <span class="chip">Backend Spring Boot</span>
+          <span class="chip">Deploy Docker/VPS</span>
+          <span class="chip">Painel admin</span>
+        </div>
+      </div>
+
+      <aside class="hero-panel reveal delay-2" aria-label="Resumo numerico do case">
+        <div class="panel-window">
+          <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="metric-grid">
+            <div class="metric">
+              <strong>2</strong>
+              <span>fases de organizacao</span>
+            </div>
+            <div class="metric">
+              <strong>3</strong>
+              <span>camadas integradas</span>
+            </div>
+            <div class="metric">
+              <strong>+API</strong>
+              <span>sem mocks no fluxo final</span>
+            </div>
+            <div class="metric">
+              <strong>24/7</strong>
+              <span>deploy em VPS</span>
+            </div>
+          </div>
+          <div class="terminal" aria-label="Resumo do deploy">
+            <div><span>$</span> docker compose -f docker-compose.prod.yml up -d</div>
+            <div><span>api</span> Spring Boot + JWT + Supabase</div>
+            <div><span>web</span> React + Nginx + Traefik</div>
+          </div>
+        </div>
+      </aside>
+    </header>
+
+    <section id="papel" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">O que importa na apresentacao</p>
+          <h2>Minha atuacao saiu do Trello e chegou na producao.</h2>
+        </div>
+        <p>
+          A contribuicao principal foi transformar partes separadas em um sistema funcionando:
+          orientar o grupo, remover mocks, integrar API, publicar a aplicacao e criar ferramentas
+          para administrar o catalogo.
+        </p>
+      </div>
+
+      <div class="grid">
+        <article class="card reveal">
+          <span class="card-label">Lideranca tecnica</span>
+          <h3>Organizacao e contratos</h3>
+          <p>
+            Criei e mantive fluxos no Trello, defini arquitetura inicial, contratos de servico,
+            padroes de entrega e pontos de integracao entre grupos.
+          </p>
+        </article>
+        <article class="card reveal delay-1">
+          <span class="card-label">Integracao real</span>
+          <h3>Do mock para a API</h3>
+          <p>
+            Em varias telas, substitui dados falsos por chamadas reais, tratei JWT, normalizei
+            respostas do backend e alinhei nomes de campos usados pelo frontend.
+          </p>
+        </article>
+        <article class="card reveal delay-2">
+          <span class="card-label">DevOps</span>
+          <h3>Deploy publicado</h3>
+          <p>
+            Containerizei frontend e backend, subi em VPS, configurei Traefik, dominio,
+            variaveis de ambiente e cache correto para deploy seguro.
+          </p>
+        </article>
+        <article class="card wide feature reveal">
+          <span class="card-label">Diferencial tecnico</span>
+          <h3>Painel admin e importacao de musicas</h3>
+          <p>
+            Com apoio do Ikki na construcao do painel, desenhei a logica de importacao:
+            o admin envia uma playlist do YouTube, o backend processa em background,
+            baixa audio com yt-dlp, envia arquivos para o Supabase Storage e registra
+            artista, musica e playlist no banco.
+          </p>
+        </article>
+        <article class="card wide reveal delay-1">
+          <span class="card-label">Mentoria do grupo</span>
+          <h3>Traduzir integracao para quem nunca tinha feito</h3>
+          <p>
+            Parte do trabalho foi explicar como frontend conversa com backend, como JWT protege
+            rotas, por que o banco nao deve ser acessado direto pelo React e como testar um fluxo
+            completo sem depender de dados mockados.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="organizacao" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Aprendizado de organizacao</p>
+          <h2>A separacao de grupos funcionou. Ate funcionar demais.</h2>
+        </div>
+        <p>
+          No inicio, dividir responsabilidades parecia a forma certa de ganhar foco.
+          O problema e que a separacao ficou forte o bastante para tambem separar a comunicacao.
+        </p>
+      </div>
+
+      <div class="grid">
+        <article class="card wide feature reveal">
+          <span class="card-label">Fase A</span>
+          <h3>Quando a divisao virou isolamento</h3>
+          <p>
+            A principio, separar grupos foi eficaz para organizar tarefas. Mas foi tao eficaz
+            que separou demais a comunicacao, inclusive dentro das proprias areas. Isso quebrou
+            a dinamica da Fase A e quase levou a integracao para uma ruina: cada parte evoluia,
+            mas nem sempre com os mesmos contratos, prioridades e entendimento do produto.
+          </p>
+        </article>
+        <article class="card reveal delay-1">
+          <span class="card-label">Virada</span>
+          <h3>Juncao de Servicos/Negocios com API</h3>
+          <p>
+            Quando pelo menos o grupo de Servicos e Negocios foi unido ao grupo de API,
+            a dinamica melhorou. A comunicacao ficou mais direta, as decisoes ficaram menos
+            espalhadas e a arquitetura em codigo passou a fazer mais sentido como um backend unico.
+          </p>
+        </article>
+        <article class="card reveal delay-2">
+          <span class="card-label">Efeito pratico</span>
+          <h3>Menos atrito com banco e frontend</h3>
+          <p>
+            Com um backend mais unificado, ficou mais facil conversar com Banco de Dados &
+            Persistencia sobre tabelas, campos e constraints, e tambem ficou mais claro pedir
+            telas e ajustes para o grupo de Frontend.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="fases" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Processo de construcao</p>
+          <h2>Duas fases, duas formas de organizar o caos.</h2>
+        </div>
+        <p>
+          A historia do projeto nao foi linear. Primeiro havia grupos separados; depois o backend
+          foi unificado e as prioridades ficaram mais claras.
+        </p>
+      </div>
+
+      <div class="phase reveal">
+        <div class="phase-tag">
+          <strong>Fase A</strong>
+          <span>Servicos e Negocios separados da API</span>
+        </div>
+        <div class="phase-body">
+          <div class="mini">
+            <strong>Arquitetura base</strong>
+            <p>Organizacao de pacotes, camadas, padrao de repository/service/controller e setup inicial.</p>
+          </div>
+          <div class="mini">
+            <strong>Contratos de integracao</strong>
+            <p>Interfaces, regras esperadas, documentacao e alinhamento com o grupo responsavel pela API.</p>
+          </div>
+          <div class="mini">
+            <strong>Gestao no Trello</strong>
+            <p>Cards de arquitetura, setup, contratos, impedimentos e documentacao para reduzir desalinhamento.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase reveal delay-1">
+        <div class="phase-tag">
+          <strong>Fase B</strong>
+          <span>Backend unificado e produto final</span>
+        </div>
+        <div class="phase-body">
+          <div class="mini">
+            <strong>Funcionalidades base</strong>
+            <p>Registro, login JWT, perfil, catalogo, busca, detalhes, favoritos, avaliacoes e playlists.</p>
+          </div>
+          <div class="mini">
+            <strong>Integracao de telas</strong>
+            <p>Home, playlists, admin, busca, player e detalhes passaram a consumir endpoints reais.</p>
+          </div>
+          <div class="mini">
+            <strong>Publicacao final</strong>
+            <p>Deploy em main, staging preservada, ambiente online e demonstravel para a apresentacao.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="integracao" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Como a integracao funciona</p>
+          <h2>O React nao fala com o banco. Ele fala com a API.</h2>
+        </div>
+        <p>
+          Essa foi uma das principais viradas do projeto: parar de tratar telas como prototipos
+          isolados e conectar tudo a um backend que valida regras, autentica usuarios e persiste dados.
+        </p>
+      </div>
+
+      <article class="card full reveal">
+        <span class="card-label">Mapa tecnico</span>
+        <div class="architecture">
+          <div class="node">
+            <b>Usuario</b>
+            <span>Acessa deefy.olua.me pelo navegador.</span>
+          </div>
+          <div class="node">
+            <b>React + Nginx</b>
+            <span>Renderiza as telas e usa VITE_API_URL.</span>
+          </div>
+          <div class="node">
+            <b>Traefik</b>
+            <span>Roteia frontend e /api/v1 para o container correto.</span>
+          </div>
+          <div class="node">
+            <b>Spring Boot</b>
+            <span>JWT, regras, services, repositories e DTOs.</span>
+          </div>
+          <div class="node">
+            <b>Supabase</b>
+            <span>PostgreSQL + Storage para imagens e musicas.</span>
+          </div>
+        </div>
+      </article>
+
+      <div class="grid" style="margin-top: 1rem;">
+        <article class="card reveal">
+          <span class="card-label">Autenticacao</span>
+          <h3>Token real, nao sessao fake</h3>
+          <p>
+            Login gera JWT. O frontend guarda e envia o token nas requisicoes protegidas.
+            Isso permitiu diferenciar usuario comum de admin.
+          </p>
+        </article>
+        <article class="card reveal delay-1">
+          <span class="card-label">Normalizacao</span>
+          <h3>Compatibilidade entre DTO e player</h3>
+          <p>
+            Alguns campos chegavam como <code>arquivoUrl</code>, enquanto o player esperava outros nomes.
+            A solucao foi normalizar a resposta sem alterar schema.
+          </p>
+        </article>
+        <article class="card reveal delay-2">
+          <span class="card-label">Performance</span>
+          <h3>Menos queries repetidas</h3>
+          <p>
+            A Home sofria com consultas N+1. Ajustei repositories com carregamento mais eficiente
+            de musica, artista e favoritos.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="banco" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Backend e persistencia</p>
+          <h2>Como o Spring Boot conversa com o PostgreSQL/Supabase.</h2>
+        </div>
+        <p>
+          O frontend nunca acessa o banco direto. A comunicacao passa pela API:
+          controller recebe HTTP, service aplica regra de negocio, repository consulta
+          o banco via JPA/Hibernate e o mapper devolve DTOs para o React.
+        </p>
+      </div>
+
+      <article class="card full reveal">
+        <span class="card-label">Caminho de uma requisicao real</span>
+        <div class="architecture">
+          <div class="node">
+            <b>React</b>
+            <span>Chama /api/v1/musics ou /api/v1/playlists com token JWT.</span>
+          </div>
+          <div class="node">
+            <b>Controller</b>
+            <span>Recebe parametros, valida entrada e chama o service.</span>
+          </div>
+          <div class="node">
+            <b>Service</b>
+            <span>Aplica regra: buscar artista, evitar duplicidade, montar resposta.</span>
+          </div>
+          <div class="node">
+            <b>Repository</b>
+            <span>Usa Spring Data JPA para consultar ou salvar entidades.</span>
+          </div>
+          <div class="node">
+            <b>PostgreSQL</b>
+            <span>Supabase guarda tabelas como musica, artista, playlist e favorito.</span>
+          </div>
+        </div>
+      </article>
+
+      <div class="db-grid">
+        <article class="code-card reveal">
+          <span class="card-label">Configuracao</span>
+          <h3>Credenciais fora do codigo</h3>
+          <p>
+            A API nao tem senha do banco fixa no fonte. Em producao, a VPS injeta
+            variaveis de ambiente.
+          </p>
+          <pre><code>spring.datasource.url=${SPRING_DATASOURCE_URL:...}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:...}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:...}
+spring.jpa.hibernate.ddl-auto=none</code></pre>
+        </article>
+
+        <article class="code-card reveal delay-1">
+          <span class="card-label">Entidade JPA</span>
+          <h3>Classe Java vira tabela</h3>
+          <p>
+            A entidade informa para o Hibernate qual tabela e quais colunas do banco
+            representam uma musica.
+          </p>
+          <pre><code>@Entity
+@Table(name = "musica")
+public class Music {
+  @Column(name = "titulo")
+  private String title;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "artista_id")
+  private Artist artist;
+}</code></pre>
+        </article>
+
+        <article class="code-card reveal delay-2">
+          <span class="card-label">Repository</span>
+          <h3>Consulta sem SQL manual na maioria dos casos</h3>
+          <p>
+            O Spring Data gera consultas por nome de metodo e tambem permite JPQL
+            quando a busca precisa navegar por relacionamento.
+          </p>
+          <pre><code>public interface MusicRepository
+  extends JpaRepository&lt;Music, Long&gt; {
+
+  @EntityGraph(attributePaths = "artist")
+  Page&lt;Music&gt; findByTitleContainingIgnoreCase(
+    String title, Pageable pageable);
+}</code></pre>
+        </article>
+
+        <article class="code-card reveal delay-3">
+          <span class="card-label">Service</span>
+          <h3>Regra antes de salvar</h3>
+          <p>
+            O service busca entidades relacionadas, valida existencia e so entao
+            salva. A transacao protege a operacao.
+          </p>
+          <pre><code>@Transactional
+public MusicDetailResponseDTO createMusic(MusicRequestDTO request) {
+  Artist artist = artistRepository.findById(request.artistId())
+    .orElseThrow(() -&gt; new ArtistNotFoundException(request.artistId()));
+
+  Music music = musicMapper.toEntity(request);
+  music.setArtist(artist);
+  return musicMapper.toDetailDTO(musicRepository.save(music));
+}</code></pre>
+        </article>
+      </div>
+
+      <div class="grid" style="margin-top: 1rem;">
+        <article class="card reveal">
+          <span class="card-label">Protecao do schema</span>
+          <h3><code>ddl-auto=none</code></h3>
+          <p>
+            O Hibernate mapeia as tabelas, mas nao cria, altera ou remove colunas em producao.
+            Isso evita que a aplicacao mude o banco sem o time de Banco de Dados aprovar.
+          </p>
+        </article>
+        <article class="card reveal delay-1">
+          <span class="card-label">Performance</span>
+          <h3><code>@EntityGraph</code> contra N+1</h3>
+          <p>
+            Ao buscar musicas, tambem carregamos o artista quando ele sera usado na resposta.
+            Isso evita uma query extra para cada musica da Home ou dos favoritos.
+          </p>
+        </article>
+        <article class="card reveal delay-2">
+          <span class="card-label">DTOs</span>
+          <h3>Resposta limpa para o frontend</h3>
+          <p>
+            A API nao devolve a entidade JPA crua. Ela converte para DTOs, deixando o React
+            receber so os campos necessarios, como titulo, artista, capa e arquivo de audio.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="cors" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Seguranca entre navegador e API</p>
+          <h2>CORS e o porteiro que decide quem pode chamar a API.</h2>
+        </div>
+        <p>
+          CORS foi um dos pontos importantes da integracao: mesmo com backend online,
+          o navegador so deixa o frontend consumir a API quando a resposta do servidor
+          autoriza aquela origem.
+        </p>
+      </div>
+
+      <div class="cors-lab">
+        <article class="cors-console reveal">
+          <span class="card-label">Explicacao simples</span>
+          <h3>CORS nao e login. E permissao de origem.</h3>
+          <p>
+            CORS significa Cross-Origin Resource Sharing. Ele existe porque o navegador
+            bloqueia, por padrao, uma pagina tentando acessar dados de outro dominio,
+            protocolo ou porta. A API precisa dizer explicitamente: "essa origem pode
+            falar comigo".
+          </p>
+
+          <div class="cors-code" aria-label="Exemplos HTTP de CORS">
+            <div>
+              <b>Exemplo no Deefy</b>
+              Frontend: https://deefy.olua.me<br>
+              API: https://deefy.olua.me/api/v1<br>
+              Resultado: mesma origem publica, roteada pelo Traefik.
+            </div>
+            <div>
+              <b>Exemplo em desenvolvimento</b>
+              Frontend: http://localhost:5173<br>
+              API: http://localhost:8080/api/v1<br>
+              Resultado: origens diferentes. O backend precisa liberar o localhost.
+            </div>
+            <div>
+              <b>Cabeçalho esperado</b>
+              Access-Control-Allow-Origin: http://localhost:5173<br>
+              Access-Control-Allow-Headers: Authorization, Content-Type<br>
+              Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+            </div>
+          </div>
+        </article>
+
+        <aside class="cors-diagram reveal delay-1" aria-label="Fluxo conceitual de CORS">
+          <div class="cors-hop">
+            <b>1. React faz a chamada</b>
+            <span>O navegador envia uma requisicao para a API usando fetch/axios.</span>
+          </div>
+          <div class="cors-hop">
+            <b>2. Navegador confere a origem</b>
+            <span>Se protocolo, dominio ou porta forem diferentes, entra a regra de CORS.</span>
+          </div>
+          <div class="cors-hop">
+            <b>3. API responde com headers</b>
+            <span>O Spring Boot informa quais origens, metodos e headers aceita.</span>
+          </div>
+          <div class="cors-hop">
+            <b>4. Resposta e liberada ou bloqueada</b>
+            <span>Se faltar permissao, o backend pode ate responder, mas o navegador bloqueia o acesso.</span>
+          </div>
+        </aside>
+      </div>
+
+      <div class="grid" style="margin-top: 1rem;">
+        <article class="card reveal">
+          <span class="card-label">Erro real comum</span>
+          <h3>"No Access-Control-Allow-Origin"</h3>
+          <p>
+            Esse erro aparece quando o backend nao inclui o header permitindo a origem do frontend.
+            A correcao e configurar CORS no Spring Security/WebMvc para liberar a URL certa, sem usar
+            <code>*</code> em fluxo autenticado.
+          </p>
+        </article>
+        <article class="card reveal delay-1">
+          <span class="card-label">Preflight</span>
+          <h3>Por que aparece uma chamada OPTIONS?</h3>
+          <p>
+            Antes de uma requisicao com <code>Authorization</code> ou metodos como <code>PATCH</code>,
+            o navegador faz uma consulta previa. Se o backend bloquear <code>OPTIONS</code>,
+            a chamada real nem chega a acontecer.
+          </p>
+        </article>
+        <article class="card reveal delay-2">
+          <span class="card-label">Diferenca importante</span>
+          <h3>CORS nao protege a API sozinho</h3>
+          <p>
+            CORS e uma regra do navegador. Quem protege dados de verdade e autenticacao, autorizacao,
+            JWT, validacao de permissao e regras no backend. Ferramentas como Postman nao dependem
+            de CORS como o browser.
+          </p>
+        </article>
+      </div>
+
+      <div class="qa-grid reveal">
+        <div class="qa-card">
+          <b>Se a API funciona no Swagger mas falha no React, pode ser CORS?</b>
+          <span>Sim. Swagger/Postman podem acessar direto, mas o navegador aplica a politica de origem.</span>
+        </div>
+        <div class="qa-card">
+          <b>Por que em producao o Deefy usa /api/v1 no mesmo dominio?</b>
+          <span>Para simplificar integracao: o usuario acessa um dominio unico e o Traefik decide se a chamada vai para frontend ou backend.</span>
+        </div>
+        <div class="qa-card">
+          <b>Posso liberar qualquer origem com *?</b>
+          <span>Em prototipo simples ate parece pratico, mas com token e cookies e arriscado. O correto e liberar apenas origens conhecidas.</span>
+        </div>
+        <div class="qa-card">
+          <b>Como eu explicaria isso em uma frase?</b>
+          <span>CORS e a permissao que o backend entrega para o navegador saber se aquele frontend esta autorizado a ler a resposta da API.</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="deploy" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Infraestrutura</p>
+          <h2>O deploy deixou de ser "roda na minha maquina".</h2>
+        </div>
+        <p>
+          O Deefy foi empacotado para producao com containers separados, variaveis de ambiente,
+          proxy reverso e dominio publico.
+        </p>
+      </div>
+
+      <div class="flow reveal" aria-label="Fluxo de deploy">
+        <div class="flow-step">
+          <b>Build do frontend</b>
+          <span>Vite gera arquivos estaticos servidos pelo Nginx.</span>
+        </div>
+        <div class="flow-step">
+          <b>Build do backend</b>
+          <span>Maven empacota a API Spring Boot em JAR.</span>
+        </div>
+        <div class="flow-step">
+          <b>Docker Compose</b>
+          <span>Sobe containers isolados para web e API.</span>
+        </div>
+        <div class="flow-step">
+          <b>VPS</b>
+          <span>Servidor executa a aplicacao fora do ambiente local.</span>
+        </div>
+        <div class="flow-step">
+          <b>Traefik</b>
+          <span>Direciona dominio, frontend e rotas /api/v1.</span>
+        </div>
+        <div class="flow-step">
+          <b>Cloudflare</b>
+          <span>Resolve o dominio publico deefy.olua.me.</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="catalogo" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Admin e catalogo</p>
+          <h2>Popular musica manualmente nao escalava.</h2>
+        </div>
+        <p>
+          Para demonstrar um catalogo real, criamos um fluxo administrativo que importa playlists,
+          reaproveita dados existentes e evita duplicidade.
+        </p>
+      </div>
+
+      <div class="grid">
+        <article class="card full feature reveal">
+          <span class="card-label">Pipeline de importacao</span>
+          <div class="architecture">
+            <div class="node">
+              <b>Admin</b>
+              <span>Cola URL da playlist e escolhe genero/artista.</span>
+            </div>
+            <div class="node">
+              <b>Job backend</b>
+              <span>Processo roda em background e registra logs.</span>
+            </div>
+            <div class="node">
+              <b>yt-dlp + ffmpeg</b>
+              <span>Baixa audio, converte e trata cookies anti-bot.</span>
+            </div>
+            <div class="node">
+              <b>Supabase Storage</b>
+              <span>Recebe MP3 e capas quando disponiveis.</span>
+            </div>
+            <div class="node">
+              <b>PostgreSQL</b>
+              <span>Cria artista, musica, playlist e vinculos.</span>
+            </div>
+          </div>
+        </article>
+        <article class="card reveal delay-1">
+          <span class="card-label">Seguranca</span>
+          <h3>Cookies como segredo operacional</h3>
+          <p>
+            Cookies do YouTube ficam fora do Git, salvos em <code>secrets/</code>,
+            e podem ser atualizados pelo painel admin sem expor senha.
+          </p>
+        </article>
+        <article class="card reveal delay-2">
+          <span class="card-label">Dados limpos</span>
+          <h3>Deduplicacao antes de inserir</h3>
+          <p>
+            O script procura artista, musica e playlist por nome normalizado antes de criar registros,
+            reduzindo repeticoes como variacoes de acento e caixa.
+          </p>
+        </article>
+        <article class="card reveal delay-3">
+          <span class="card-label">UX</span>
+          <h3>Playlists globais tocaveis</h3>
+          <p>
+            As playlists importadas viraram colecoes publicas de descoberta, sem botoes de edicao
+            para usuario comum e com player funcional.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="percalcos" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Dificuldades e ajustes</p>
+          <h2>Os problemas reais apareceram na integracao.</h2>
+        </div>
+        <p>
+          A maior parte do trabalho dificil nao foi criar telas isoladas: foi fazer frontend,
+          backend, banco, storage e infraestrutura concordarem entre si.
+        </p>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-item reveal">
+          <div class="timeline-dot">01</div>
+          <div class="timeline-card">
+            <h3>Mocks escondiam problemas de contrato</h3>
+            <p>Algumas telas pareciam prontas, mas nao consumiam API real. Foi preciso adaptar services, autenticar requests e alinhar DTOs.</p>
+          </div>
+        </div>
+        <div class="timeline-item reveal delay-1">
+          <div class="timeline-dot">02</div>
+          <div class="timeline-card">
+            <h3>Home lenta por N+1 queries</h3>
+            <p>O gargalo nao era a VPS; era o backend buscando artistas e favoritos em consultas repetidas. Corrigimos sem mexer no banco.</p>
+          </div>
+        </div>
+        <div class="timeline-item reveal delay-2">
+          <div class="timeline-dot">03</div>
+          <div class="timeline-card">
+            <h3>YouTube bloqueou a VPS</h3>
+            <p>O importador precisou lidar com HTTP 429, cookies, runtime JavaScript, EJS e logs maiores para diagnosticar falhas.</p>
+          </div>
+        </div>
+        <div class="timeline-item reveal delay-3">
+          <div class="timeline-dot">04</div>
+          <div class="timeline-card">
+            <h3>Cache e permissao quebravam a experiencia</h3>
+            <p>Adicionamos no-cache no index.html e protegemos playlists globais para usuario comum nao editar o que e publico.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="evidencias" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Evidencias visuais</p>
+          <h2>Um case bom precisa mostrar rastros do processo.</h2>
+        </div>
+        <p>
+          Abaixo estao os prints publicos capturados da producao e evidencias visuais prontas
+          para os fluxos protegidos, sem expor senha, cookies ou dados operacionais.
+        </p>
+      </div>
+
+      <div class="shot-grid">
+        <figure class="shot-card wide has-media reveal" data-type="Trello">
+          <span class="shot-zoom" aria-hidden="true">Ampliar</span>
+          <img class="shot-media" src="./assets/deefy-case/trello-fase-a.svg" alt="Quadro Trello da Fase A com cards de arquitetura, documentacao, contratos e impedimentos.">
+          <figcaption>
+            <h3>Fase A: arquitetura, contratos e padroes</h3>
+            <p>Cards de estruturacao, documentacao, contratos dos servicos e registro de impedimentos.</p>
+            <span class="shot-note">evidencia: Trello da Fase A</span>
+          </figcaption>
+        </figure>
+        <figure class="shot-card has-media reveal delay-1" data-type="API">
+          <span class="shot-zoom" aria-hidden="true">Ampliar</span>
+          <img class="shot-media" src="./assets/deefy-case/deefy-production-swagger.png" alt="Print real do Swagger da API Deefy em producao, mostrando endpoints de favoritos.">
+          <figcaption>
+            <h3>Swagger e contratos da API</h3>
+            <p>Documentacao navegavel para testar Auth, User, Music, Playlist, Favorites e History.</p>
+            <span class="shot-note">print real: producao</span>
+          </figcaption>
+        </figure>
+        <figure class="shot-card has-media reveal" data-type="Admin">
+          <span class="shot-zoom" aria-hidden="true">Ampliar</span>
+          <img class="shot-media" src="./assets/deefy-case/admin-import-flow.svg" alt="Tela visual do painel admin com importacao de playlist, cookies do YouTube e log de processamento.">
+          <figcaption>
+            <h3>Painel de importacao</h3>
+            <p>Fluxo admin com playlist do YouTube, genero, cookies e log de processamento.</p>
+            <span class="shot-note">evidencia: fluxo protegido</span>
+          </figcaption>
+        </figure>
+        <figure class="shot-card has-media reveal delay-1" data-type="Deploy">
+          <span class="shot-zoom" aria-hidden="true">Ampliar</span>
+          <img class="shot-media" src="./assets/deefy-case/deploy-flow.svg" alt="Diagrama do deploy com Cloudflare, Traefik, Docker, frontend, backend e Supabase.">
+          <figcaption>
+            <h3>Docker, VPS e dominio</h3>
+            <p>Containers backend/frontend, dominio Cloudflare e rotas publicas respondendo.</p>
+            <span class="shot-note">evidencia: arquitetura deploy</span>
+          </figcaption>
+        </figure>
+        <figure class="shot-card has-media reveal delay-2" data-type="Produto">
+          <span class="shot-zoom" aria-hidden="true">Ampliar</span>
+          <img class="shot-media" src="./assets/deefy-case/product-experience.svg" alt="Interface visual da experiencia final do Deefy com busca, playlists, artistas e player ativo.">
+          <figcaption>
+            <h3>Experiencia final do Deefy</h3>
+            <p>Home, playlists globais, player, busca, favoritos, catalogo e rotas compartilhaveis.</p>
+            <span class="shot-note">evidencia: rotas protegidas</span>
+          </figcaption>
+        </figure>
+        <figure class="shot-card wide has-media reveal delay-1" data-type="Online">
+          <span class="shot-zoom" aria-hidden="true">Ampliar</span>
+          <img class="shot-media" src="./assets/deefy-case/deefy-production-home.png" alt="Print real da landing page do Deefy em producao no dominio deefy.olua.me.">
+          <figcaption>
+            <h3>Aplicacao online no dominio final</h3>
+            <p>Print publico de `https://deefy.olua.me`, com index sem cache para evitar bundle antigo depois do deploy.</p>
+            <span class="shot-note">print real: deefy.olua.me</span>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="fala" class="shell">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Roteiro curto</p>
+          <h2>Uma fala possivel para caber na apresentacao.</h2>
+        </div>
+        <p>
+          Este bloco resume a narrativa para apresentar sem se perder em detalhes tecnicos demais.
+        </p>
+      </div>
+
+      <div class="talk-track reveal">
+        <aside class="talk-clock">
+          <strong>6 min</strong>
+          <p>foco em processo, integracao, dificuldades e resultado.</p>
+        </aside>
+        <div class="talk-list">
+          <div class="talk-item">
+            <b>1. Contexto do projeto</b>
+            <span>O Deefy e uma aplicacao musical com login, catalogo, favoritos, avaliacoes e playlists.</span>
+          </div>
+          <div class="talk-item">
+            <b>2. Organizacao em duas fases</b>
+            <span>Na Fase A, grupos separados exigiam contratos e Trello. Na Fase B, o backend foi unificado e priorizamos funcionalidades base.</span>
+          </div>
+          <div class="talk-item">
+            <b>3. Minha atuacao</b>
+            <span>Atuei como tech lead, integrei frontend/API, publiquei o sistema, orientei colegas e construimos o painel admin.</span>
+          </div>
+          <div class="talk-item">
+            <b>4. Integracao tecnica</b>
+            <span>React consome Spring Boot via /api/v1; o backend usa JWT, services, repositories e Supabase PostgreSQL/Storage.</span>
+          </div>
+          <div class="talk-item">
+            <b>5. Dificuldades reais</b>
+            <span>Mocks, contratos diferentes, N+1 queries, bloqueio anti-bot do YouTube, cache de bundle e permissao de playlist global.</span>
+          </div>
+          <div class="talk-item">
+            <b>6. Resultado</b>
+            <span>O projeto saiu do ambiente local e virou uma aplicacao online, demonstravel, com admin e catalogo populavel.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell">
+      <div class="quote reveal">
+        <p>
+          "A parte mais importante nao foi escrever mais codigo. Foi fazer as partes conversarem."
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer shell">
+    <div class="footer-inner">
+      <span>Deefy case study - desenvolvimento, integracao e deploy</span>
+      <span>Produção: <a href="https://deefy.olua.me" target="_blank" rel="noreferrer">deefy.olua.me</a></span>
+    </div>
+  </footer>
+
+  <div class="media-lightbox" id="mediaLightbox" hidden aria-hidden="true">
+    <div class="media-lightbox-panel" role="dialog" aria-modal="true" aria-labelledby="mediaLightboxTitle">
+      <div class="media-lightbox-top">
+        <div>
+          <div class="media-lightbox-kicker" id="mediaLightboxType">Evidencia</div>
+          <div class="media-lightbox-title" id="mediaLightboxTitle">Imagem ampliada</div>
+        </div>
+        <button class="media-lightbox-close" type="button" id="mediaLightboxClose" aria-label="Fechar imagem ampliada">×</button>
+      </div>
+      <div class="media-lightbox-figure">
+        <img class="media-lightbox-img" id="mediaLightboxImg" src="" alt="">
+      </div>
+      <div class="media-lightbox-caption">
+        <span id="mediaLightboxCaption">Clique fora da imagem ou pressione Esc para fechar.</span>
+        <span>Esc fecha</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const progressBar = document.querySelector("#progressBar");
+    const sections = [...document.querySelectorAll("section[id]")];
+    const navLinks = [...document.querySelectorAll(".nav-links a")];
+    const revealItems = [...document.querySelectorAll(".reveal")];
+    const cards = [...document.querySelectorAll(".card")];
+    const shotCards = [...document.querySelectorAll(".shot-card.has-media")];
+    const lightbox = document.querySelector("#mediaLightbox");
+    const lightboxImg = document.querySelector("#mediaLightboxImg");
+    const lightboxTitle = document.querySelector("#mediaLightboxTitle");
+    const lightboxType = document.querySelector("#mediaLightboxType");
+    const lightboxCaption = document.querySelector("#mediaLightboxCaption");
+    const lightboxClose = document.querySelector("#mediaLightboxClose");
+    let lastFocusedElement = null;
+
+    function updateProgress() {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const percentage = max > 0 ? (scrollTop / max) * 100 : 0;
+      progressBar.style.width = `${percentage}%`;
+    }
+
+    function revealCurrentlyVisible() {
+      revealItems.forEach((item) => {
+        if (item.classList.contains("visible")) return;
+        const rect = item.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight * 0.95 && rect.bottom > window.innerHeight * -0.1;
+        if (isVisible) item.classList.add("visible");
+      });
+    }
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    revealItems.forEach((item) => revealObserver.observe(item));
+
+    const navObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        navLinks.forEach((link) => {
+          link.classList.toggle("active", link.getAttribute("href") === `#${entry.target.id}`);
+        });
+      });
+    }, { rootMargin: "-30% 0px -58% 0px", threshold: 0.01 });
+
+    sections.forEach((section) => navObserver.observe(section));
+
+    cards.forEach((card) => {
+      card.addEventListener("pointermove", (event) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+        card.style.setProperty("--my", `${event.clientY - rect.top}px`);
+      });
+    });
+
+    function openLightbox(card) {
+      const image = card.querySelector(".shot-media");
+      const title = card.querySelector("h3")?.textContent?.trim() || "Imagem ampliada";
+      const caption = card.querySelector("p")?.textContent?.trim() || image.alt || "Evidencia visual do case.";
+
+      lastFocusedElement = document.activeElement;
+      lightboxImg.src = image.currentSrc || image.src;
+      lightboxImg.alt = image.alt;
+      lightboxTitle.textContent = title;
+      lightboxType.textContent = card.dataset.type || "Evidencia";
+      lightboxCaption.textContent = caption;
+      lightbox.hidden = false;
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.classList.add("lightbox-open");
+      lightboxClose.focus();
+    }
+
+    function closeLightbox() {
+      if (lightbox.hidden) return;
+      lightbox.hidden = true;
+      lightbox.setAttribute("aria-hidden", "true");
+      lightboxImg.removeAttribute("src");
+      document.body.classList.remove("lightbox-open");
+      lastFocusedElement?.focus?.();
+      lastFocusedElement = null;
+    }
+
+    shotCards.forEach((card) => {
+      card.tabIndex = 0;
+      card.setAttribute("role", "button");
+      card.setAttribute("aria-label", `Ampliar imagem: ${card.querySelector("h3")?.textContent?.trim() || card.dataset.type}`);
+
+      card.addEventListener("click", () => openLightbox(card));
+      card.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        openLightbox(card);
+      });
+    });
+
+    lightboxClose.addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox) closeLightbox();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeLightbox();
+    });
+
+    updateProgress();
+    revealCurrentlyVisible();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("scroll", revealCurrentlyVisible, { passive: true });
+    window.addEventListener("load", revealCurrentlyVisible);
+    window.addEventListener("hashchange", () => requestAnimationFrame(revealCurrentlyVisible));
+    window.setTimeout(revealCurrentlyVisible, 120);
+  </script>
+</body>
+</html>

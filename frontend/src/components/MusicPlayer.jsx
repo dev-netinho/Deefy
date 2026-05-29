@@ -88,7 +88,7 @@ function resolveMediaUrl(value) {
   if (/^(https?:|blob:|data:)/i.test(value)) return value;
 
   if (value.startsWith("/")) {
-    const baseUrl = (import.meta.env.VITE_API_URL || "https://deefy.olua.me")
+    const baseUrl = (import.meta.env.VITE_API_URL || window.location.origin)
       .replace(/\/api\/v1\/?$/, "")
       .replace(/\/$/, "");
 

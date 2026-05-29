@@ -41,7 +41,6 @@ client/
 │   ├── utils/              # Auth, JWT, normalização, busca e recomendações
 │   ├── index.css           # Tokens e estilos globais
 │   └── main.jsx            # Entrada da aplicação
-├── swagger.json            # Contrato auxiliar da API
 ├── package.json
 └── vite.config.js
 ```

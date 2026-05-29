@@ -1,0 +1,14 @@
+.git
+.idea
+.env
+.env.local
+.env.*.local
+docker-compose.staging-supabase.local.yml
+secrets
+target
+**/target
+**/node_modules
+**/dist
+**/.DS_Store
+docs/assets
+*.log

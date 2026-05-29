@@ -476,7 +476,8 @@ def download_audio(config: Config, video_url: str, target_dir: Path) -> Path:
         if any(pattern in combined_output for pattern in YOUTUBE_BLOCK_PATTERNS):
             raise YoutubeAccessBlockedError(
                 "YouTube bloqueou a VPS com anti-bot/429. "
-                "Monte cookies validos em /home/olua_developer/deefy/secrets/youtube-cookies.txt "
+                "Monte cookies validos no arquivo configurado por YTDLP_COOKIES_FILE "
+                "ou em /app/secrets/youtube-cookies.txt "
                 "ou aguarde o limite do IP expirar antes de tentar novamente."
             )
         raise RuntimeError(f"yt-dlp falhou com codigo {completed.returncode} ao baixar {video_url}.")

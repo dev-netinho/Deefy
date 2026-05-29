@@ -8,9 +8,11 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
@@ -18,9 +20,20 @@ public class OpenApiConfig {
 
     public static final String BEARER_AUTH = "bearerAuth";
 
+    private final String publicServerUrl;
+    private final String localServerUrl;
+
+    public OpenApiConfig(
+            @Value("${app.openapi.public-server-url:}") String publicServerUrl,
+            @Value("${app.openapi.local-server-url:http://localhost:8080}") String localServerUrl
+    ) {
+        this.publicServerUrl = publicServerUrl;
+        this.localServerUrl = localServerUrl;
+    }
+
     @Bean
     public OpenAPI deefyOpenAPI() {
-        return new OpenAPI()
+        OpenAPI openAPI = new OpenAPI()
                 .info(new Info()
                         .title("Deefy API")
                         .version("1.0.0")
@@ -47,12 +60,6 @@ public class OpenApiConfig {
                                 .name("Equipe Deefy")
                                 .email("deefy.business@gmail.com"))
                         .license(new License().name("Projeto academico")))
-                .addServersItem(new Server()
-                        .url("https://deefy.olua.me")
-                        .description("Producao/Staging publica"))
-                .addServersItem(new Server()
-                        .url("http://localhost:8080")
-                        .description("Backend local"))
                 .tags(List.of(
                         new Tag().name("Autenticacao"),
                         new Tag().name("User/Profile"),
@@ -72,5 +79,26 @@ public class OpenApiConfig {
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")));
+
+        buildServers().forEach(openAPI::addServersItem);
+        return openAPI;
+    }
+
+    private List<Server> buildServers() {
+        List<Server> servers = new ArrayList<>();
+
+        if (publicServerUrl != null && !publicServerUrl.isBlank()) {
+            servers.add(new Server()
+                    .url(publicServerUrl)
+                    .description("Ambiente publico configurado"));
+        }
+
+        if (localServerUrl != null && !localServerUrl.isBlank()) {
+            servers.add(new Server()
+                    .url(localServerUrl)
+                    .description("Backend local"));
+        }
+
+        return servers;
     }
 }

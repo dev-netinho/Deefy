@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Evidencia visual do deploy do Deefy</title>
+  <desc id="desc">Diagrama do deploy com Cloudflare, Traefik, Docker, frontend, backend e Supabase.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8f0dc"/>
+      <stop offset=".48" stop-color="#edf4e9"/>
+      <stop offset="1" stop-color="#f3e3cc"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#183e37" flood-opacity=".18"/>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#183e37" stroke-opacity=".06" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect width="1440" height="900" fill="url(#grid)"/>
+  <circle cx="154" cy="112" r="260" fill="#10d9b3" opacity=".16"/>
+  <circle cx="1260" cy="780" r="300" fill="#f0b45b" opacity=".18"/>
+
+  <text x="90" y="108" fill="#10221f" font-family="Fraunces, Georgia, serif" font-size="64" font-weight="850">Deploy do Deefy</text>
+  <text x="94" y="154" fill="#596a65" font-family="Archivo, Arial, sans-serif" font-size="22">Do projeto local para uma aplicacao online com dominio, HTTPS e containers.</text>
+
+  <g transform="translate(90 226)" filter="url(#shadow)">
+    <rect width="1260" height="430" rx="42" fill="#fbf7ec" stroke="#183e37" stroke-opacity=".12"/>
+
+    <g font-family="Archivo, Arial, sans-serif" font-weight="900">
+      <g transform="translate(62 140)">
+        <rect width="178" height="110" rx="28" fill="#fffaf0" stroke="#183e37" stroke-opacity=".12"/>
+        <circle cx="50" cy="55" r="24" fill="#f0b45b"/>
+        <text x="88" y="50" fill="#10221f" font-size="20">Cloudflare</text>
+        <text x="88" y="78" fill="#596a65" font-size="14" font-weight="700">DNS / dominio</text>
+      </g>
+
+      <path d="M260 195H384" stroke="#183e37" stroke-width="5" stroke-linecap="round"/>
+      <path d="M374 178l28 17-28 17" fill="none" stroke="#183e37" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <g transform="translate(420 116)">
+        <rect width="206" height="158" rx="30" fill="#183e37"/>
+        <text x="34" y="52" fill="#ffffff" font-size="24">Traefik</text>
+        <text x="34" y="84" fill="#abd4cb" font-size="15" font-weight="700">proxy reverso</text>
+        <text x="34" y="116" fill="#abd4cb" font-size="15" font-weight="700">/api -> backend</text>
+        <text x="34" y="140" fill="#abd4cb" font-size="15" font-weight="700">/ -> frontend</text>
+      </g>
+
+      <path d="M646 154h114" stroke="#10d9b3" stroke-width="5" stroke-linecap="round"/>
+      <path d="M750 137l28 17-28 17" fill="none" stroke="#10d9b3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M646 238h114" stroke="#10d9b3" stroke-width="5" stroke-linecap="round"/>
+      <path d="M750 221l28 17-28 17" fill="none" stroke="#10d9b3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <g transform="translate(800 78)">
+        <rect width="192" height="124" rx="28" fill="#e0fbf4" stroke="#10d9b3" stroke-opacity=".42"/>
+        <text x="32" y="52" fill="#10221f" font-size="22">Frontend</text>
+        <text x="32" y="84" fill="#596a65" font-size="15" font-weight="700">React + Nginx</text>
+      </g>
+      <g transform="translate(800 226)">
+        <rect width="192" height="124" rx="28" fill="#e0fbf4" stroke="#10d9b3" stroke-opacity=".42"/>
+        <text x="32" y="52" fill="#10221f" font-size="22">Backend</text>
+        <text x="32" y="84" fill="#596a65" font-size="15" font-weight="700">Spring Boot</text>
+      </g>
+
+      <path d="M1012 288h104" stroke="#183e37" stroke-width="5" stroke-linecap="round"/>
+      <path d="M1106 271l28 17-28 17" fill="none" stroke="#183e37" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <g transform="translate(1154 226)">
+        <rect width="72" height="124" rx="24" fill="#10221f"/>
+        <rect x="16" y="24" width="40" height="76" rx="9" fill="#10d9b3"/>
+      </g>
+      <text x="1138" y="384" fill="#10221f" font-size="20">Supabase</text>
+    </g>
+  </g>
+
+  <g transform="translate(90 704)" filter="url(#shadow)">
+    <rect width="1260" height="112" rx="32" fill="#10221f"/>
+    <text x="38" y="48" fill="#10d9b3" font-family="JetBrains Mono, monospace" font-size="18">$ docker compose -f docker-compose.prod.yml up -d --build</text>
+    <text x="38" y="82" fill="#d9ebe5" font-family="JetBrains Mono, monospace" font-size="16">frontend -> deefy.olua.me | backend -> deefy.olua.me/api/v1 | swagger -> /swagger-ui/index.html</text>
+  </g>
+</svg>

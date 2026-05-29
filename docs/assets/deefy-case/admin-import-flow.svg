@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Evidencia visual do painel admin de importacao</title>
+  <desc id="desc">Tela estilizada do painel administrativo com importacao por playlist do YouTube, cookies e log de processamento.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#061310"/>
+      <stop offset=".56" stop-color="#12332c"/>
+      <stop offset="1" stop-color="#0a0c0b"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10231f"/>
+      <stop offset="1" stop-color="#0a1512"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="28" stdDeviation="34" flood-color="#000" flood-opacity=".45"/>
+    </filter>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0v36" fill="none" stroke="#ffffff" stroke-opacity=".045" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect width="1440" height="900" fill="url(#grid)"/>
+  <circle cx="1210" cy="120" r="270" fill="#10d9b3" opacity=".13"/>
+  <circle cx="220" cy="780" r="320" fill="#f0b45b" opacity=".1"/>
+
+  <g transform="translate(64 62)">
+    <rect width="1312" height="776" rx="38" fill="#08100e" opacity=".76" stroke="#ffffff" stroke-opacity=".09"/>
+    <rect width="236" height="776" rx="38" fill="#050908" opacity=".82"/>
+    <text x="52" y="92" fill="#10d9b3" font-family="Fraunces, Georgia, serif" font-size="52" font-weight="850">Deefy</text>
+    <g font-family="Archivo, Arial, sans-serif" font-size="18" font-weight="700">
+      <text x="54" y="180" fill="#6c7d78">Home</text>
+      <rect x="34" y="218" width="168" height="52" rx="18" fill="#0e2c25"/>
+      <text x="54" y="251" fill="#10d9b3">Admin</text>
+      <text x="54" y="322" fill="#6c7d78">Playlists</text>
+      <text x="54" y="374" fill="#6c7d78">Configuracoes</text>
+    </g>
+
+    <text x="292" y="104" fill="#f4f2e9" font-family="Archivo, Arial, sans-serif" font-size="38" font-weight="900">Painel admin - importar playlist</text>
+    <text x="292" y="142" fill="#9db1aa" font-family="Archivo, Arial, sans-serif" font-size="18">YouTube para Supabase Storage e PostgreSQL, com logs e retomada parcial.</text>
+
+    <g transform="translate(292 190)" filter="url(#shadow)">
+      <rect width="556" height="466" rx="30" fill="url(#panel)" stroke="#ffffff" stroke-opacity=".11"/>
+      <text x="34" y="54" fill="#ffffff" font-family="Archivo, Arial, sans-serif" font-size="24" font-weight="900">Nova importacao</text>
+      <text x="34" y="92" fill="#9db1aa" font-family="Archivo, Arial, sans-serif" font-size="16">O admin informa playlist, genero, artista e limite.</text>
+      <g font-family="Archivo, Arial, sans-serif">
+        <text x="34" y="142" fill="#b8c8c2" font-size="14" font-weight="800">URL da playlist</text>
+        <rect x="34" y="154" width="488" height="52" rx="16" fill="#09110f" stroke="#1f4a42"/>
+        <text x="54" y="187" fill="#e8f0ec" font-size="16">https://youtube.com/playlist?list=...</text>
+        <text x="34" y="242" fill="#b8c8c2" font-size="14" font-weight="800">Genero</text>
+        <rect x="34" y="254" width="220" height="52" rx="16" fill="#09110f" stroke="#1f4a42"/>
+        <text x="54" y="287" fill="#e8f0ec" font-size="16">Heavy Metal</text>
+        <text x="286" y="242" fill="#b8c8c2" font-size="14" font-weight="800">Artista</text>
+        <rect x="286" y="254" width="236" height="52" rx="16" fill="#09110f" stroke="#1f4a42"/>
+        <text x="306" y="287" fill="#e8f0ec" font-size="16">Sepultura</text>
+        <rect x="34" y="344" width="488" height="64" rx="20" fill="#10d9b3"/>
+        <text x="206" y="384" fill="#06231d" font-size="18" font-weight="900">Iniciar importacao</text>
+      </g>
+    </g>
+
+    <g transform="translate(884 190)" filter="url(#shadow)">
+      <rect width="392" height="214" rx="30" fill="url(#panel)" stroke="#ffffff" stroke-opacity=".11"/>
+      <text x="28" y="52" fill="#ffffff" font-family="Archivo, Arial, sans-serif" font-size="22" font-weight="900">Cookies do YouTube</text>
+      <text x="28" y="86" fill="#9db1aa" font-family="Archivo, Arial, sans-serif" font-size="15">Secret operacional fora do Git.</text>
+      <rect x="28" y="116" width="336" height="52" rx="16" fill="#09110f" stroke="#1f4a42"/>
+      <text x="48" y="149" fill="#e8f0ec" font-family="JetBrains Mono, monospace" font-size="15">youtube-cookies.txt</text>
+      <circle cx="332" cy="142" r="12" fill="#10d9b3"/>
+    </g>
+
+    <g transform="translate(884 438)" filter="url(#shadow)">
+      <rect width="392" height="218" rx="30" fill="#07100d" stroke="#ffffff" stroke-opacity=".11"/>
+      <text x="28" y="48" fill="#ffffff" font-family="Archivo, Arial, sans-serif" font-size="22" font-weight="900">Log em tempo real</text>
+      <g font-family="JetBrains Mono, monospace" font-size="14">
+        <text x="28" y="88" fill="#10d9b3">[1/16] Roots Bloody Roots</text>
+        <text x="28" y="118" fill="#d7e3de">[download] 100% audio.webm</text>
+        <text x="28" y="148" fill="#d7e3de">[ExtractAudio] mp3 gerado</text>
+        <text x="28" y="178" fill="#f0b45b">[playlist_musica] vinculo ok</text>
+      </g>
+    </g>
+
+    <g transform="translate(322 702)" font-family="Archivo, Arial, sans-serif" font-weight="900">
+      <rect width="160" height="54" rx="18" fill="#0d2d26" stroke="#10d9b3" stroke-opacity=".32"/>
+      <text x="42" y="35" fill="#8ff4df" font-size="16">yt-dlp</text>
+      <path d="M170 27h116" stroke="#10d9b3" stroke-width="4" stroke-linecap="round"/>
+      <path d="M282 18l18 9-18 9" fill="none" stroke="#10d9b3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="312" width="160" height="54" rx="18" fill="#0d2d26" stroke="#10d9b3" stroke-opacity=".32"/>
+      <text x="357" y="35" fill="#8ff4df" font-size="16">ffmpeg</text>
+      <path d="M482 27h116" stroke="#10d9b3" stroke-width="4" stroke-linecap="round"/>
+      <path d="M594 18l18 9-18 9" fill="none" stroke="#10d9b3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="624" width="204" height="54" rx="18" fill="#0d2d26" stroke="#10d9b3" stroke-opacity=".32"/>
+      <text x="661" y="35" fill="#8ff4df" font-size="16">Supabase Storage</text>
+    </g>
+  </g>
+</svg>

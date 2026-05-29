@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://deefy.olua.me')
+const API_BASE_URL = (import.meta.env.VITE_API_URL || window.location.origin)
   .replace(/\/api\/v1\/?$/, '')
   .replace(/\/$/, '')
 
