@@ -42,3 +42,26 @@ export function getRoleFromToken(token) {
   // Spring Boot JWT usually stores roles in one of these fields:
   return payload.role || payload.roles?.[0] || payload.authorities?.[0] || null;
 }
+
+/**
+ * Checks whether a JWT is expired using the client clock.
+ *
+ * This does not replace server-side validation. It only prevents the UI from
+ * keeping an obviously expired session and loading protected pages with a dead
+ * token.
+ *
+ * @param {string} token
+ * @param {number} clockToleranceSeconds
+ * @returns {boolean}
+ */
+export function isJwtExpired(token, clockToleranceSeconds = 30) {
+  const payload = decodeJwtPayload(token);
+  const expiration = Number(payload?.exp);
+
+  if (!Number.isFinite(expiration)) {
+    return true;
+  }
+
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  return expiration <= nowInSeconds + clockToleranceSeconds;
+}

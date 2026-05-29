@@ -68,11 +68,17 @@ api.interceptors.response.use(
       customError.data = error.response.data;
       customError.message = error.response.data?.message || `Erro do Servidor: ${error.response.status}`;
 
-      // Desloga o usuário se a sessão expirar (401 Unauthorized), ignorando rotas de autenticação
+      // Desloga o usuário se a sessão expirar, ignorando rotas de autenticação.
+      // O backend atual retorna 403 quando o JWT está ausente/inválido/expirado.
       const isAuthRoute = error.config?.url?.includes('/auth/');
-      if (error.response.status === 401 && !isAuthRoute) {
+      const isSessionInvalid = error.response.status === 401 || error.response.status === 403;
+
+      if (isSessionInvalid && !isAuthRoute) {
         removeToken();
-        window.location.href = '/login';
+
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
     } else if (error.request) {
       // A requisição foi feita mas não houve resposta (ex: servidor fora do ar, erro de CORS ou timeout)

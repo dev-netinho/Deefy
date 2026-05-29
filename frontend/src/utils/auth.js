@@ -1,34 +1,51 @@
+import { isJwtExpired } from './jwt';
+
 // Chave que será usada no localStorage (buscada do .env para organização)
 const TOKEN_KEY = import.meta.env.VITE_STORAGE_TOKEN_KEY || "@deefy-token";
 const ROLE_KEY = "@deefy-role";
+const AUTH_KEY = "@deefy-auth";
+
+function clearStoredAuth() {
+  localStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem("@deefy-user");
+  localStorage.removeItem(ROLE_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+}
 
 /**
  * Marca o usuário como autenticado e salva o JWT
  * @param {string} token
  */
 export const setToken = (token) => {
-  localStorage.setItem("@deefy-auth", "true");
-  if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
+  if (!token || isJwtExpired(token)) {
+    clearStoredAuth();
+    return;
   }
+
+  localStorage.setItem(AUTH_KEY, "true");
+  localStorage.setItem(TOKEN_KEY, token);
 };
 
 /**
- * Busca o token JWT salvo
+ * Busca o token JWT salvo, ignorando sessões inválidas ou expiradas.
  * @returns {string | null}
  */
 export const getToken = () => {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  if (!token || isJwtExpired(token)) {
+    clearStoredAuth();
+    return null;
+  }
+
+  return token;
 };
 
 /**
  * Remove o token e dados de sessão (Logout)
  */
 export const removeToken = () => {
-  localStorage.removeItem("@deefy-auth");
-  localStorage.removeItem("@deefy-user");
-  localStorage.removeItem(ROLE_KEY);
-  localStorage.removeItem(TOKEN_KEY);
+  clearStoredAuth();
 };
 
 /**
@@ -36,7 +53,7 @@ export const removeToken = () => {
  * @returns {boolean}
  */
 export const isAuthenticated = () => {
-  return localStorage.getItem("@deefy-auth") === "true";
+  return localStorage.getItem(AUTH_KEY) === "true" && Boolean(getToken());
 };
 
 /**
