@@ -164,6 +164,8 @@ adequado para publicacao open source.
 - [Saylon Batista](https://github.com/saylonrb)
 - [Vitoria Ribas](https://github.com/vitoria-ribas)
 - [Daniele Araujo](https://github.com/gutdani)
+- [Luiz Meneses](https://github.com/MenesesLuiz)
+
 
 Se voce tambem participou do projeto, adicione seu nome e perfil GitHub nesta
 secao.
