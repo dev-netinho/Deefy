@@ -1,6 +1,6 @@
 # Deefy
 
-Deefy e uma plataforma academica de streaming musical desenvolvida com
+Deefy é uma plataforma academica de streaming musical desenvolvida com
 frontend React/Vite, backend Java/Spring Boot, PostgreSQL e uma stack de deploy
 containerizada.
 
