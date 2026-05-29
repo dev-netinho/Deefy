@@ -162,6 +162,7 @@ adequado para publicacao open source.
 - [Jose G. C. Neto](https://github.com/dev-netinho)
 - [Hanrry Santos](https://github.com/hanrrysantos)
 - [Saylon Batista](https://github.com/saylonrb)
+- [Vitoria Ribas](https://github.com/vitoria-ribas)
 
 Se voce tambem participou do projeto, adicione seu nome e perfil GitHub nesta
 secao.
