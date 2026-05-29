@@ -160,6 +160,7 @@ adequado para publicacao open source.
 ## Contribuidores
 
 - [Jose G. C. Neto](https://github.com/dev-netinho)
+- [Hanrry Santos](https://github.com/hanrrysantos)
 
 Se voce tambem participou do projeto, adicione seu nome e perfil GitHub nesta
 secao.
