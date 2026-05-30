@@ -166,10 +166,11 @@ adequado para publicacao open source.
 - [Daniele Araujo](https://github.com/gutdani)
 - [Luiz Meneses](https://github.com/MenesesLuiz)
 - [Lucas Henrique](https://github.com/LucaasHenrique)
+- [Nicolas Gabriel](https://github.com/NicolasGabriel-dev)
 
 
 Se voce tambem participou do projeto, adicione seu nome e perfil GitHub nesta
-secao.
+seção.
 
 ## Licenca
 
