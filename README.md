@@ -165,6 +165,7 @@ adequado para publicacao open source.
 - [Vitoria Ribas](https://github.com/vitoria-ribas)
 - [Daniele Araujo](https://github.com/gutdani)
 - [Luiz Meneses](https://github.com/MenesesLuiz)
+- [Lucas Henrique](https://github.com/LucaasHenrique)
 
 
 Se voce tambem participou do projeto, adicione seu nome e perfil GitHub nesta
